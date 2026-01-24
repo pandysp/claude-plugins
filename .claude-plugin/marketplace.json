@@ -1,0 +1,24 @@
+{
+  "name": "pandysp",
+  "description": "Claude Code plugins by pandysp",
+  "owner": {
+    "name": "pandysp"
+  },
+  "plugins": [
+    {
+      "name": "ty-lsp",
+      "description": "Python type checker (ty) from Astral - An extremely fast LSP alternative to Pyright",
+      "version": "1.0.0",
+      "source": {
+        "source": "github",
+        "repo": "pandysp/ty-lsp-claude-code"
+      },
+      "author": {
+        "name": "pandysp"
+      },
+      "keywords": ["python", "type-checker", "lsp", "ty", "astral"],
+      "homepage": "https://github.com/astral-sh/ty",
+      "license": "MIT"
+    }
+  ]
+}
