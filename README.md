@@ -16,7 +16,7 @@ A collection of Claude Code plugins.
 
 | Plugin | Description |
 |--------|-------------|
-| [ty-lsp](https://github.com/pandysp/ty-lsp-claude-code) | Python type checker (ty) from Astral - extremely fast LSP alternative to Pyright |
+| [ty-lsp](./plugins/ty-lsp) | Python type checker (ty) from Astral - extremely fast LSP alternative to Pyright |
 
 ## License
 

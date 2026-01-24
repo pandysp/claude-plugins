@@ -1,6 +1,8 @@
 {
   "name": "pandysp",
-  "description": "Claude Code plugins by pandysp",
+  "metadata": {
+    "description": "Claude Code plugins by pandysp"
+  },
   "owner": {
     "name": "pandysp"
   },
@@ -8,11 +10,8 @@
     {
       "name": "ty-lsp",
       "description": "Python type checker (ty) from Astral - An extremely fast LSP alternative to Pyright",
+      "source": "./plugins/ty-lsp",
       "version": "1.0.0",
-      "source": {
-        "source": "github",
-        "repo": "pandysp/ty-lsp-claude-code"
-      },
       "author": {
         "name": "pandysp"
       },
