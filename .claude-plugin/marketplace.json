@@ -9,15 +9,11 @@
   "plugins": [
     {
       "name": "ty-lsp",
-      "description": "Python type checker (ty) from Astral - An extremely fast LSP alternative to Pyright",
-      "source": "./plugins/ty-lsp",
-      "version": "1.0.0",
-      "author": {
-        "name": "pandysp"
-      },
-      "keywords": ["python", "type-checker", "lsp", "ty", "astral"],
-      "homepage": "https://github.com/astral-sh/ty",
-      "license": "MIT"
+      "source": "./plugins/ty-lsp"
+    },
+    {
+      "name": "typescript-lsp",
+      "source": "./plugins/typescript-lsp"
     }
   ]
 }
