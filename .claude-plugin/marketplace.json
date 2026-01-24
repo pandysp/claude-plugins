@@ -4,22 +4,28 @@
     "description": "Claude Code plugins by pandysp"
   },
   "owner": {
-    "name": "pandysp"
+    "name": "Andreas Spannagel"
   },
   "plugins": [
     {
       "name": "ty-lsp",
-      "description": "Python type checker (ty) from Astral - An extremely fast LSP alternative to Pyright",
+      "description": "Python language server (ty) for Claude Code",
       "source": "./plugins/ty-lsp",
       "category": "development",
-      "keywords": ["python", "type-checker", "lsp", "ty", "astral"]
+      "keywords": ["python", "type-checker", "lsp", "ty", "astral"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
     },
     {
       "name": "typescript-lsp",
       "description": "TypeScript/JavaScript language server for Claude Code",
       "source": "./plugins/typescript-lsp",
       "category": "development",
-      "keywords": ["typescript", "javascript", "lsp", "ts", "js"]
+      "keywords": ["typescript", "javascript", "lsp", "ts", "js"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
     }
   ]
 }

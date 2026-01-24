@@ -3,7 +3,7 @@
   "description": "TypeScript/JavaScript language server for Claude Code",
   "version": "1.0.0",
   "author": {
-    "name": "pandysp"
+    "name": "Andreas Spannagel"
   },
   "homepage": "https://github.com/typescript-language-server/typescript-language-server",
   "license": "MIT",

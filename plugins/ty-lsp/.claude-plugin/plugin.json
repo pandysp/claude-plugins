@@ -1,9 +1,9 @@
 {
   "name": "ty-lsp",
-  "description": "Python type checker (ty) from Astral - An extremely fast LSP alternative to Pyright",
+  "description": "Python language server (ty) for Claude Code",
   "version": "1.0.0",
   "author": {
-    "name": "pandysp"
+    "name": "Andreas Spannagel"
   },
   "homepage": "https://github.com/astral-sh/ty",
   "license": "MIT",
