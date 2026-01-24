@@ -7,8 +7,6 @@
   },
   "homepage": "https://github.com/typescript-language-server/typescript-language-server",
   "license": "MIT",
-  "category": "development",
-  "keywords": ["typescript", "javascript", "lsp", "ts", "js"],
   "lspServers": {
     "typescript": {
       "command": "typescript-language-server",

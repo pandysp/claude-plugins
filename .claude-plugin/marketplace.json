@@ -9,11 +9,17 @@
   "plugins": [
     {
       "name": "ty-lsp",
-      "source": "./plugins/ty-lsp"
+      "description": "Python type checker (ty) from Astral - An extremely fast LSP alternative to Pyright",
+      "source": "./plugins/ty-lsp",
+      "category": "development",
+      "keywords": ["python", "type-checker", "lsp", "ty", "astral"]
     },
     {
       "name": "typescript-lsp",
-      "source": "./plugins/typescript-lsp"
+      "description": "TypeScript/JavaScript language server for Claude Code",
+      "source": "./plugins/typescript-lsp",
+      "category": "development",
+      "keywords": ["typescript", "javascript", "lsp", "ts", "js"]
     }
   ]
 }
