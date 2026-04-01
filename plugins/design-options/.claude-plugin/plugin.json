@@ -1,0 +1,10 @@
+{
+  "name": "design-options",
+  "description": "Generate multiple strong design options with explicit tradeoff profiles, starting from the ideal architecture.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT"
+}

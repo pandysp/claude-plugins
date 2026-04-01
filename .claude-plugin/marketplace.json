@@ -46,6 +46,26 @@
       "author": {
         "name": "Andreas Spannagel"
       }
+    },
+    {
+      "name": "pre-mortem",
+      "description": "Systematically identify how a plan or design could fail before committing to it",
+      "source": "./plugins/pre-mortem",
+      "category": "workflow",
+      "keywords": ["risk", "failure", "pre-mortem", "analysis", "detection"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
+    },
+    {
+      "name": "design-options",
+      "description": "Generate multiple strong design options with explicit tradeoff profiles, starting from the ideal",
+      "source": "./plugins/design-options",
+      "category": "workflow",
+      "keywords": ["design", "architecture", "options", "tradeoffs", "ideal"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
     }
   ]
 }
