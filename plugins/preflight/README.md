@@ -1,6 +1,6 @@
-# reflect
+# preflight
 
-A Claude Code plugin that makes the agent honestly assess the current state of its work.
+A Claude Code plugin that makes the agent honestly assess the current state of its work before shipping.
 
 ## Why
 
@@ -19,7 +19,7 @@ The key insight: ask "**how** happy are you?" not "**are** you happy?" — the f
 ## Usage
 
 ```
-/reflect
+/preflight
 ```
 
 Or just ask naturally: "How happy are you with the current state?"
@@ -30,7 +30,7 @@ The agent will review actual files and diffs (not just memory), assess across co
 
 ```bash
 /plugin marketplace add pandysp/claude-plugins
-/plugin install reflect@pandysp
+/plugin install preflight@pandysp
 ```
 
 ## License

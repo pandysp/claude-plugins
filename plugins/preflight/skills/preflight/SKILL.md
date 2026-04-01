@@ -1,9 +1,9 @@
 ---
-name: reflect
-description: Honest self-assessment of the current state of work. Use when the user asks "how happy are you", "how do you feel about this", "reflect on the state", "honest assessment", "are you satisfied", "what's the state of things", or /reflect. This is about surfacing what's genuinely good, what's incomplete, what's buggy, and what could be better — with concrete actionable items.
+name: preflight
+description: Honest self-assessment of the current state of work before shipping. Use when the user asks "how happy are you", "how do you feel about this", "preflight check", "honest assessment", "are you satisfied", "what's the state of things", or /preflight. This is about surfacing what's genuinely good, what's incomplete, what's buggy, and what could be better — with concrete actionable items.
 ---
 
-# Reflect
+# Preflight
 
 Stop and honestly assess: how happy are you with the current state of the work?
 
