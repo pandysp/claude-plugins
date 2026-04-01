@@ -36,6 +36,16 @@
       "author": {
         "name": "Andreas Spannagel"
       }
+    },
+    {
+      "name": "verify",
+      "description": "Black-box end-to-end verification — actually runs the system and shows evidence that it works",
+      "source": "./plugins/verify",
+      "category": "workflow",
+      "keywords": ["verify", "test", "end-to-end", "proof", "evidence", "black-box"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
     }
   ]
 }
