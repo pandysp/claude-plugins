@@ -26,6 +26,16 @@
       "author": {
         "name": "Andreas Spannagel"
       }
+    },
+    {
+      "name": "reflect",
+      "description": "Honest self-assessment that surfaces incomplete work, missing verifications, and improvement ideas",
+      "source": "./plugins/reflect",
+      "category": "workflow",
+      "keywords": ["reflect", "review", "assessment", "quality", "self-check"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
     }
   ]
 }
