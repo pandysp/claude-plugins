@@ -1,0 +1,24 @@
+{
+  "name": "pre-mortem",
+  "version": "1.0.0",
+  "description": "Systematically identify how a plan or design could fail before committing to it.",
+  "author": {
+    "name": "Andreas Spannagel",
+    "url": "https://github.com/pandysp"
+  },
+  "repository": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT",
+  "keywords": ["risk", "failure", "pre-mortem", "analysis", "detection"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Pre-Mortem",
+    "shortDescription": "Identify how plans could fail before you commit",
+    "category": "Workflow",
+    "capabilities": ["Read"],
+    "defaultPrompt": [
+      "What could go wrong with this plan?",
+      "Pre-mortem this design",
+      "What are the failure modes?"
+    ]
+  }
+}

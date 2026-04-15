@@ -1,0 +1,24 @@
+{
+  "name": "preflight",
+  "version": "1.0.0",
+  "description": "Honest self-assessment that surfaces incomplete work, missing verifications, and improvement ideas before shipping.",
+  "author": {
+    "name": "Andreas Spannagel",
+    "url": "https://github.com/pandysp"
+  },
+  "repository": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT",
+  "keywords": ["reflect", "review", "assessment", "quality", "self-check"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Preflight",
+    "shortDescription": "Honest self-assessment before shipping",
+    "category": "Workflow",
+    "capabilities": ["Read"],
+    "defaultPrompt": [
+      "How happy are you with this?",
+      "Preflight check",
+      "Honest assessment before we ship"
+    ]
+  }
+}

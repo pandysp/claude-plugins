@@ -1,0 +1,24 @@
+{
+  "name": "verify-claims",
+  "version": "1.0.0",
+  "description": "Identify and verify unverified claims in AI responses before presenting them as conclusions.",
+  "author": {
+    "name": "Andreas Spannagel",
+    "url": "https://github.com/pandysp"
+  },
+  "repository": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT",
+  "keywords": ["verify", "claims", "proof", "evidence", "accuracy", "confabulation"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Verify Claims",
+    "shortDescription": "Catch and verify unverified claims before they become conclusions",
+    "category": "Workflow",
+    "capabilities": ["Read"],
+    "defaultPrompt": [
+      "Verify the claims in your last response",
+      "Back that up with evidence",
+      "Check your claims"
+    ]
+  }
+}
