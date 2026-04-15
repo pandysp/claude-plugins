@@ -1,7 +1,7 @@
 {
   "name": "verify-claims",
-  "description": "Identify and verify unverified claims in Claude's own responses before presenting them as conclusions.",
-  "version": "1.0.0",
+  "description": "Identify and verify unverified claims in your own responses before presenting them as conclusions.",
+  "version": "1.0.1",
   "author": {
     "name": "Andreas Spannagel"
   },
