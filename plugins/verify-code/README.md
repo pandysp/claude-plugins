@@ -1,4 +1,4 @@
-# verify
+# verify-code
 
 A Claude Code plugin that forces black-box, end-to-end verification of implemented work.
 
@@ -18,7 +18,7 @@ AI agents claim things work because they wrote the code. "The tests pass" isn't 
 ## Usage
 
 ```
-/verify
+/verify-code
 ```
 
 Or just say: "Prove it works."
@@ -27,7 +27,7 @@ Or just say: "Prove it works."
 
 ```bash
 /plugin marketplace add pandysp/claude-plugins
-/plugin install verify@pandysp
+/plugin install verify-code@pandysp
 ```
 
 ## License

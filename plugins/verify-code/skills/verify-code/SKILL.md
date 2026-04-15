@@ -1,6 +1,6 @@
 ---
-name: verify
-description: Prove that implemented work actually works by running it end-to-end and showing evidence. Use when the user says "verify", "prove it works", "test this end-to-end", "show me it works", "does it actually work", "try it out", or /verify. Also trigger proactively after completing implementation (Phase 4 of the development workflow). This is about black-box verification from the outside — not reading code, not running unit tests, but actually using the system and showing what happens.
+name: verify-code
+description: Prove that implemented work actually works by running it end-to-end and showing evidence. Use when the user says "verify code", "prove it works", "test this end-to-end", "show me it works", "does it actually work", "try it out", or /verify-code. Also trigger proactively after completing implementation (Phase 4 of the development workflow). This is about black-box verification from the outside — not reading code, not running unit tests, but actually using the system and showing what happens.
 ---
 
 # Verify

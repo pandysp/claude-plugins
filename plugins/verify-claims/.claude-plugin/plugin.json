@@ -1,0 +1,10 @@
+{
+  "name": "verify-claims",
+  "description": "Identify and verify unverified claims in Claude's own responses before presenting them as conclusions.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT"
+}

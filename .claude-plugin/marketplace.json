@@ -38,11 +38,21 @@
       }
     },
     {
-      "name": "verify",
+      "name": "verify-code",
       "description": "Black-box end-to-end verification — actually runs the system and shows evidence that it works",
-      "source": "./plugins/verify",
+      "source": "./plugins/verify-code",
       "category": "workflow",
       "keywords": ["verify", "test", "end-to-end", "proof", "evidence", "black-box"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
+    },
+    {
+      "name": "verify-claims",
+      "description": "Identify and verify unverified claims in Claude's own responses before presenting them as conclusions",
+      "source": "./plugins/verify-claims",
+      "category": "workflow",
+      "keywords": ["verify", "claims", "proof", "evidence", "accuracy", "confabulation"],
       "author": {
         "name": "Andreas Spannagel"
       }

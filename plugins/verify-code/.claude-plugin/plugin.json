@@ -1,5 +1,5 @@
 {
-  "name": "verify",
+  "name": "verify-code",
   "description": "Black-box end-to-end verification — actually runs the system and shows evidence that it works.",
   "version": "1.0.0",
   "author": {

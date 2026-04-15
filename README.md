@@ -14,21 +14,15 @@ A collection of Claude Code plugins.
 
 ## Available Plugins
 
-| Plugin | Description |
-|--------|-------------|
-| [typescript-lsp](./plugins/typescript-lsp) | TypeScript/JavaScript language server |
-
-## Looking for a Python (ty) plugin?
-
-The ty-lsp plugin previously in this repo has been superseded by the official [Astral plugin](https://github.com/astral-sh/claude-code-plugins), which provides ty integration along with ruff and uv skills.
-
-```bash
-# Add the Astral marketplace
-/plugin marketplace add astral-sh/claude-code-plugins
-
-# Install the Astral plugin
-/plugin install astral@astral-sh
-```
+| Plugin | Category | Description |
+|--------|----------|-------------|
+| [verify-claims](./plugins/verify-claims) | Workflow | Identify and verify unverified claims before presenting them as conclusions |
+| [verify-code](./plugins/verify-code) | Workflow | Black-box end-to-end verification — runs the system and shows evidence |
+| [second-opinion](./plugins/second-opinion) | Workflow | Get 1-3 independent second opinions from other models |
+| [preflight](./plugins/preflight) | Workflow | Honest self-assessment before shipping |
+| [pre-mortem](./plugins/pre-mortem) | Workflow | Identify how a plan or design could fail before committing |
+| [design-options](./plugins/design-options) | Workflow | Generate multiple strong design options with tradeoff profiles |
+| [typescript-lsp](./plugins/typescript-lsp) | Development | TypeScript/JavaScript language server |
 
 ## License
 
