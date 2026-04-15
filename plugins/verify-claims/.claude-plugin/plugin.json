@@ -1,7 +1,7 @@
 {
   "name": "verify-claims",
-  "description": "Identify and verify unverified claims in your own responses before presenting them as conclusions.",
-  "version": "1.0.1",
+  "description": "Identify and verify unverified claims in the agent's own responses before presenting them as conclusions.",
+  "version": "1.0.2",
   "author": {
     "name": "Andreas Spannagel"
   },
