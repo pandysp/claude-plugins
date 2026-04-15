@@ -84,7 +84,7 @@ Don't soft-pedal. The value of a pre-mortem is uncomfortable honesty before comm
 
 For each significant failure mode:
 - **What fails**: Specific mechanism, not vague hand-waving
-- **Why it's dangerous**: Likelihood × impact × detectability
+- **Why it's dangerous**: Likelihood x impact x detectability
 - **How you'd detect it**: Concrete signal
 - **What you'd do about it**: Mitigate now, accept the risk, or redesign
 
