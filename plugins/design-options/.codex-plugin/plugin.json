@@ -1,0 +1,24 @@
+{
+  "name": "design-options",
+  "version": "1.0.0",
+  "description": "Generate multiple strong design options with explicit tradeoff profiles, starting from the ideal architecture.",
+  "author": {
+    "name": "Andreas Spannagel",
+    "url": "https://github.com/pandysp"
+  },
+  "repository": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT",
+  "keywords": ["design", "architecture", "options", "tradeoffs", "ideal"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Design Options",
+    "shortDescription": "Strong design options with explicit tradeoff profiles",
+    "category": "Workflow",
+    "capabilities": ["Read"],
+    "defaultPrompt": [
+      "What are my options for this?",
+      "Design this — show me the tradeoffs",
+      "Give me design options"
+    ]
+  }
+}

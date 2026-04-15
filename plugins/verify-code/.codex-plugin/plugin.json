@@ -1,0 +1,24 @@
+{
+  "name": "verify-code",
+  "version": "1.0.0",
+  "description": "Black-box end-to-end verification — actually runs the system and shows evidence that it works.",
+  "author": {
+    "name": "Andreas Spannagel",
+    "url": "https://github.com/pandysp"
+  },
+  "repository": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT",
+  "keywords": ["verify", "test", "end-to-end", "proof", "evidence", "black-box"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Verify Code",
+    "shortDescription": "Prove implementations work by running them end-to-end",
+    "category": "Workflow",
+    "capabilities": ["Read", "Write"],
+    "defaultPrompt": [
+      "Verify this works end-to-end",
+      "Prove it works",
+      "Test this from the outside"
+    ]
+  }
+}
