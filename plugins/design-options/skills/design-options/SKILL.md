@@ -69,6 +69,7 @@ Keep it scannable. For each option:
 **Opens:** [future possibilities]
 **Closes:** [future constraints]
 **Breaks down when:** [the context where this becomes wrong]
+**Rests on:** [the single most load-bearing claim — if this is false, the option's case collapses]
 ```
 
 Then:
@@ -78,6 +79,30 @@ Then:
 
 [Which option and why — 2-3 sentences]
 ```
+
+## Before presenting the lean
+
+Three chained checks. Default = invoke each. Skip only when the decision is demonstrably trivial (single obvious path, no meaningful tradeoffs, or mechanical application of a well-tested pattern).
+
+### 1. Verify the foundation
+
+Invoke `/verify-claims` on every `Rests on:` line whose truth could change your lean — at minimum the lean option's, often competing options' too. Do not present the lean until critical claims are verified or explicitly flagged as UNVERIFIABLE. If the lean rests on something UNVERIFIABLE, state that uncertainty plainly in the lean itself.
+
+### 2. Pre-mortem the lean
+
+Invoke `/pre-mortem` on the lean. Surfaces failure modes you can find yourself before asking for outside input.
+
+### 3. Second opinion on the lean
+
+Invoke `/second-opinion` on the lean. Provides an independent assessment that catches what the prior stages missed.
+
+### 4. Steel-man if the lean came under pressure
+
+If any of steps 1-3 surfaced findings that threaten the lean — a load-bearing claim failing verification, a serious failure mode with no mitigation, a reviewer divergence that isn't obvious style-preference — invoke `/steel-man-own-position` before deciding whether to update. Prevents capitulation to findings that hit weak flanks while the strong core still stands.
+
+If nothing in steps 1-3 threatens the lean, skip this step.
+
+**Guardrail against "no real pressure, skip it" self-deception:** if second-opinion proposed a different option, that counts as pressure by default. If verify-claims flagged anything load-bearing as UNVERIFIABLE or DISPROVEN, that counts. If pre-mortem found a serious + undetectable failure mode, that counts.
 
 ## Anti-patterns
 
