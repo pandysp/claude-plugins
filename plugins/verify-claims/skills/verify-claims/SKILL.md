@@ -1,6 +1,6 @@
 ---
 name: verify-claims
-description: Identify and verify unverified claims in your own responses. Self-invoke this skill proactively after producing any analysis, diagnosis, root cause explanation, or causal reasoning ("X caused Y", "this broke because...", "they changed..."). Also trigger when you catch yourself using hedging language ("likely", "probably", "presumably", "appears to", "seems like") — that hedging is a signal you're uncertain but might present the claim anyway. Trigger manually on "verify claims", "prove it", "back that up", "check your claims", or /verify-claims.
+description: Identify and verify unverified claims in your own responses — especially LOAD-BEARING ones: claims about to drive a design decision, commit, diagnosis, or user-visible recommendation. Self-invoke proactively when a claim is about to become the foundation for action. Also trigger when you catch yourself using hedging language ("likely", "probably", "presumably", "appears to", "seems like") — that hedging is a signal you're uncertain but might present the claim anyway. Trigger manually on "verify claims", "prove it", "back that up", "check your claims", or /verify-claims.
 ---
 
 # Verify Claims

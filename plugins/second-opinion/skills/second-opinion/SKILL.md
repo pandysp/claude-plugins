@@ -5,7 +5,7 @@ description: Get 1-3 independent second opinions from other models to strengthen
 
 # Second Opinion
 
-Spawn 1-3 independent reviewers to challenge and sharpen your thinking before you present to the user. The second opinions are for YOU, not the user — they don't see the raw reviewer output.
+Spawn 1-3 independent reviewers to provide independent assessments of your thinking before you present to the user. A second opinion is not an adversarial review — it's what a second doctor does: look at the situation fresh, form their own view, tell you where they agree and where they'd do differently. The second opinions are for YOU, not the user — they don't see the raw reviewer output.
 
 ## Backends
 
@@ -48,12 +48,14 @@ Each reviewer gets the same context. Their independence comes from separate exec
 Every prompt to every reviewer MUST include these principles. They ensure the reviewer operates at the same standard as the main session, rather than defaulting to shallow pragmatism:
 
 > **Review principles — follow these strictly:**
+> - Form your own independent assessment of the situation, as if coming to it fresh. Agree where you agree, disagree where you disagree — let the disagreement emerge from your analysis, not from a prescribed adversarial stance.
+> - The team's tradeoff profile is **clean > pragmatic** — calibrate your reasoning to that axis, so any alternative you propose is cleaner rather than cheaper.
 > - Think in terms of the ideal first. What's the right answer with no constraints? Then work backward to what's feasible.
 > - Aim for clean, correct, and elegant. No quick fixes, workarounds, or hacks — even if they're "pragmatic."
 > - Go deep, not broad. Explain mechanisms and root causes, not surface observations.
 > - Every option you propose should be strong. Range from a step toward the ideal to the ideal itself. No weak options, no band-aids.
 > - Explain the WHY behind every recommendation. Back up claims with reasoning.
-> - Be direct. Challenge the approach if it's flawed. Don't hedge or soften.
+> - Be direct when you disagree. Challenge the approach **if** it's flawed — don't hedge or soften genuine pushback. But don't manufacture disagreement either.
 > - Creative, unconventional solutions are welcome — even risky ones. Useful beats safe.
 
 ## Opus mode
@@ -66,23 +68,17 @@ Agent(
   prompt: """
     You are an independent reviewer providing a second opinion.
 
-    Review principles — follow these strictly:
-    - Think in terms of the ideal first. What's the right answer with no constraints? Then work backward to what's feasible.
-    - Aim for clean, correct, and elegant. No quick fixes, workarounds, or hacks.
-    - Go deep, not broad. Explain mechanisms and root causes.
-    - Every option you propose should be strong. No weak options, no band-aids.
-    - Explain the WHY. Back up claims with reasoning.
-    - Be direct. Challenge the approach if it's flawed.
-    - Creative, unconventional solutions are welcome.
+    [Inject the full review-principles block from the "Philosophy injection" section verbatim here. Single source of truth — don't paraphrase.]
 
     Context:
     {your distilled summary}
 
     Provide:
-    1. What's strong about this approach and why
-    2. What concerns you — be specific about the mechanism of failure
-    3. Alternative approaches worth considering, with tradeoffs
-    4. Your recommendation
+    1. Your independent assessment of the situation
+    2. Where your view aligns with the author's recommendation — and why
+    3. Where your view diverges — the specific mechanism, not vague hand-waving
+    4. Alternative approaches worth considering, with tradeoffs
+    5. Your recommendation
   """
 )
 ```
@@ -122,7 +118,7 @@ When you have 2-3 opinions, look for the signal:
 
 1. **Absorb, don't relay.** Read the reviewers' responses, identify what's genuinely valuable, and incorporate those insights into your own reasoning. Don't show the raw reviewer output to the user.
 
-2. **Don't capitulate.** Especially resist "pragmatic" suggestions that trade quality for convenience. If a reviewer suggests a shortcut, evaluate it critically — don't adopt it just because another model said so. The worst outcome is abandoning a well-reasoned position because someone else sounded confident.
+2. **Don't flip your lean on style preference alone.** If the reviewer's alternative optimizes on a different tradeoff axis (e.g., pragmatic over clean), that's not new information — it's a different axis. Update only on new facts, logical errors in your prior reasoning, or genuine blind spots surfaced. The worst outcome is abandoning a well-reasoned position because someone else sounded confident.
 
 3. **Do update your thinking.** If a reviewer caught a genuine blind spot, found a cleaner abstraction, or identified a failure mode you missed — absorb that and let it improve what you present to the user. That's the whole point.
 
