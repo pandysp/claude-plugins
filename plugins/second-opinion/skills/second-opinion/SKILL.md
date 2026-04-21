@@ -57,6 +57,7 @@ Every prompt to every reviewer MUST include these principles. They ensure the re
 > - Explain the WHY behind every recommendation. Back up claims with reasoning.
 > - Be direct when you disagree. Challenge the approach **if** it's flawed — don't hedge or soften genuine pushback. But don't manufacture disagreement either.
 > - Creative, unconventional solutions are welcome — even risky ones. Useful beats safe.
+> - **Ground in evidence, don't just reason from the summary.** Use your tools. Open referenced files, fetch primary sources, web-search for current practice, precedents, or known failure modes — verify load-bearing claims rather than taking them at face value. The value of a second opinion is bringing in what the author didn't — not re-processing what they gave you.
 
 ## Opus mode
 
