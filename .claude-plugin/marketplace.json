@@ -76,6 +76,16 @@
       "author": {
         "name": "Andreas Spannagel"
       }
+    },
+    {
+      "name": "steel-man-own-position",
+      "description": "Before flipping a previously-stated lean under pushback, restate the strongest version of your prior position and check whether the triggering argument actually refutes it",
+      "source": "./plugins/steel-man-own-position",
+      "category": "workflow",
+      "keywords": ["steel-man", "position", "lean", "pushback", "capitulation", "resilience"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
     }
   ]
 }
