@@ -82,7 +82,7 @@ Then:
 
 ## Before presenting the lean
 
-Three chained checks. Default = invoke each. Skip only when the decision is demonstrably trivial (single obvious path, no meaningful tradeoffs, or mechanical application of a well-tested pattern).
+Two chained checks. Default = invoke each. Skip only when the decision is demonstrably trivial (single obvious path, no meaningful tradeoffs, or mechanical application of a well-tested pattern).
 
 ### 1. Verify the foundation
 
@@ -90,13 +90,7 @@ Invoke `/verify-claims` on every `Rests on:` line whose truth could change your 
 
 ### 2. Pre-mortem the lean
 
-Invoke `/pre-mortem` on the lean. Surfaces failure modes you can find yourself before asking for outside input.
-
-### 3. Second opinion on the lean
-
-Invoke `/second-opinion` on the lean. Provides an independent assessment that catches what the prior stages missed.
-
-Note: `/second-opinion` invokes `/steel-man-own-position` internally as a mandatory final step whenever a reviewer surfaces material alternatives or reframes. You don't need to invoke steel-man separately here — it's handled inside the second-opinion flow.
+Invoke `/pre-mortem` on the lean. Surfaces failure modes before committing.
 
 ## Anti-patterns
 
