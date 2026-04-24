@@ -124,3 +124,13 @@ When you have 2-3 opinions, look for the signal:
 3. **Do update your thinking.** If a reviewer caught a genuine blind spot, found a cleaner abstraction, or identified a failure mode you missed — absorb that and let it improve what you present to the user. That's the whole point.
 
 4. **When you changed your mind, own it.** If the second opinions genuinely shifted your assessment, present your updated thinking as your own. No need to explain the process — the user cares about the quality of your answer, not how you got there.
+
+## Mandatory: steel-man before finalizing
+
+After integrating the reviewer(s), **always invoke `/steel-man-own-position` before presenting updated thinking to the user.** Not conditional on "did the reviewer push back hard enough" — mandatory on every second-opinion invocation.
+
+**Why mandatory, not conditional:** the failure mode this catches is drift you don't notice. A reviewer's "fresh take" can silently replace the problem you were solving rather than critique your answer, and you'll absorb the reframe as wisdom because it came wrapped in a confident argument. Steel-man forces you to re-articulate your prior position in its strongest form and check whether the reviewer's input actually refutes that core — or whether it's redefining the question. Reframes should trigger a *harder* pass, not a softer one, because they can move everything downstream.
+
+**Specifically check:** is the reviewer critiquing your argument, or replacing the problem your argument was answering? If the latter, re-read the user's explicit stated vision (their words, not your paraphrase) before deciding whether the reframe is an improvement or a drift.
+
+Skip only if the second-opinion reviewer unambiguously affirmed your direction with no substantive alternatives — i.e. the output was "yes, ship it" without new framings. Any material alternative or reframe → steel-man.
