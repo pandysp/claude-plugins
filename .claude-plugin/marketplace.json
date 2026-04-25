@@ -126,6 +126,16 @@
       "author": {
         "name": "Andreas Spannagel"
       }
+    },
+    {
+      "name": "reflect",
+      "description": "Capture durable lessons from a session before they fade — what surprised you, what friction repeated, what should update CLAUDE.md or notes. Output goes to memory, notes, or global instructions, not just to chat",
+      "source": "./plugins/reflect",
+      "category": "workflow",
+      "keywords": ["reflect", "lessons", "retro", "memory", "session-end", "post-mortem"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
     }
   ]
 }
