@@ -86,6 +86,16 @@
       "author": {
         "name": "Andreas Spannagel"
       }
+    },
+    {
+      "name": "align",
+      "description": "Surface what the agent thinks the task is before producing any artifact — a manifest of task interpretation, approach, source coverage, rendering choices, and blocking questions",
+      "source": "./plugins/align",
+      "category": "workflow",
+      "keywords": ["align", "manifest", "interpretation", "shared-understanding", "fabrication", "preflight"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
     }
   ]
 }
