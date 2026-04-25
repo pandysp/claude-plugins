@@ -116,6 +116,16 @@
       "author": {
         "name": "Andreas Spannagel"
       }
+    },
+    {
+      "name": "clarify",
+      "description": "Surface and resolve underspecified decisions before designing — scope, edge behavior, trade-offs, integration, constraints, audience. Asks targeted questions with defaults so design choices aren't locked around hidden assumptions",
+      "source": "./plugins/clarify",
+      "category": "workflow",
+      "keywords": ["clarify", "questions", "ambiguity", "synthesis", "pre-design", "underspecified"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
     }
   ]
 }

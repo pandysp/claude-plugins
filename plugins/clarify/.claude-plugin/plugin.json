@@ -1,0 +1,10 @@
+{
+  "name": "clarify",
+  "description": "Surface and resolve underspecified decisions before designing. Asks targeted questions about scope, edge behavior, trade-offs, integration, constraints, and audience — with defaults — so design choices aren't silently locked around hidden assumptions.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT"
+}
