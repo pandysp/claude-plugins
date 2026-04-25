@@ -1,0 +1,10 @@
+{
+  "name": "silent-failures",
+  "description": "Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks — delegates to the silent-failure-hunter subagent for isolation",
+  "version": "1.0.0",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT"
+}
