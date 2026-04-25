@@ -106,6 +106,16 @@
       "author": {
         "name": "Andreas Spannagel"
       }
+    },
+    {
+      "name": "explore",
+      "description": "Map the terrain before designing — locate, trace, pattern, constrain. Used before any substantive design or planning step. Output is mostly for the agent's grounding; only surprises and hard constraints surface",
+      "source": "./plugins/explore",
+      "category": "workflow",
+      "keywords": ["explore", "terrain", "discovery", "context", "grounding", "pre-design", "exploration"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
     }
   ]
 }
