@@ -96,6 +96,16 @@
       "author": {
         "name": "Andreas Spannagel"
       }
+    },
+    {
+      "name": "silent-failures",
+      "description": "Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks — delegates to a subagent for isolation",
+      "source": "./plugins/silent-failures",
+      "category": "workflow",
+      "keywords": ["error-handling", "silent-failures", "audit", "review", "fallback", "debugging"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
     }
   ]
 }
