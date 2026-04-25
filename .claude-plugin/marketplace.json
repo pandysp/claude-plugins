@@ -126,6 +126,16 @@
       "author": {
         "name": "Andreas Spannagel"
       }
+    },
+    {
+      "name": "handoff",
+      "description": "Write a durable handoff for work that's about to ship — PR descriptions, summaries, memos, or memory notes. Tells the next reader what was built, why, what changed, and what's next, without forcing them to spelunk the diff",
+      "source": "./plugins/handoff",
+      "category": "workflow",
+      "keywords": ["handoff", "pr-description", "summary", "documentation", "wrap-up", "ship"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
     }
   ]
 }
