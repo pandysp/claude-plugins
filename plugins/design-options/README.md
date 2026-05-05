@@ -10,9 +10,9 @@ AI agents tend to present one option (their first idea) or include straw-man alt
 
 1. **Find the ideal** — What's the right answer with no constraints?
 2. **Name the constraints** — What prevents the ideal?
-3. **Generate options as steps toward the ideal** — From pragmatic-but-directional to near-ideal
-4. **Make tradeoffs explicit** — What each option gets you, costs you, opens, and closes
-5. **Share your lean** — Which option you'd choose and why
+3. **Generate options as steps toward the ideal** — From a step toward the ideal to near-ideal.
+4. **Make tradeoffs explicit** — Gets, Costs, Breaks down when, Rests on.
+5. **Share your lean** — Which option you'd choose and why.
 
 Every option must be genuinely strong. The user chooses between good and better, not good and bad.
 
