@@ -9,10 +9,10 @@ The work is done. Now write a handoff that serves the next reader without forcin
 
 A good handoff answers four questions in order:
 
-1. **What was built** — in plain language, not commit-list paraphrase
-2. **Key decisions and why** — choices that shaped the work, alternatives considered
-3. **Files modified and why** — not just paths; the purpose each change serves
-4. **Suggested next steps** — follow-ups, deferred work, known gaps, things to watch
+1. **What was built** — in plain language, not commit-list paraphrase.
+2. **Key decisions and why** — choices that shaped the work, alternatives considered.
+3. **Files modified and why** — not just paths; the purpose each change serves.
+4. **Suggested next steps** — follow-ups, deferred work, known gaps, things to watch.
 
 The reader could be a code reviewer, future-you in three months, or a teammate picking up the thread. Write so any of them gets oriented in under a minute.
 
@@ -41,26 +41,21 @@ For shorter handoffs (commit messages, slack updates, memory notes), compress to
 
 ## Adapt to the audience
 
-- **Code reviewer** — technical, structured, focus on what to look at and why each part matters
-- **Future you** — context-rich, with decisions and rationale, no shorthand that depends on session memory
-- **Stakeholder** — plain language, outcome-focused, less jargon
-- **Memory note** — terse; capture only what couldn't be derived from the current state of the code or notes
+- **Code reviewer** — technical, structured. Focus on what to look at and why each part matters.
+- **Future you** — context-rich, with decisions and rationale. No shorthand that depends on session memory.
+- **Stakeholder** — plain language, outcome-focused, less jargon.
+- **Memory note** — terse; capture only what couldn't be derived from the current state of the code or notes.
 
-## What to avoid
+Tone: direct, factual, short sentences. Match the audience but avoid marketing register in any of them.
 
-- **Diff narration** — *"Modified `auth.ts` to add a check; updated `tests.ts` with a test."* The reader can read the diff. Tell them the *purpose*, not the mechanics.
-- **Backstory padding** — *"We initially considered approach A, then decided B, then went back to A..."* Final shape and load-bearing decisions, not the journey.
-- **Vague test plans** — *"Test the feature."* Replace with specific scenarios that exercise edge cases.
-- **Hidden gaps** — silently dropping requirements is worse than naming them as deferred. Be explicit.
-- **Promotional voice** — *"This significantly improves system reliability."* Just say what it does.
+## Common pitfalls
 
-## Tone
-
-Direct, factual, short sentences. Match the audience: technical for reviewers, plain for stakeholders. Avoid marketing register.
-
-## Anti-patterns
-
-- **Over-summarizing** — compressing an important decision into one sentence so the rationale is invisible.
-- **Under-summarizing** — listing every change so the reader has to find the load-bearing ones themselves.
-- **Missing the "why"** — describing what was done without stating the problem it solves.
-- **Stale template sections** — copying a template structure but leaving sections empty or filled with "N/A" when they should be removed.
+- **Diff narration.** *"Modified `auth.ts` to add a check; updated `tests.ts` with a test."* The reader can read the diff. Tell them the *purpose*, not the mechanics.
+- **Backstory padding.** *"We initially considered A, then B, then went back to A..."* Final shape and load-bearing decisions, not the journey.
+- **Vague test plans.** *"Test the feature."* Replace with specific scenarios that exercise edge cases.
+- **Hidden gaps.** Silently dropping requirements is worse than naming them as deferred. Be explicit.
+- **Promotional voice.** *"This significantly improves system reliability."* Just say what it does.
+- **Over-summarizing.** Compressing an important decision into one sentence so the rationale is invisible.
+- **Under-summarizing.** Listing every change so the reader has to find the load-bearing ones themselves.
+- **Missing the "why".** Describing what was done without stating the problem it solves.
+- **Stale template sections.** Leaving sections empty or filled with "N/A" when they should be removed.
