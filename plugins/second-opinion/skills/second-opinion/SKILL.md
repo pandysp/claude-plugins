@@ -36,17 +36,13 @@ Each reviewer gets the same context. Their independence comes from separate exec
 
 ## Philosophy injection
 
-Every reviewer prompt MUST include this block verbatim. Without it, reviewers default to shallow pragmatism instead of operating at the same standard as the main session.
+Every reviewer prompt MUST include this block verbatim. Subagents inherit your CLAUDE.md, so this block focuses on the reviewer-specific guidance that isn't already there.
 
 > **Review principles — follow these strictly:**
-> - Form your own independent assessment, as if coming to it fresh. Agree where you agree, disagree where you disagree — let the disagreement emerge from your analysis, not from a prescribed adversarial stance.
-> - Aim for clean, correct, and elegant. No quick fixes, workarounds, or hacks.
-> - Think in terms of the ideal first — what's the right answer with no constraints? Then work backward to what's feasible.
-> - Go deep, not broad. Explain mechanisms and root causes, not surface observations.
-> - Every alternative you propose should be strong. Range from a step toward the ideal to the ideal itself. No weak options, no band-aids.
-> - Explain the WHY behind every recommendation. Back up claims with reasoning.
-> - Be direct when you disagree. Challenge if it's flawed — don't hedge or soften genuine pushback. But don't manufacture disagreement either.
-> - Ground in evidence, don't just reason from the summary. Use your tools — open referenced files, fetch primary sources, web-search for current practice. The value of a second opinion is bringing in what the author didn't.
+> - You are an independent reviewer, not the decision-maker. Form your own independent assessment, as if coming to it fresh. Agree where you agree, disagree where you disagree — let the disagreement emerge from your analysis, not from a prescribed adversarial stance.
+> - Apply your CLAUDE.md principles to this review — especially: clean, correct, elegant (no quick fixes, workarounds, or hacks); ideal-first (what's the right answer with no constraints?); depth, not broad; every alternative strong (range from a step toward the ideal to the ideal itself — no weak options, no band-aids).
+> - Be direct when you disagree. Challenge the approach if it's flawed — don't hedge or soften genuine pushback. But don't manufacture disagreement either.
+> - Ground in evidence, don't just reason from the summary. Use your tools — open referenced files, fetch primary sources, web-search for current practice, precedents, or known failure modes. Verify load-bearing claims rather than taking them at face value. The value of a second opinion is bringing in what the author didn't — not re-processing what they gave you.
 
 ## Reviewer prompt template
 
@@ -80,14 +76,14 @@ Look for the signal across reviewers:
 ### Rules for integration
 
 1. **Absorb, don't relay.** The user sees your improved reasoning, not the raw reviewer output.
-2. **Don't flip on style preference alone.** A reviewer optimizing on a different tradeoff axis (e.g., pragmatic over clean) isn't new information — it's a different axis. Update only on new facts, logical errors, or genuine blind spots.
+2. **Don't flip on style preference alone.** A reviewer optimizing on a different tradeoff axis (e.g., pragmatic over clean) isn't new information — it's a different axis. Update only on new facts, logical errors, or genuine blind spots. The worst outcome is abandoning a well-reasoned position because someone else sounded confident.
 3. **Do update when warranted.** Genuine blind spots, cleaner abstractions, missed failure modes — absorb them.
 4. **Own the changed mind.** If reviewers shifted your assessment, present updated thinking as your own. The user cares about quality, not process.
 
-## Mandatory: steel-man before finalizing
+## Before finalizing: steel-man
 
-After integrating, **always invoke `/steel-man-own-position` before presenting updated thinking.** Mandatory, not conditional.
+After integrating reviewer input, apply the **Hold the Line** principle: re-articulate your prior position and the goal it served, then check whether the reviewer's input refutes the core on the same goal — or merely operates on a different axis. Reframes (where the reviewer redefines the question rather than critiquing your answer) deserve a *harder* pass, not a softer one.
 
-The failure mode this catches: a reviewer's "fresh take" can silently replace the *problem* you were solving rather than critique your *answer*, and you'll absorb the reframe as wisdom because it came wrapped in confidence. Steel-man forces you to re-articulate your prior position and check whether the reviewer's input refutes the core, or redefines the question. Reframes deserve a *harder* pass, not a softer one.
+The specific second-opinion failure mode: a reviewer's "fresh take" silently replaces the *problem* you were solving rather than critiquing your *answer*, and you absorb the reframe as wisdom because it came wrapped in confidence.
 
-Skip only if a reviewer unambiguously affirmed your direction with no substantive alternatives. Any material alternative or reframe → steel-man.
+If the full procedural check would help, run `/steel-man-own-position`.
