@@ -67,3 +67,4 @@ End with a clear recommendation: proceed as-is, proceed with mitigations, or rec
 - **"Everything could fail."** Too vague. Name the specific mechanism.
 - **Only considering technical failures.** Human and operational failures are often more likely.
 - **Treating it as a formality.** If every pre-mortem ends with "proceed as planned," you're not being honest enough.
+- **Dramatic register.** State failure modes in neutral, factual language. "Catastrophic" / "disaster" / "irrecoverable" are reserved for actually catastrophic outcomes. Drama sways downstream decisions out of proportion to the actual risk — a recoverable issue framed as apocalyptic gets treated as one.
