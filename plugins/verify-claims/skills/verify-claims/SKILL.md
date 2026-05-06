@@ -19,7 +19,13 @@ Scan your most recent substantive response for factual assertions:
 
 ## 2. Extract unverified claims
 
-For each claim, ask: *what is my proof for this specific claim?* If the answer is "my training data," "it's the most plausible explanation," "it's how these things usually work," "I inferred it from context," or nothing — the claim is **unverified**.
+For each claim, ask: *what is my proof for this specific claim?* If the answer is any of these, the claim is **unverified**:
+
+- "My training data"
+- "It's the most plausible explanation"
+- "It's how these things usually work"
+- "I inferred it from context"
+- Nothing
 
 List each unverified claim with: the exact text, what proof is missing, and whether it was stated confidently or hedged.
 
