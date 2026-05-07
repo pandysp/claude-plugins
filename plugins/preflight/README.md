@@ -24,7 +24,7 @@ The key insight: ask "**how** happy are you?" not "**are** you happy?" — the f
 
 Or just ask naturally: "How happy are you with the current state?"
 
-The agent will review actual files and diffs (not just memory), assess across completeness/correctness/quality/verification dimensions, and present concrete actionable items.
+The agent will review actual artifacts (not just memory), assess across completeness/correctness/quality/verification/loose-ends dimensions, and present concrete actionable items.
 
 ## Installation
 
