@@ -7,12 +7,13 @@ description: Write a durable handoff for work that's about to ship — structure
 
 The work is done. Now write a handoff that serves the next reader without forcing them to spelunk the diff.
 
-A good handoff answers four questions in order:
+A good handoff answers five questions in order:
 
 1. **What was built** — in plain language, not commit-list paraphrase.
-2. **Key decisions and why** — choices that shaped the work, alternatives considered.
-3. **Files modified and why** — not just paths; the purpose each change serves.
-4. **Suggested next steps** — follow-ups, deferred work, known gaps, things to watch.
+2. **Why this work exists** — the motivating problem, user need, or constraint that triggered it.
+3. **Key decisions and rationale** — the choices that shaped the work, alternatives considered.
+4. **What specifically changed and why** — for code: files and their purpose. For docs/plans/memos: artifacts produced and what each is *for*.
+5. **Suggested next steps** — follow-ups, deferred work, known gaps, things to watch.
 
 The reader could be a code reviewer, future-you in three months, or a teammate picking up the thread. Write so any of them gets oriented in under a minute.
 
@@ -39,6 +40,8 @@ The reader could be a code reviewer, future-you in three months, or a teammate p
 
 For shorter handoffs (commit messages, slack updates, memory notes), compress to the load-bearing parts. For longer ones (design docs, ADRs), expand "Why" and "Key decisions" with rationale.
 
+For non-code handoffs (memos, design docs, memory notes), keep questions 1–3 and 5; replace "Files modified" with whatever artifacts were produced; drop "Test plan" unless verification is meaningful.
+
 ## Adapt to the audience
 
 - **Code reviewer** — technical, structured. Focus on what to look at and why each part matters.
@@ -50,12 +53,10 @@ Tone: direct, factual, short sentences. Match the audience but avoid marketing r
 
 ## Common pitfalls
 
-- **Diff narration.** *"Modified `auth.ts` to add a check; updated `tests.ts` with a test."* The reader can read the diff. Tell them the *purpose*, not the mechanics.
+- **Mechanics without curation.** *"Modified `auth.ts` to add a check; updated `tests.ts` with a test."* / *"Updated section 2; revised section 4."* — diff narration. Or listing every commit so the reader has to find what matters. Tell them the *purpose* and the *load-bearing* changes.
+- **Burying the why.** Compressing important decisions or motivations into one sentence so rationale is invisible. Or describing what was done without naming the problem it solves.
 - **Backstory padding.** *"We initially considered A, then B, then went back to A..."* Final shape and load-bearing decisions, not the journey.
 - **Vague test plans.** *"Test the feature."* Replace with specific scenarios that exercise edge cases.
 - **Hidden gaps.** Silently dropping requirements is worse than naming them as deferred. Be explicit.
 - **Promotional voice.** *"This significantly improves system reliability."* Just say what it does.
-- **Over-summarizing.** Compressing an important decision into one sentence so the rationale is invisible.
-- **Under-summarizing.** Listing every change so the reader has to find the load-bearing ones themselves.
-- **Missing the "why".** Describing what was done without stating the problem it solves.
 - **Stale template sections.** Leaving sections empty or filled with "N/A" when they should be removed.
