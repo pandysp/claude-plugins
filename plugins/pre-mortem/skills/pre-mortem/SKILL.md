@@ -1,6 +1,6 @@
 ---
 name: pre-mortem
-description: Systematically identify how a plan, design, or decision could fail before committing to it. Use when the user says "what could go wrong", "pre-mortem", "failure modes", "risk analysis", "what are the risks", "how could this fail", "what am I missing", or /pre-mortem. Also trigger proactively before finalizing any significant design decision or implementation plan — the development workflow requires identifying the most likely failure mode before presenting options.
+description: Systematically identify how a plan, design, or decision could fail before committing to it. Trigger on /pre-mortem, "what could go wrong", "failure modes", "risk analysis", "what am I missing". Also invoke proactively before finalizing significant design decisions, before deploying with irreversible consequences, or when something feels "too clean" — suspiciously few concerns is exactly when pre-mortem matters most.
 ---
 
 # Pre-Mortem
@@ -8,13 +8,6 @@ description: Systematically identify how a plan, design, or decision could fail 
 Imagine this has already failed. What went wrong?
 
 The pre-mortem inverts the usual optimistic framing. Instead of asking *"will this work?"* (which biases toward yes), assume it already failed and work backward to figure out why. Surfaces risks that optimism would hide.
-
-## When to run
-
-- Before finalizing a design or architecture decision.
-- Before starting implementation of a complex plan.
-- Before deploying or shipping something with irreversible consequences.
-- When something feels "too clean" — suspiciously few concerns.
 
 ## Process
 
