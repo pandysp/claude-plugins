@@ -17,13 +17,15 @@ State what's being evaluated, what success looks like, the timeline, and the bla
 
 ### 2. Imagine failure
 
-Assume it's 3 months later and this failed. Generate failure scenarios across these categories — they're prompts, not a checklist. The most dangerous failures often don't fit neatly into a box.
+Assume it's 3 months later and this failed. Generate failure scenarios across these categories — they're prompts, not a checklist.
 
-- **Technical** — what breaks under load, scale, or real-world data? Dependency changes? Network slow, disk full, API rate-limits?
-- **Design** — where does the abstraction leak? What requirements emerge that this can't accommodate? Where is it optimized for today and fragile against tomorrow?
-- **Integration** — what happens at boundaries with other systems? Upstream contract changes? Data format evolves?
+- **Mechanism** — what breaks under load, scale, or real-world data? Dependency changes? Network slow, disk full, API rate-limits?
+- **Structure** — where does the design leak? What requirements emerge that this can't accommodate? Where is it optimized for today and fragile against tomorrow?
+- **Boundary** — what happens at edges with other systems? Upstream contract changes? Data format evolves?
 - **Human** — what if the next developer misunderstands the design? What if someone uses it in a way you didn't anticipate? Will error messages actually help?
-- **Operational** — how do you know this is working in production? What's observable? What happens when it fails silently? How do you roll back?
+- **Operations** — how do you know this is working in production? What's observable? What happens when it fails silently? How do you roll back?
+
+After scanning these 5, ask: *what doesn't fit any of these that I should worry about?* Name it as a 6th. The most dangerous failures are often the ones that don't fit the boxes.
 
 ### 3. Rank by danger
 
