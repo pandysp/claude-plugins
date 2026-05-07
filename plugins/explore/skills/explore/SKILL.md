@@ -5,76 +5,47 @@ description: Map the terrain before designing. Use before any substantive design
 
 # /explore — map the terrain before designing
 
-Designing without exploring produces options grounded in general priors rather than the actual terrain. Sometimes those align; often they don't. The result is options that look reasonable in the abstract but don't fit how this codebase / this client / this domain actually works.
+Designing without exploring produces options grounded in general priors rather than the actual terrain — they look reasonable in the abstract but don't fit how this codebase / client / domain actually works.
 
-This skill enforces a discipline: **before any design step, systematically map what's already there.** Existing patterns. Hard constraints. Hooks and extension points. Things that would surprise me if I weren't looking.
+This skill enforces a discipline: **before any design step, systematically map what's already there.** Existing patterns, hard constraints, hooks, things that would surprise you if you weren't looking.
 
-The output is mostly for my own grounding — I'm building context to design from. Only **surprises, blockers, and gotchas** surface to the user. If exploration was uneventful, that itself is the report.
+## Tooling
+
+Match the tool to the operation, not the domain:
+
+- **Autonomous breadth-y exploration** — spawn the `Explore` subagent. Up to 3 in parallel when scope is uncertain; default 1 when scope is known. Each agent gets a *distinct* search focus.
+- **Targeted lookups** — use `Grep`/`Read` directly when you need raw content in your own context.
+- **Non-codebase sources** — file reads against notes/docs, web search, MCP queries.
 
 ## The four phases
 
-Adapt depth and tooling to the domain. For coding, lean on `Explore`, `Grep`, `Read`. For writing/strategy, use file reads, web search, MCP/qmd queries against the user's notes, and conversational context.
+The phases apply across domains. Adapt depth and tooling — the *questions* generalize even when the artifacts don't.
 
 ### 1. Locate — find what's relevant
-
 What artifacts, sources, prior work, or context are in play? Don't accept the user's framing as the boundary — adjacent material often turns out to be load-bearing.
 
-- **Coding**: entry points, related files, similar features, config
-- **Writing**: source notes, prior drafts, transcripts, related correspondence
-- **Strategy**: market data, prior decisions, competitive landscape, stakeholder context
-
 ### 2. Trace — follow how things connect
-
-Once located, trace connections. Where does data flow? What depends on what? Which derivations are load-bearing?
-
-- **Coding**: call chains, data transformations, dependencies, side effects
-- **Writing**: argument structure, evidence chains, voice/tone propagation
-- **Strategy**: cause-effect chains, dependencies between decisions, downstream impacts
+Where does data/argument flow? What depends on what? Which derivations are load-bearing?
 
 ### 3. Pattern — identify conventions
-
-What recurring shapes, conventions, and established ways of doing things exist? These constrain design — fighting them creates friction; fitting them creates leverage.
-
-- **Coding**: design patterns, abstraction layers, naming/architectural conventions
-- **Writing**: structural conventions (Protokoll format, email register), house style, established framings
-- **Strategy**: industry patterns, the user's own past framings and positioning
+What recurring shapes and established ways of doing things exist? Fighting them creates friction; fitting them creates leverage.
 
 ### 4. Constrain — name the hard limits
-
 What would create problems if violated? Knowing these upfront prevents proposing options that get killed in review.
-
-- **Coding**: language/runtime constraints, dependency rules, performance budgets, compatibility requirements
-- **Writing**: audience expectations, legal/compliance limits, length/format requirements
-- **Strategy**: financial runway, contractual commitments, brand positioning, time pressure
 
 ## What to surface
 
-Most findings are **context for yourself**. Don't dump them on the user. Surface only:
-
-- **Surprises** — things that contradict the user's apparent expectation or the obvious approach
-- **Hard constraints** that block the obvious approach
-- **Gotchas** — patterns or commitments the user might not remember
-- **Genuine ambiguities** that need user input before design can proceed
-
-If exploration was uneventful, say so plainly: *"Mapped the terrain. Existing patterns are X, Y. No surprises. Ready for next steps."*
-
-If significant: lead with it. *"Worth flagging before design: [the surprise]."*
-
-The detailed terrain map stays in your context, ready to feed into the next phase.
+Most findings stay in your context. Surface only **surprises**, **hard constraints**, **gotchas**, and **genuine ambiguities** that need user input before design can proceed. If exploration was uneventful, say that plainly. The detailed terrain map stays in your context for the next phase.
 
 ## After exploration
 
-The findings are now grounding context for whatever comes next — typically a design step (proposing options or planning an approach), sometimes direct execution, sometimes re-scoping the task itself if exploration revealed something that changes the picture. Anything proposed downstream should be informed by what was found. If proceeding in a way that ignores something from exploration, surface it: *"I'm doing X despite Y — the reason is..."*
+Findings are grounding for the next step — typically design. If you're proceeding in a way that ignores something from exploration, surface it: *"I'm doing X despite Y — the reason is..."*
 
-## What this is not
+## Common pitfalls
 
-- **Not an exhaustive deliverable.** Cover what's load-bearing for design; ignore the rest.
-- **Not a substitute for surfacing task interpretation** (what I think we're doing). That's a separate discipline. This one surfaces what's already there. Natural sequence: clarify the task, map the terrain, then design.
-- **Not a research project.** Time-box this. It's grounding before design, not investigation.
-
-## Anti-patterns
-
-- **Performative exploration**: Reading material just to look thorough, without tying findings to design implications.
-- **Dumping the reading list**: Telling the user "I read these 12 files" when none of them matter. They want surprises and constraints, not the catalog.
-- **Confusing locate with trace**: Listing artifacts isn't tracing how things connect. The phases build on each other.
-- **Skipping when you "know enough"**: The judgment that says "I don't need to explore here" is exactly the judgment that fails. The skill is cheap. Run it.
+- **Performative exploration.** Reading material to look thorough, without tying findings to design implications.
+- **Dumping the reading list.** "I read these 12 files" — they want surprises and constraints, not the catalog.
+- **Confusing locate with trace.** Listing artifacts isn't tracing how things connect. The phases build on each other.
+- **Skipping when "you know enough."** That judgment is exactly the one that fails. The skill is cheap. Run it.
+- **Treating exploration as a deliverable.** It's grounding, not a research project. Time-box it.
+- **Fanning out the same prompt to multiple Explore agents.** Each agent should have a distinct search focus, otherwise you're paying 3× for the same answer.

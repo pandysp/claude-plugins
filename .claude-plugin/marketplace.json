@@ -128,6 +128,16 @@
       }
     },
     {
+      "name": "reflect",
+      "description": "Capture durable lessons from a session before they fade — what surprised you, what friction repeated, what should update CLAUDE.md or notes. Output goes to memory, notes, or global instructions, not just to chat",
+      "source": "./plugins/reflect",
+      "category": "workflow",
+      "keywords": ["reflect", "lessons", "retro", "memory", "session-end", "post-mortem"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
+    },
+    {
       "name": "handoff",
       "description": "Write a durable handoff for work that's about to ship — PR descriptions, summaries, memos, or memory notes. Tells the next reader what was built, why, what changed, and what's next, without forcing them to spelunk the diff",
       "source": "./plugins/handoff",

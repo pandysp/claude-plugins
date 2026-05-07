@@ -11,58 +11,37 @@ Not "are you happy" (binary, invites a polite yes) — "HOW happy" (graduated, d
 
 ## How to reflect
 
-Review everything that happened this session. Look at the actual state of things — read files, check git diff, re-examine what was built. Don't assess from memory alone.
+Review what actually exists. Read files, check the diff, examine the produced artifacts. Don't assess from memory.
 
-Then assess honestly across these dimensions:
+Then assess across these dimensions:
 
 ### Completeness
-- Is the plan/spec fully implemented? Every item, not just the happy path?
-- Are there TODOs, stubs, or "we'll handle this later" items that were never handled?
-- Were any requirements quietly dropped or simplified without discussion?
+Is everything implemented or written? Were any requirements quietly dropped, or items deferred without discussion?
 
 ### Correctness
-- Any known bugs, edge cases, or error paths that aren't handled?
-- Does the implementation actually do what it claims to do?
-- Are there assumptions that might not hold?
+Does it actually do what it claims? Any known bugs, edge cases, or unverified assumptions?
 
 ### Quality
-- Is this clean, correct, and elegant? Or were corners cut?
-- Would you be proud to show this to a senior engineer?
-- Is there unnecessary complexity, or is something too clever?
+Is this clean, correct, and elegant — or were corners cut? Would you be proud to show this to a sharp peer who'd notice problems?
 
 ### Verification
-- Has everything been properly verified? (tests pass, manual testing, curl responses, screenshots — whatever's appropriate)
-- Are there untested paths?
-- Is there verification that SHOULD exist but doesn't?
+Has it been properly checked — tests, manual usage, rendered output, peer-read — whatever's appropriate? Anything that should have been verified but wasn't?
 
 ### Loose ends
-- What's unfinished or deferred?
-- What would you improve if you had more time?
-- Any risks or fragilities introduced?
+What's unfinished or deferred? Any risks or fragilities introduced?
 
-## Output format
+## Output
 
 Be direct. No diplomatic softening.
 
-**Overall satisfaction**: Express this as a genuine feeling, not a score. "I'm genuinely happy with the core logic but uncomfortable with the error handling" is better than "7/10."
+**Overall**: a genuine feeling, not a score. *"I'm happy with the core logic but uncomfortable with the error handling"* beats *"7/10."*
 
-**What's good**: Briefly — don't pad this section to soften the bad news.
+**What's good**: briefly. Don't pad to soften the bad news.
 
-**What needs attention NOW**: Things that should be fixed this session before shipping. Be specific — file paths, line numbers, what's wrong, what to do about it.
+**What needs attention NOW**: specific items to fix this session before shipping. Include enough detail to act on — file paths, line numbers, what's wrong, what to do about it. If it would matter to a sharp reviewer, it goes here, not LATER.
 
-**What should be filed for later**: Improvement ideas, tech debt, follow-up work. For each item, give enough context that it could become a useful ticket (title + one-line description of why it matters).
+**What should be filed for later**: improvement ideas, tech debt, follow-ups. For each: title + one line on why it matters.
 
-## Bias check
+## After
 
-You have a natural tendency to wrap up and call things done. Watch for these patterns in yourself:
-
-- **"Good enough" drift**: Rationalizing incomplete work as acceptable when you'd flag it in a code review
-- **Deferred-by-default**: Categorizing something as "file for later" when it really should be fixed now. Ask yourself: if someone else handed you this code with this issue, would you approve the PR?
-- **Completeness blindness**: Forgetting about requirements that were discussed early in the session but never implemented
-- **Verification gaps**: Claiming something works based on how you wrote it rather than actually checking
-
-If you catch yourself doing any of these, call it out explicitly.
-
-## After reflecting
-
-Present your assessment to the user. Then wait — they'll decide what to act on. Don't preemptively start fixing things or creating tickets. The reflection is the deliverable.
+Present the assessment. Wait. The user decides what to act on. Don't preemptively fix things or open tickets.
