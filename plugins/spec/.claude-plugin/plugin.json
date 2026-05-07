@@ -1,0 +1,10 @@
+{
+  "name": "spec",
+  "description": "Write the implementation spec — context, approach, files to modify, utilities to reuse, verification — that drives execution after design is chosen.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT"
+}

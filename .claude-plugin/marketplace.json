@@ -38,9 +38,9 @@
       }
     },
     {
-      "name": "verify-code",
-      "description": "Black-box end-to-end verification — actually runs the system and shows evidence that it works",
-      "source": "./plugins/verify-code",
+      "name": "verify-result",
+      "description": "Black-box verification of any agent output — code, documents, presentations, configs. Examine from the consumer's perspective and show evidence",
+      "source": "./plugins/verify-result",
       "category": "workflow",
       "keywords": ["verify", "test", "end-to-end", "proof", "evidence", "black-box"],
       "author": {
@@ -143,6 +143,16 @@
       "source": "./plugins/handoff",
       "category": "workflow",
       "keywords": ["handoff", "pr-description", "summary", "documentation", "wrap-up", "ship"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
+    },
+    {
+      "name": "spec",
+      "description": "Write the implementation spec — context, approach, files to modify, utilities to reuse, verification — that drives execution after design is chosen",
+      "source": "./plugins/spec",
+      "category": "workflow",
+      "keywords": ["spec", "implementation-plan", "scope", "design", "pre-execution"],
       "author": {
         "name": "Andreas Spannagel"
       }
