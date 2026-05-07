@@ -31,12 +31,9 @@ Match the artifact to the type of insight:
 - **Daily memory** — for session-specific context that might be useful soon.
 - **Tooling tickets** — for friction that needs a code or process change, not just a note.
 
-If you're unsure where something belongs, write to daily memory first; promote later.
-
 ## How to write the artifact
 
-- **Lead with the lesson, not the story.** *"Always read settings.json before bulk plugin changes"* beats *"Today I edited settings.json and discovered..."*
-- **Make it actionable.** A vague *"be more careful with X"* doesn't survive contact with the next session. Concrete rules do.
+- **Lead with the actionable lesson, not the story.** *"Verify before declaring done"* beats *"Today I declared done and the bug surfaced an hour later..."* A vague *"be more careful with X"* doesn't survive contact with the next session; concrete rules do.
 - **Cite the trigger if useful.** Brief context about when the lesson applies — not the full narrative.
 - **Cap the length.** A reflection note longer than a paragraph won't get re-read.
 
