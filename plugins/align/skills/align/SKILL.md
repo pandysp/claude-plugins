@@ -63,8 +63,6 @@ Format:
 
 Only forks where any default would be unsafe. Different from gaps you'd fill with defaults — those go in Block 3 as "what I'd invent." If there are none, say so. Don't pad.
 
-If you have many blocking questions, you're not aligned — you're under-clarified. Invoke `/clarify` first, then return to align with the gaps closed.
-
 ## After the manifest
 
 Stop. Wait for the user to confirm, correct, or re-scope. Once confirmed, **re-read the manifest before drafting** — committed items are load-bearing. If something needs to change during drafting, pause and surface it: *"I'd like to add X — wasn't in the manifest. OK?"* Don't drift silently.
