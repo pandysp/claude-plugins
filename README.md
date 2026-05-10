@@ -31,7 +31,6 @@ A collection of Claude Code plugins.
 | [handoff](./plugins/handoff) | Workflow | Write a durable handoff — PR descriptions, summaries, memos, or memory notes |
 | [reflect](./plugins/reflect) | Workflow | Capture durable lessons from a session before they fade |
 | [writing-voice](./plugins/writing-voice) | Workflow | Personal writing voice and tone for all written communication |
-| [typescript-lsp](./plugins/typescript-lsp) | Development | TypeScript/JavaScript language server |
 
 ## License
 
