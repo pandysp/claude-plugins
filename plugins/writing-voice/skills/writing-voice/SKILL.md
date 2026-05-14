@@ -15,6 +15,9 @@ Language-agnostic. Same principles in any language.
 
 ## Principles
 
+### Read prior samples
+Before drafting in the user's voice to a known recipient or topic, read prior samples first and let them guide the draft.
+
 ### Density is always high
 Depth varies with the format; density doesn't. Every word carries weight. A short message is dense; a long document, dense and deep.
 

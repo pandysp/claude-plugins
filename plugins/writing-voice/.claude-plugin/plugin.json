@@ -1,0 +1,10 @@
+{
+  "name": "writing-voice",
+  "description": "Personal writing voice for all written communication — emails, proposals, slides, docs, GitHub, internal notes. Principles, anti-patterns, and a self-test for dense, plain prose free of AI tells.",
+  "version": "1.1.0",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT"
+}
