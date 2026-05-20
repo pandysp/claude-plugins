@@ -2,7 +2,6 @@
 """WorktreeCreate hook: route Claude's worktree creation through worktrunk."""
 import json
 import os
-import re
 import subprocess
 import sys
 
@@ -11,24 +10,29 @@ name = data.get("name") or "claude-" + data["session_id"][:8]
 
 try:
     result = subprocess.run(
-        ["wt", "switch", "-c", name, "-y"],
+        ["wt", "switch", "-c", name, "-y", "--format", "json"],
         cwd=data["cwd"],
         stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
+        stderr=subprocess.PIPE,
         text=True,
     )
 except OSError as e:
     sys.exit(f"wt switch -c failed. Output:\n{e}")
 
 if result.returncode != 0:
-    sys.exit(f"wt switch -c failed. Output:\n{result.stdout}")
+    sys.exit(f"wt switch -c failed.\nstdout: {result.stdout}\nstderr: {result.stderr}")
 
-match = re.search(r"worktree @ (.+)", result.stdout)
-if not match:
-    sys.exit(f"wt switch -c produced no usable path. Output:\n{result.stdout}")
+try:
+    payload = json.loads(result.stdout)
+except json.JSONDecodeError:
+    sys.exit(
+        "wt --format json returned unparseable output. "
+        "Requires worktrunk 0.52+.\n"
+        f"stdout: {result.stdout}\nstderr: {result.stderr}"
+    )
 
-path = os.path.expanduser(match.group(1).strip())
-if not os.path.isdir(path):
-    sys.exit(f"wt switch -c reported a path that doesn't exist. Output:\n{result.stdout}")
+path = payload.get("path")
+if not path or not os.path.isdir(path):
+    sys.exit(f"wt produced no usable path. Payload: {payload}")
 
 print(path)
