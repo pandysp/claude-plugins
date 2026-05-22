@@ -1,6 +1,7 @@
 ---
 name: writing-voice
-description: The user's personal writing voice for all written communication. Use when writing or reviewing copy in the user's voice: emails, proposals, slides, LinkedIn posts, website copy, GitHub comments, internal notes, or any other text. Also trigger when the user says "/writing-voice", "check the tone", "does this sound like me", or "review this text". Apply proactively when drafting professional content for the user.
+description: >-
+  The user's personal writing voice for all written communication. Use when writing or reviewing copy in the user's voice: emails, proposals, slides, LinkedIn posts, website copy, GitHub comments, internal notes, or any other text. Also trigger when the user says "/writing-voice", "check the tone", "does this sound like me", or "review this text". Apply proactively when drafting professional content for the user.
 ---
 
 # Writing Voice
