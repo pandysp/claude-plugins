@@ -32,6 +32,14 @@ A collection of Claude Code plugins.
 | [reflect](./plugins/reflect) | Workflow | Capture durable lessons from a session before they fade |
 | [writing-voice](./plugins/writing-voice) | Workflow | Personal writing voice and tone for all written communication |
 
+## Development
+
+```bash
+ruby scripts/validate-skill-frontmatter.rb
+```
+
+CI runs the same validation on pull requests, pushes to `main`, and plugin release tags.
+
 ## License
 
 MIT
