@@ -158,6 +158,16 @@
       }
     },
     {
+      "name": "understudy",
+      "description": "Write code, comments, tests, and commits that read as if the project's own maintainer wrote them, so a contribution lands as native rather than foreign",
+      "source": "./plugins/understudy",
+      "category": "workflow",
+      "keywords": ["understudy", "style", "house-style", "idiom", "contribution", "maintainer", "seamless"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
+    },
+    {
       "name": "worktrunk-hook",
       "description": "Route Claude Code's auto-created git worktrees through worktrunk so background and --worktree sessions inherit project hooks (env symlinks, installs, port allocation)",
       "source": "./plugins/worktrunk-hook",
