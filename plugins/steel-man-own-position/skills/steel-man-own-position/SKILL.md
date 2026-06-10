@@ -3,7 +3,7 @@ name: steel-man-own-position
 description: Before flipping a previously-stated position under pressure, restate its strongest form and the goal it served, then check whether the triggering argument refutes the core on the same goal — not just a decorative argument or a different axis. Self-invoke when about to flip a stated position. Trigger manually on "steel man your position", "hold the line", "are you sure", /steel-man-own-position.
 ---
 
-# Steel-Man Own Position
+# /steel-man-own-position — restate the strongest form before flipping
 
 When a previously-stated position comes under pressure, the natural move is to flip. Sometimes that's right. Often it isn't — the critique hits a decorative argument or operates on a different goal, and the flip happens because the critique *feels* decisive. This skill forces a structured check.
 

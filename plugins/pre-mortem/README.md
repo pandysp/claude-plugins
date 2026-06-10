@@ -4,15 +4,7 @@ A Claude Code plugin that forces systematic risk identification before committin
 
 ## Why
 
-Optimism bias is real. "Will this work?" biases toward yes. This skill flips the question: "Imagine it already failed — what went wrong?" This surfaces risks that cheerful planning would hide.
-
-## What it does
-
-1. States what's being evaluated and what success looks like
-2. Generates failure scenarios across technical, design, integration, human, and operational categories
-3. Ranks by danger (likelihood x impact x detectability)
-4. Identifies detection strategies — how would you know it failed?
-5. Recommends: proceed, mitigate, or reconsider
+Optimism bias is real. "Will this work?" biases toward yes. This skill flips the question: "Imagine it already failed — what went wrong?" Failure modes get ranked by likelihood, impact, and detectability, each with a concrete detection strategy — and the findings end in a recommendation, not reassurance.
 
 ## Usage
 

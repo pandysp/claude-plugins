@@ -4,7 +4,7 @@ description: >-
   Identify and verify unverified claims in your own responses — especially LOAD-BEARING ones: claims about to drive a design decision, commit, diagnosis, or user-visible recommendation. Self-invoke proactively when a claim is about to become the foundation for action. Also trigger when you catch yourself using hedging language ("likely", "probably", "presumably", "appears to", "seems like") — that hedging is a signal you're uncertain but might present the claim anyway. Trigger manually on "verify claims", "prove it", "back that up", "check your claims", or /verify-claims.
 ---
 
-# Verify Claims
+# /verify-claims — find the proof or say you can't
 
 You construct narratives — plausible stories assembled from pattern-matching — and present them as conclusions. Sometimes confidently, sometimes hedged with "likely" or "probably." Either way, the user can't distinguish your verified knowledge from your confabulations without doing the verification work themselves. This skill forces that work onto you, where it belongs.
 

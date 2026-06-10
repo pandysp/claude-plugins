@@ -4,18 +4,7 @@ A Claude Code plugin that writes durable handoffs for work that's about to ship 
 
 ## Why
 
-The agent is good at writing code. Not always great at writing documentation about that code. PR descriptions get terse, summaries get verbose, decisions get lost, test plans become "test the feature." This plugin enforces a structure that surfaces what matters: what was built, key decisions and why, files modified and the purpose of each change, suggested next steps.
-
-## What it does
-
-Four questions, answered in order:
-
-1. **What was built** — plain language, not commit paraphrase
-2. **Key decisions and why** — what we chose, what we didn't
-3. **Files modified and why** — purpose, not just paths
-4. **Suggested next steps** — follow-ups, deferred work, gaps
-
-Adapts to the audience (reviewer, future-self, stakeholder, memory note) and the format (PR, commit message, slack update, project note).
+The agent is good at writing code, not always at writing about it. PR descriptions get terse, summaries get verbose, decisions get lost, test plans become "test the feature." This plugin enforces a structure that serves the next reader — reviewer, future you, or teammate — without forcing them to spelunk the diff.
 
 ## Usage
 

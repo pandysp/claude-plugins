@@ -9,7 +9,7 @@ Delegate the audit to the `silent-failure-hunter` subagent. The subagent runs th
 
 ## How to delegate
 
-Use the Task tool with `subagent_type="silent-failure-hunter"`. Pass the diff or specific files under review (default: `git diff` of unstaged + staged changes). The subagent returns severity-ranked findings.
+Use the Agent tool with `subagent_type="silent-failures:silent-failure-hunter"` — plugin agents are namespaced by plugin name. Pass the diff or specific files under review (default: `git diff` of unstaged + staged changes). The subagent returns severity-ranked findings.
 
 ## How to handle the findings
 
@@ -27,7 +27,7 @@ Don't paste the subagent's full report. Synthesize what's actionable.
 - If nothing actionable: *"Audited error handling. No issues."*
 - If user input is needed: present the issues concisely with recommendations, not as a wall
 
-## Anti-patterns
+## Common pitfalls
 
 - **Pasting the full subagent report** — defeats the isolation. Synthesize.
 - **Treating every finding as user-facing** — most MEDIUM findings are nits; absorb silently.
