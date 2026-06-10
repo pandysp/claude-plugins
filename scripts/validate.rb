@@ -13,11 +13,9 @@ plugin_dirs = Dir.glob(ROOT.join("plugins/*")).select { |p| File.directory?(p) }
 
 failures << "No plugin directories found under plugins/" if plugin_dirs.empty?
 
-# --- skill frontmatter -------------------------------------------------------
+# --- skill and agent frontmatter ----------------------------------------------
 
-skill_paths = Dir.glob(ROOT.join("plugins/*/skills/*/SKILL.md")).sort.map { |path| Pathname.new(path) }
-
-skill_paths.each do |path|
+validate_frontmatter = lambda do |path, expected_name|
   relative_path = path.relative_path_from(ROOT)
   match = path.read.match(/\A---\n(.*?)\n---(?:\n|\z)/m)
 
@@ -43,11 +41,17 @@ skill_paths.each do |path|
 
   failures << "#{relative_path}: frontmatter.name must be a non-empty string" unless name.is_a?(String) && !name.empty?
   failures << "#{relative_path}: frontmatter.description must be a non-empty string" unless description.is_a?(String) && !description.empty?
-  failures << "#{relative_path}: frontmatter.name '#{name}' must match the skill directory '#{path.dirname.basename}'" if name.is_a?(String) && name != path.dirname.basename.to_s
+  failures << "#{relative_path}: frontmatter.name '#{name}' must match '#{expected_name}'" if name.is_a?(String) && !name.empty? && name != expected_name
   failures << "#{relative_path}: description exceeds 1024 characters (#{description.length})" if description.is_a?(String) && description.length > 1024
 end
 
-# --- plugin manifests --------------------------------------------------------
+skill_paths = Dir.glob(ROOT.join("plugins/*/skills/*/SKILL.md")).sort.map { |path| Pathname.new(path) }
+skill_paths.each { |path| validate_frontmatter.call(path, path.dirname.basename.to_s) }
+
+agent_paths = Dir.glob(ROOT.join("plugins/*/agents/*.md")).sort.map { |path| Pathname.new(path) }
+agent_paths.each { |path| validate_frontmatter.call(path, path.basename(".md").to_s) }
+
+# --- plugin manifests, hooks, scripts ------------------------------------------
 
 manifests = {}
 plugin_dirs.each do |dir|
@@ -72,9 +76,24 @@ plugin_dirs.each do |dir|
     failures << "plugins/#{name}: plugin.json missing #{field}" unless manifest.key?(field)
   end
   failures << "plugins/#{name}: README.md missing" unless dir.join("README.md").exist?
+
+  hooks_path = dir.join("hooks/hooks.json")
+  if hooks_path.exist?
+    begin
+      hooks = JSON.parse(hooks_path.read)
+      failures << "plugins/#{name}: hooks.json must have a top-level \"hooks\" object" unless hooks["hooks"].is_a?(Hash)
+    rescue JSON::ParserError => error
+      failures << "plugins/#{name}: invalid hooks.json: #{error.message}"
+    end
+  end
+
+  Dir.glob(dir.join("bin/*")).each do |script|
+    relative_script = Pathname.new(script).relative_path_from(ROOT)
+    failures << "#{relative_script}: not executable" unless File.executable?(script)
+  end
 end
 
-# --- marketplace -------------------------------------------------------------
+# --- marketplace ----------------------------------------------------------------
 
 begin
   marketplace = JSON.parse(ROOT.join(".claude-plugin/marketplace.json").read)
@@ -95,7 +114,7 @@ rescue JSON::ParserError => error
   failures << ".claude-plugin/marketplace.json: invalid JSON: #{error.message}"
 end
 
-# --- root README index -------------------------------------------------------
+# --- root README index ----------------------------------------------------------
 
 readme = ROOT.join("README.md").read
 plugin_dirs.each do |dir|
@@ -104,7 +123,7 @@ plugin_dirs.each do |dir|
 end
 
 if failures.empty?
-  puts "Validated #{skill_paths.length} skills and #{plugin_dirs.length} plugins: frontmatter, manifests, marketplace sync, README index."
+  puts "Validated #{skill_paths.length} skills, #{agent_paths.length} agents, and #{plugin_dirs.length} plugins: frontmatter, manifests, hooks, marketplace sync, README index."
 else
   warn "Validation failed:"
   failures.each { |failure| warn "  - #{failure}" }
