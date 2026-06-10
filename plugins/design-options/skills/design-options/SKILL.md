@@ -3,7 +3,7 @@ name: design-options
 description: Generate multiple strong design options with explicit tradeoff profiles. Use when the user asks "what are my options", "how should we approach this", "design this", "what's the architecture", "propose some approaches", "give me options", or /design-options. Also trigger proactively during Phase 1 (Understand & Design) of the development workflow — the gate requires presenting several design options with different tradeoff profiles before proceeding.
 ---
 
-# Design Options
+# /design-options — strong options, explicit tradeoffs
 
 Present multiple strong options — all worth choosing — with explicit tradeoffs. The user picks the direction, not you.
 

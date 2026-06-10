@@ -34,3 +34,7 @@ To opt into approvals instead, drop `-y` from `bin/wt-create-hook.py` and approv
 ## License
 
 MIT
+
+## License
+
+MIT

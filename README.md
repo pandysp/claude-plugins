@@ -38,7 +38,7 @@ A collection of Claude Code plugins.
 ## Development
 
 ```bash
-ruby scripts/validate-skill-frontmatter.rb
+ruby scripts/validate.rb
 ```
 
 CI runs the same validation on pull requests, pushes to `main`, and plugin release tags.

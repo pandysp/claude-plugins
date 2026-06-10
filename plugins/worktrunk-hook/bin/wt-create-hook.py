@@ -6,12 +6,17 @@ import subprocess
 import sys
 
 data = json.load(sys.stdin)
-name = data.get("name") or "claude-" + data["session_id"][:8]
+try:
+    cwd = data["cwd"]
+    session_id = data["session_id"]
+except KeyError as error:
+    sys.exit(f"hook input missing expected key: {error}")
+name = data.get("name") or "claude-" + session_id[:8]
 
 try:
     result = subprocess.run(
         ["wt", "switch", "-c", name, "-y", "--format", "json"],
-        cwd=data["cwd"],
+        cwd=cwd,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,

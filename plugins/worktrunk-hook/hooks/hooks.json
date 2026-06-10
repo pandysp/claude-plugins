@@ -5,7 +5,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/wt-create-hook.py"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/wt-create-hook.py",
+            "timeout": 600
           }
         ]
       }

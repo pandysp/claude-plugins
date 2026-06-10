@@ -31,3 +31,7 @@ Optional: `TOGGL_BILLABLE_TAG` (default `billable`) — the tag that marks entri
 /plugin marketplace add pandysp/claude-plugins
 /plugin install toggl-track@pandysp
 ```
+
+## License
+
+MIT

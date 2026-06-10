@@ -13,8 +13,8 @@ permissions:
   contents: read
 
 jobs:
-  skill-frontmatter:
-    name: Skill frontmatter
+  validate:
+    name: Plugins
     runs-on: ubuntu-latest
 
     steps:
@@ -26,5 +26,5 @@ jobs:
         with:
           ruby-version: "3.3"
 
-      - name: Validate skill frontmatter
-        run: ruby scripts/validate-skill-frontmatter.rb
+      - name: Validate plugins
+        run: ruby scripts/validate.rb

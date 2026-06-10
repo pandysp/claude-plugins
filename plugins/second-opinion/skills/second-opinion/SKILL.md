@@ -1,20 +1,17 @@
 ---
 name: second-opinion
-description: Spawn 1-3 independent reviewers to provide critical perspectives on the agent's thinking before presenting to the user. Use when you need a fresh take, alternative approaches, or independent validation on a design, plan, code, or any non-trivial decision. Trigger on "second opinion", "another perspective", "ask opus", "ask codex", "independent review", or /second-opinion. Also trigger proactively during design and plan review phases.
+description: Spawn 1-3 independent reviewers to provide critical perspectives on the agent's thinking before presenting to the user. Use when you need a fresh take, alternative approaches, or independent validation on a design, plan, code, or any non-trivial decision. Trigger on "second opinion", "another perspective", "ask fable", "independent review", or /second-opinion. Also trigger proactively during design and plan review phases.
 ---
 
-# Second Opinion
+# /second-opinion — independent reviews before presenting
 
 Spawn 1-3 independent reviewers in parallel to provide critical assessments of your thinking before you present to the user. A second opinion is what a second doctor does: look at the situation fresh, form an independent view, tell you where they agree and where they'd do differently. The output is for *you*, not the user — they see the result of your improved reasoning, not the raw reviewer responses.
 
-## Backends
-
-- **opus**: Claude Opus subagent via the Agent tool (`model: "opus"`).
-- **codex**: OpenAI via the Codex MCP tool (`mcp__codex__codex`). Load via `ToolSearch` first.
+Reviewers are Claude Fable subagents spawned via the Agent tool (`model: "fable"`). Their independence comes from separate execution with fresh context, not from different inputs.
 
 ## Invocation
 
-`/second-opinion [backend...]` — specify 1-3 backends in any combination.
+`/second-opinion [n]` — spawn 1-3 reviewers; bare `/second-opinion` spawns one.
 
 When choosing how many to spawn:
 - **1 reviewer**: quick sanity check, low-stakes decisions.
@@ -32,7 +29,7 @@ Distill the situation — don't dump raw conversation. Include:
 - Constraints, prior decisions, rejected alternatives.
 - Supporting material if applicable (code snippets, data, drafts).
 
-Each reviewer gets the same context. Their independence comes from separate execution, not different inputs.
+Each reviewer gets the same context.
 
 ## Philosophy injection
 
@@ -46,7 +43,7 @@ Every reviewer prompt MUST include this block verbatim. Subagents inherit your C
 
 ## Reviewer prompt template
 
-Same structure for both backends. Inject the principles block verbatim.
+Inject the principles block verbatim.
 
 ```
 You are an independent reviewer providing a second opinion.
