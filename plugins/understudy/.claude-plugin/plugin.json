@@ -1,0 +1,10 @@
+{
+  "name": "understudy",
+  "description": "Write code, comments, tests, or commit messages that read as if the project's own maintainer wrote them, so a contribution is accepted as native rather than rejected as foreign. A foreign-looking patch is a cost to the maintainer even when it's correct.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT"
+}
