@@ -1,0 +1,10 @@
+{
+  "name": "toggl-track",
+  "description": "Interact with Toggl Track via the official API — track work, fetch entries, build invoice line items, analyze billed hours, manage timers. Zero-dependency Python script, API token auth.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT"
+}

@@ -176,6 +176,16 @@
       "author": {
         "name": "Andreas Spannagel"
       }
+    },
+    {
+      "name": "toggl-track",
+      "description": "Interact with Toggl Track via the official API — track work, fetch entries, build invoice line items, analyze billed hours, manage timers",
+      "source": "./plugins/toggl-track",
+      "category": "productivity",
+      "keywords": ["toggl", "time-tracking", "invoicing", "billable-hours", "timesheet", "freelance"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
     }
   ]
 }
