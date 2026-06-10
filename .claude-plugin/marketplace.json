@@ -148,16 +148,6 @@
       }
     },
     {
-      "name": "writing-voice",
-      "description": "Personal writing voice for all written communication — emails, proposals, slides, docs, GitHub, internal notes. Principles, anti-patterns, and a self-test for dense, plain prose free of AI tells.",
-      "source": "./plugins/writing-voice",
-      "category": "workflow",
-      "keywords": ["voice", "tone", "writing", "style", "review"],
-      "author": {
-        "name": "Andreas Spannagel"
-      }
-    },
-    {
       "name": "understudy",
       "description": "Write code, comments, tests, or commit messages that read as if the project's own maintainer wrote them, so a contribution is accepted as native rather than rejected as foreign. A foreign-looking patch is a cost to the maintainer even when it's correct.",
       "source": "./plugins/understudy",
@@ -173,16 +163,6 @@
       "source": "./plugins/worktrunk-hook",
       "category": "tooling",
       "keywords": ["worktrunk", "worktree", "hook", "background-agent", "bg", "isolation", "wt"],
-      "author": {
-        "name": "Andreas Spannagel"
-      }
-    },
-    {
-      "name": "toggl-track",
-      "description": "Interact with Toggl Track via the official API — track work, fetch entries, build invoice line items, analyze billed hours, manage timers. Zero-dependency Python script, API token auth.",
-      "source": "./plugins/toggl-track",
-      "category": "productivity",
-      "keywords": ["toggl", "time-tracking", "invoicing", "billable-hours", "timesheet", "freelance"],
       "author": {
         "name": "Andreas Spannagel"
       }

@@ -30,10 +30,8 @@ A collection of Claude Code plugins.
 | [preflight](./plugins/preflight) | Workflow | Honest self-assessment of completeness, correctness, quality, and loose ends before shipping |
 | [handoff](./plugins/handoff) | Workflow | Write a durable handoff — PR descriptions, summaries, memos, or memory notes |
 | [reflect](./plugins/reflect) | Workflow | Capture durable lessons from a session before they fade |
-| [writing-voice](./plugins/writing-voice) | Workflow | Personal writing voice and tone for all written communication |
 | [understudy](./plugins/understudy) | Workflow | Write code, comments, tests, and commits that read as if the project's own maintainer wrote them |
 | [worktrunk-hook](./plugins/worktrunk-hook) | Tooling | Route Claude Code's auto-created git worktrees through worktrunk so sessions inherit project hooks |
-| [toggl-track](./plugins/toggl-track) | Productivity | Track work, analyze billed hours, and build invoice line items via the official Toggl Track API |
 
 ## Development
 
