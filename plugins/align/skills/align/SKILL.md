@@ -1,6 +1,6 @@
 ---
 name: align
-description: Surface what I think we're doing before acting on it. Use when the user types /align, says "let's align first", "check in before you start", "mirror what you're hearing", or asks for a substantive task with interpretive weight. Also invoke for any task with meaningful interpretive weight — the skill is cheap, drafting from the wrong premise isn't. The skill produces a structured manifest exposing every silent commitment so the user can correct course before any artifact is produced.
+description: Surface what I think we're doing before acting on it. Use when the user types /align, says "let's align first", "check in before you start", or "mirror what you're hearing". Also invoke before starting any task with real interpretive weight — an ambiguous request, a vague spec, a "build X" with the details unstated — where drafting from the wrong premise would waste the work. Produces a structured manifest exposing every silent commitment so the user can correct course before any artifact is produced.
 ---
 
 # /align — share understanding before acting

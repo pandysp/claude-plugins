@@ -21,7 +21,9 @@ What prevents the ideal? Name each explicitly: time, existing code, dependencies
 
 ### 3. Generate options as steps toward the ideal
 
-Range from a step toward the ideal (within current constraints) → relaxing one major constraint → near-ideal. **All options must be strong** — if you wouldn't genuinely recommend it, don't include it.
+Range from a step toward the ideal (within current constraints) → relaxing one major constraint → near-ideal. Options vary in **scope and tradeoff position, never in craftsmanship** — the cheaper option is a smaller, well-made thing, not a sloppy version of the bigger one. **Every option must be elegant for its declared scope**; if you wouldn't genuinely recommend it, don't include it.
+
+A deliberate stopgap can still qualify — elegance is judged relative to the option's scope and lifetime. A minimal, contained, reversible shim with a named removal path is elegant *as a stopgap*; an open-ended hack with no exit is not.
 
 ### 4. Make tradeoffs explicit
 
@@ -61,5 +63,6 @@ Verify any "Rests on" claims that could change your lean. If a load-bearing assu
 ## Common pitfalls
 
 - **The straw man.** Including a weak option to make your preferred one look good. Every option must be genuinely strong.
+- **The sloppy-cheap option.** Varying quality instead of scope. The budget option must be a smaller, well-crafted solution — not a worse-built one. An option that's only "cheaper" because it cuts corners on craft is a straw man in disguise.
 - **The false dichotomy.** Presenting "do it right vs. do it fast" when there's a spectrum. Use the ideal-first method to find the gradient.
 - **Constraint worship.** Treating every constraint as immovable. Some are real (physics, money), others are habits ("we've always done it this way"). Name which is which.

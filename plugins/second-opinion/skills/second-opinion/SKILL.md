@@ -1,86 +1,52 @@
 ---
 name: second-opinion
-description: Spawn 1-3 independent reviewers to provide critical perspectives on the agent's thinking before presenting to the user. Use when you need a fresh take, alternative approaches, or independent validation on a design, plan, code, or any non-trivial decision. Trigger on "second opinion", "another perspective", "ask fable", "independent review", or /second-opinion. Also trigger proactively during design and plan review phases.
+description: Get an independent review of your thinking before presenting it to the user — from the strongest independent channel the session offers (a full-transcript advisor tool if available, fresh-context reviewers otherwise). Use when you need a fresh take, alternative approaches, or independent validation on a design, plan, code, or any non-trivial decision. Triggers on "second opinion", "another perspective", "ask fable", "independent review", or /second-opinion. Also trigger proactively during the design and plan review phases — before presenting options or a spec.
 ---
 
-# /second-opinion — independent reviews before presenting
+# /second-opinion — independent review before presenting
 
-Spawn 1-3 independent reviewers in parallel to provide critical assessments of your thinking before you present to the user. A second opinion is what a second doctor does: look at the situation fresh, form an independent view, tell you where they agree and where they'd do differently. The output is for *you*, not the user — they see the result of your improved reasoning, not the raw reviewer responses.
+Before presenting non-trivial thinking to the user, get an independent review of it. A second opinion is what a second doctor does: look at the situation fresh, form an independent view, say where they agree and where they'd do differently. The output is for *you* — the user sees the result of your improved reasoning, not the raw review.
 
-Reviewers are Claude Fable subagents spawned via the Agent tool (`model: "fable"`). Their independence comes from separate execution with fresh context, not from different inputs.
+## What a valid second opinion is
 
-## Invocation
+Bind to the strongest channel available in this session that satisfies all three properties. The properties are fixed; the mechanism is whatever best provides them.
 
-`/second-opinion [n]` — spawn 1-3 reviewers; bare `/second-opinion` spawns one.
+- **Independent** — produced by something that didn't do the work and isn't anchored on your reasoning. Self-review wearing a reviewer hat is not a second opinion.
+- **Fully informed** — sees as much of the real context as possible. Prefer a channel that reads the **full transcript** over one you hand a summary: a distillation is curated by the same mind being reviewed, so your blind spots survive it. Distill only when the channel can't take the whole context.
+- **At least peer-strength** — a weaker model reviewing a stronger one mostly generates noise. Match or exceed your own capability.
 
-When choosing how many to spawn:
-- **1 reviewer**: quick sanity check, low-stakes decisions.
-- **2 reviewers**: important design decisions, plans with significant tradeoffs.
-- **3 reviewers**: high-stakes architecture, irreversible decisions.
+## Choosing the channel
 
-When spawning multiple reviewers, **always launch them in parallel** (multiple tool calls in the same turn).
+In rough order of preference:
+
+1. **A dedicated reviewer/advisor tool the harness exposes** that sees the full transcript — best on the "fully informed" axis, no distillation loss.
+2. **Fresh-context subagents at peer strength** (e.g. the Agent tool), given a faithful distillation — when no full-transcript channel exists. Spawn more than one for high-stakes or genuinely multi-faceted decisions; they run in parallel and their convergence or divergence is itself signal.
+3. **No independent channel available** — say so plainly and fall back to a structured self-critique, *labeled as such*. A self-review honestly named beats one dressed up as independent. Don't simulate a second opinion that isn't there.
+
+Let the stakes drive depth — a quick sanity check versus a full adversarial pass — not a fixed reviewer count.
 
 ## What to send
 
-Distill the situation — don't dump raw conversation. Include:
+If the channel takes the full transcript, let it. If you must distill, include: what's being decided and why it matters; the approach or options on the table; constraints, prior decisions, rejected alternatives; supporting material (code, data, drafts). Don't curate away the parts you're least sure of — those are exactly what a reviewer is for.
 
-- What's being decided or evaluated, and why it matters.
-- The approach under consideration, or the options on the table.
-- Constraints, prior decisions, rejected alternatives.
-- Supporting material if applicable (code snippets, data, drafts).
+## Review principles to convey
 
-Each reviewer gets the same context.
+However you invoke the reviewer, convey these — verbatim when the channel is a subagent prompt, as framing otherwise:
 
-## Philosophy injection
+> - You are an independent reviewer, not the decision-maker. Form your own assessment as if coming to it fresh. Agree where you agree, disagree where you disagree — let it emerge from your analysis, not a prescribed adversarial stance.
+> - Apply clean/correct/elegant: no quick fixes or hacks; ideal-first (what's the right answer with no constraints?); depth over breadth; every alternative strong and elegant for its declared scope.
+> - Be direct when you disagree — don't hedge or soften genuine pushback. But don't manufacture disagreement either.
+> - Ground in evidence. Open referenced files, fetch primary sources, web-search current practice and known failure modes. The value of a second opinion is bringing in what the author didn't — not re-processing what they gave you.
 
-Every reviewer prompt MUST include this block verbatim. Subagents inherit your CLAUDE.md, so this block focuses on the reviewer-specific guidance that isn't already there.
+## Integrating the response
 
-> **Review principles — follow these strictly:**
-> - You are an independent reviewer, not the decision-maker. Form your own independent assessment, as if coming to it fresh. Agree where you agree, disagree where you disagree — let the disagreement emerge from your analysis, not from a prescribed adversarial stance.
-> - Apply your CLAUDE.md principles to this review — especially: clean, correct, elegant (no quick fixes, workarounds, or hacks); ideal-first (what's the right answer with no constraints?); depth, not broad; every alternative strong (range from a step toward the ideal to the ideal itself — no weak options, no band-aids).
-> - Be direct when you disagree. Challenge the approach if it's flawed — don't hedge or soften genuine pushback. But don't manufacture disagreement either.
-> - Ground in evidence, don't just reason from the summary. Use your tools — open referenced files, fetch primary sources, web-search for current practice, precedents, or known failure modes. Verify load-bearing claims rather than taking them at face value. The value of a second opinion is bringing in what the author didn't — not re-processing what they gave you.
+- **Absorb, don't relay.** The user sees your improved reasoning, not the raw review.
+- **Don't flip on style preference alone.** A reviewer optimizing a different tradeoff axis (pragmatic over clean) isn't new information — it's a different axis. Update only on new facts, logical errors, or genuine blind spots. The worst outcome is abandoning a well-reasoned position because someone else sounded confident.
+- **Do update when warranted.** Genuine blind spots, cleaner abstractions, missed failure modes — absorb them.
+- **Own the changed mind.** If the review shifted your assessment, present the updated thinking as your own. The user cares about quality, not process.
 
-## Reviewer prompt template
-
-Inject the principles block verbatim.
-
-```
-You are an independent reviewer providing a second opinion.
-
-[philosophy injection block here, verbatim]
-
-Context:
-{distilled summary}
-
-Provide:
-1. Your independent assessment of the situation.
-2. Where your view aligns with the author's recommendation — and why.
-3. Where it diverges — the specific mechanism, not vague hand-waving.
-4. Alternative approaches worth considering, with tradeoffs.
-5. Your recommendation.
-```
-
-## Integrating the responses
-
-Look for the signal across reviewers:
-
-- **Convergence** — all reviewers reach the same conclusion: strong signal, absorb the confidence.
-- **Divergence on specifics** — agree on direction but differ on details: pick the strongest elements from each.
-- **Fundamental disagreement** — disagree on core approach: most valuable outcome. Decision has genuine tradeoffs you may not have mapped. Dig into the WHY before deciding.
-- **Unanimous concern** — every reviewer flags the same issue: take it seriously even if you initially dismissed it.
-
-### Rules for integration
-
-1. **Absorb, don't relay.** The user sees your improved reasoning, not the raw reviewer output.
-2. **Don't flip on style preference alone.** A reviewer optimizing on a different tradeoff axis (e.g., pragmatic over clean) isn't new information — it's a different axis. Update only on new facts, logical errors, or genuine blind spots. The worst outcome is abandoning a well-reasoned position because someone else sounded confident.
-3. **Do update when warranted.** Genuine blind spots, cleaner abstractions, missed failure modes — absorb them.
-4. **Own the changed mind.** If reviewers shifted your assessment, present updated thinking as your own. The user cares about quality, not process.
+When multiple reviewers converge, absorb the confidence. When they fundamentally disagree, that's the most valuable outcome — the decision has tradeoffs you may not have mapped, so dig into the *why* before deciding. When every reviewer flags the same concern, take it seriously even if you initially dismissed it.
 
 ## Before finalizing: steel-man
 
-After integrating reviewer input, apply the **Hold the Line** principle: re-articulate your prior position and the goal it served, then check whether the reviewer's input refutes the core on the same goal — or merely operates on a different axis. Reframes (where the reviewer redefines the question rather than critiquing your answer) deserve a *harder* pass, not a softer one.
-
-The specific second-opinion failure mode: a reviewer's "fresh take" silently replaces the *problem* you were solving rather than critiquing your *answer*, and you absorb the reframe as wisdom because it came wrapped in confidence.
-
-If the full procedural check would help, run `/steel-man-own-position`.
+Apply **Hold the Line**: re-articulate your prior position and the goal it served, then check whether the review refutes the core on the same goal — or merely operates on a different axis. The specific failure mode: a reviewer's "fresh take" silently replaces the *problem* you were solving rather than critiquing your *answer*, and you absorb the reframe because it arrived wrapped in confidence. Reframes deserve a *harder* pass, not a softer one. If the full procedural check would help, run `/steel-man-own-position`.

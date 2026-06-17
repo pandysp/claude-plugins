@@ -1,6 +1,6 @@
 ---
 name: silent-failures
-description: Audit error handling in local code changes for silent failures, inadequate error feedback, and inappropriate fallback behavior. Use after writing or modifying error handling — try-catch blocks, callbacks, fallback logic, retries, or any code that could suppress errors. Triggers on /silent-failures, "check error handling", "find silent failures", "audit fallbacks", "review error handling". Also invoke proactively after touching error handling — the skill is cheap, debugging silent failures in production isn't.
+description: Audit error handling in local code changes for silent failures, inadequate error feedback, and inappropriate fallback behavior. Triggers on /silent-failures, "check error handling", "find silent failures", "audit fallbacks", "review error handling". Also invoke proactively right after writing or modifying error handling — try-catch blocks, callbacks, fallback logic, retries, or any code that could swallow an error.
 ---
 
 # /silent-failures — audit error handling for hidden failures
