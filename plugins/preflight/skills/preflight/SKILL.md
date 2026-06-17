@@ -13,6 +13,8 @@ Not "are you happy" (binary, invites a polite yes) — "HOW happy" (graduated, d
 
 Review what actually exists. Read files, check the diff, examine the produced artifacts. Don't assess from memory.
 
+Self-assessment has a built-in blind spot: you're grading your own work. For high-stakes ships, don't rely on introspection alone — route the work through an independent review (`/second-opinion`) and fold its findings into the assessment below.
+
 Then assess across these dimensions:
 
 ### Completeness

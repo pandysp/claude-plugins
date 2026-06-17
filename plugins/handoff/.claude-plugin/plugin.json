@@ -1,7 +1,7 @@
 {
   "name": "handoff",
   "description": "Write a durable handoff for work that's about to ship — structured PR descriptions, summaries, memos, or memory notes. Tells the next reader what was built, why, what changed, and what's next, without forcing them to spelunk the diff.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "Andreas Spannagel"
   },

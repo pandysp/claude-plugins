@@ -1,6 +1,6 @@
 ---
 name: reflect
-description: Capture durable lessons from a session before they fade — what surprised you, what friction repeated, what should update CLAUDE.md or notes, what insight would help future-you. Use at session end after work has shipped or reached a natural pause. Triggers on /reflect, "what did we learn", "lessons learned", "session retro", "what should we save", "should we update CLAUDE.md". Also invoke proactively after substantive work — insights are perishable, and the session that produced them is the only context where they're sharp. A skipped reflection is a lost lesson.
+description: Capture durable lessons from a session before they fade — what surprised you, what friction repeated, what should update CLAUDE.md or notes, what insight would help future-you. Use at session end after work has shipped or reached a natural pause. Triggers on /reflect, "what did we learn", "lessons learned", "session retro", "what should we save", "should we update CLAUDE.md". Also invoke proactively at the end of substantive work or at a natural session pause, while the friction and surprises are still in context.
 ---
 
 # /reflect — capture lessons before they fade

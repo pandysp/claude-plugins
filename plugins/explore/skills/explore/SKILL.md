@@ -13,7 +13,7 @@ This skill enforces a discipline: **before any design step, systematically map w
 
 Match the tool to the operation, not the domain:
 
-- **Autonomous breadth-y exploration** — spawn the `Explore` subagent. Up to 3 in parallel when scope is uncertain; default 1 when scope is known. Each agent gets a *distinct* search focus.
+- **Autonomous breadth-y exploration** — spawn the `Explore` subagent: one when scope is known, several in parallel when scope is uncertain or spans subsystems. Each agent gets a *distinct* search focus — fan out as wide as the terrain warrants, just never duplicate a focus.
 - **Targeted lookups** — use `Grep`/`Read` directly when you need raw content in your own context.
 - **Non-codebase sources** — file reads against notes/docs, web search, MCP queries.
 
@@ -46,6 +46,6 @@ Findings are grounding for the next step — typically design. If you're proceed
 - **Performative exploration.** Reading material to look thorough, without tying findings to design implications.
 - **Dumping the reading list.** "I read these 12 files" — they want surprises and constraints, not the catalog.
 - **Confusing locate with trace.** Listing artifacts isn't tracing how things connect. The phases build on each other.
-- **Skipping when "you know enough."** That judgment is exactly the one that fails. The skill is cheap. Run it.
+- **Skipping because the terrain feels familiar.** Map it anyway when the work is non-trivial — the finding you'd skip past is often the one that reshapes the design.
 - **Treating exploration as a deliverable.** It's grounding, not a research project. Time-box it.
 - **Fanning out the same prompt to multiple Explore agents.** Each agent should have a distinct search focus, otherwise you're paying 3× for the same answer.

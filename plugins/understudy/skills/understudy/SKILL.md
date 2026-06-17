@@ -26,7 +26,7 @@ The bar you're aiming for: **a reviewer can't find the seam between your code an
 Read the host's own code, comments, tests, and commit messages — and read more than the one thing you're touching. The hand shows in naming, comment density and what they bother to comment at all, where state lives, how errors flow, how config is gated, how tests are shaped, how commits are phrased. You'll default to glancing at the code and writing; the work is reading enough that their conventions, not your habits, are what's loaded when you start.
 
 ### 2. Iterate past your first pass
-One reading anchors on your own habits with a thin coat of theirs, and the idioms you'd get wrong are the ones it doesn't reveal. Expect at least two passes that each surface something the last missed — you should be able to name what each turned up, not just say you "matched the style". Stop when a pass comes up dry. The pull to call it done early is the failure this skill exists to counter; when in doubt, sample again.
+One reading anchors on your own habits with a thin coat of theirs, and the idioms you'd get wrong are the ones it doesn't reveal. Keep sampling until a pass comes up dry — you should be able to name what each pass turned up, not just say you "matched the style". The pull to call it done early is the failure this skill exists to counter; when in doubt, sample again.
 
 ## Style, not substance
 Effacing your hand is about how the code reads, not about silencing your judgment. Match their style; don't defer on substance. If something looks wrong on the merits — a bug, a risk, a real design problem — raise it as you would anywhere. The skill doesn't tell you whether to match or push back on that; it only asks that your style be theirs, not that your opinions go quiet.
