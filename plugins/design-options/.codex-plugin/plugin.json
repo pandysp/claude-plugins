@@ -17,7 +17,7 @@
     "capabilities": ["Read"],
     "defaultPrompt": [
       "What are my options for this?",
-      "Design this — show me the tradeoffs",
+      "Design this, show me the tradeoffs",
       "Give me design options"
     ]
   }

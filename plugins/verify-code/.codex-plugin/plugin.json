@@ -1,7 +1,7 @@
 {
   "name": "verify-code",
   "version": "1.0.0",
-  "description": "Black-box end-to-end verification — actually runs the system and shows evidence that it works.",
+  "description": "Black-box end-to-end verification. Actually runs the system and shows evidence that it works.",
   "author": {
     "name": "Andreas Spannagel",
     "url": "https://github.com/pandysp"

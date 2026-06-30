@@ -7,7 +7,7 @@ Workflow plugins for AI coding agents. Each plugin is a standalone skill that wo
 | Plugin | Description | Install |
 |--------|-------------|---------|
 | [verify-claims](./plugins/verify-claims) | Catch and verify unverified claims before presenting them as conclusions | `plugins/verify-claims` |
-| [verify-code](./plugins/verify-code) | Black-box end-to-end verification — run the system, show evidence | `plugins/verify-code` |
+| [verify-code](./plugins/verify-code) | Black-box end-to-end verification. Run the system, show evidence | `plugins/verify-code` |
 | [preflight](./plugins/preflight) | Honest self-assessment before shipping | `plugins/preflight` |
 | [pre-mortem](./plugins/pre-mortem) | Identify how plans could fail before committing | `plugins/pre-mortem` |
 | [design-options](./plugins/design-options) | Generate strong design options with explicit tradeoff profiles | `plugins/design-options` |
@@ -31,5 +31,5 @@ ln -s /path/to/claude-plugins/plugins/verify-claims/skills/verify-claims ~/.agen
 
 These plugins use Claude Code-specific features and are not available for Codex:
 
-- **second-opinion** — Spawns parallel Opus subagents for independent review (requires Claude Code Agent tool)
-- **typescript-lsp** — TypeScript language server integration (requires Claude Code LSP system)
+- **second-opinion**: Spawns parallel Opus subagents for independent review (requires Claude Code Agent tool)
+- **typescript-lsp**: TypeScript language server integration (requires Claude Code LSP system)

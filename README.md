@@ -7,7 +7,7 @@ Workflow plugins for AI coding agents. Works with **Claude Code** and **OpenAI C
 | Plugin | Category | Codex | Description |
 |--------|----------|:-----:|-------------|
 | [verify-claims](./plugins/verify-claims) | Workflow | Yes | Identify and verify unverified claims before presenting them as conclusions |
-| [verify-code](./plugins/verify-code) | Workflow | Yes | Black-box end-to-end verification — runs the system and shows evidence |
+| [verify-code](./plugins/verify-code) | Workflow | Yes | Black-box end-to-end verification that runs the system and shows evidence |
 | [preflight](./plugins/preflight) | Workflow | Yes | Honest self-assessment before shipping |
 | [pre-mortem](./plugins/pre-mortem) | Workflow | Yes | Identify how a plan or design could fail before committing |
 | [design-options](./plugins/design-options) | Workflow | Yes | Generate multiple strong design options with tradeoff profiles |
