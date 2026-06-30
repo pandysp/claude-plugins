@@ -1,6 +1,6 @@
 # explore
 
-A Claude Code plugin that enforces a "map the terrain before designing" discipline. The agent systematically explores what already exists — codebase, document corpus, strategy landscape — before generating design options or starting implementation.
+A Claude Code plugin that enforces a "map the terrain before designing" discipline. The agent systematically explores what already exists (codebase, document corpus, strategy landscape) before generating design options or starting implementation.
 
 ## Why
 
@@ -16,7 +16,7 @@ The exploration is mostly **for the agent's own grounding**, not a deliverable. 
 /explore
 ```
 
-Or just describe what you're about to design — the skill fires automatically before substantive design or planning steps.
+Or just describe what you're about to design. The skill fires automatically before substantive design or planning steps.
 
 ## Installation
 

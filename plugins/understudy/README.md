@@ -4,9 +4,9 @@ A Claude Code plugin for writing into a codebase you don't own so the contributi
 
 ## Why
 
-Your default is a generic, competent style that quietly announces "written by an outsider" — the same tell that reads as AI. To a maintainer with a strong personal style that's a cost even when the patch is correct: something to mentally translate, reformat, or turn down. This plugin is the discipline of effacing your own hand and writing as the host. The bar: a reviewer can't find the seam between your code and theirs.
+Your default is a generic, competent style that quietly announces "written by an outsider". That's the same tell that reads as AI. To a maintainer with a strong personal style that's a cost even when the patch is correct: something to mentally translate, reformat, or turn down. This plugin is the discipline of effacing your own hand and writing as the host. The bar: a reviewer can't find the seam between your code and theirs.
 
-Style only — the skill matches how the code reads, it doesn't silence your judgment on substance.
+Style only. The skill matches how the code reads. It doesn't silence your judgment on substance.
 
 ## Usage
 

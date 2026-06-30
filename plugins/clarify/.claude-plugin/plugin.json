@@ -1,7 +1,7 @@
 {
   "name": "clarify",
-  "description": "Surface and resolve underspecified decisions before designing. Asks targeted questions about scope, edge behavior, trade-offs, integration, constraints, and audience — with defaults — so design choices aren't silently locked around hidden assumptions.",
-  "version": "1.1.0",
+  "description": "Surface and resolve underspecified decisions before designing. Asks targeted questions about scope, edge behavior, trade-offs, integration, constraints, and audience (with defaults), so design choices aren't silently locked around hidden assumptions.",
+  "version": "1.1.1",
   "author": {
     "name": "Andreas Spannagel"
   },

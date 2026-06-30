@@ -4,7 +4,7 @@ A Claude Code plugin that forces systematic risk identification before committin
 
 ## Why
 
-Optimism bias is real. "Will this work?" biases toward yes. This skill flips the question: "Imagine it already failed — what went wrong?" Failure modes get ranked by likelihood, impact, and detectability, each with a concrete detection strategy — and the findings end in a recommendation, not reassurance.
+Optimism bias is real. "Will this work?" biases toward yes. This skill flips the question: "Imagine it already failed. What went wrong?" Failure modes get ranked by likelihood, impact, and detectability, each with a concrete detection strategy. The findings end in a recommendation, not reassurance.
 
 ## Usage
 

@@ -16,7 +16,7 @@ Fails loud (non-zero exit, stderr surfaced) if worktrunk isn't available, errors
 
 ## Project setup
 
-Worktrunk 0.52 resolves a repo's `.config/wt.toml` via `git show <base-ref>:.config/wt.toml` — committed files only. **If your `.config/wt.toml` is gitignored, hooks silently won't fire** for new worktrees. Either commit it (recommended for shared project hooks) or move per-user hooks to `~/.config/worktrunk/config.toml` under a `[projects."github.com/owner/repo"]` block. See [worktrunk issue #2818](https://github.com/max-sixty/worktrunk/issues/2818).
+Worktrunk 0.52 resolves a repo's `.config/wt.toml` via `git show <base-ref>:.config/wt.toml` (committed files only). **If your `.config/wt.toml` is gitignored, hooks silently won't fire** for new worktrees. Either commit it (recommended for shared project hooks) or move per-user hooks to `~/.config/worktrunk/config.toml` under a `[projects."github.com/owner/repo"]` block. See [worktrunk issue #2818](https://github.com/max-sixty/worktrunk/issues/2818).
 
 ## Installation
 

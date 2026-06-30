@@ -4,7 +4,7 @@ A Claude Code plugin that spawns 1-3 independent reviewers to challenge and shar
 
 ## How it works
 
-The agent distills the current context and sends it to 1-3 reviewer subagents running in parallel — fresh Claude Fable instances with no stake in the original reasoning. The reviewers critically evaluate the approach and suggest alternatives; the agent synthesizes the feedback internally. You see improved reasoning, not raw reviewer output.
+The agent distills the current context and sends it to 1-3 reviewer subagents running in parallel: fresh Claude Fable instances with no stake in the original reasoning. The reviewers critically evaluate the approach and suggest alternatives; the agent synthesizes the feedback internally. You see improved reasoning, not raw reviewer output.
 
 ## Usage
 
@@ -27,10 +27,10 @@ Or naturally: "get a second opinion", "another perspective on this". The agent a
 Every reviewer is injected with principles that prevent defaulting to shallow pragmatism:
 
 - Think in terms of the **ideal** first, then work backward to what's feasible
-- Aim for **clean, correct, and elegant** — no quick fixes or workarounds
+- Aim for **clean, correct, and elegant**: no quick fixes or workarounds
 - Go **deep**, not broad
-- Be **direct** — challenge flawed approaches without hedging
-- **Ground in evidence** — open the files, fetch the sources, verify load-bearing claims
+- Be **direct**: challenge flawed approaches without hedging
+- **Ground in evidence**: open the files, fetch the sources, verify the claims that carry weight
 
 ## License
 
