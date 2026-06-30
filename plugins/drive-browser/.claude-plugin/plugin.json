@@ -1,0 +1,10 @@
+{
+  "name": "drive-browser",
+  "description": "Drive a browser with Playwright as a dual-mode superset — resilient locators for debugging your own web app and a vision/coordinate loop for opaque real sites, on a fresh browser or the user's real logged-in session.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT"
+}
