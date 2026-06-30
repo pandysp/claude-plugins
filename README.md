@@ -32,6 +32,7 @@ A collection of Claude Code plugins.
 | [reflect](./plugins/reflect) | Workflow | Capture durable lessons from a session before they fade |
 | [understudy](./plugins/understudy) | Workflow | Write code, comments, tests, and commits that read as if the project's own maintainer wrote them |
 | [worktrunk-hook](./plugins/worktrunk-hook) | Tooling | Route Claude Code's auto-created git worktrees through worktrunk so sessions inherit project hooks |
+| [drive-browser](./plugins/drive-browser) | Tooling | Drive a browser with Playwright. Resilient locators for your own app, a vision loop for opaque sites |
 
 ## Development
 
