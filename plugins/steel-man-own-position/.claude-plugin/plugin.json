@@ -1,7 +1,7 @@
 {
   "name": "steel-man-own-position",
-  "description": "Before flipping a previously-stated position under pressure, restate its strongest form and the goal it served, then check whether the trigger refutes the core on the same goal — not just a decorative argument or a different axis.",
-  "version": "1.1.1",
+  "description": "Before flipping a previously-stated position under pressure, restate its strongest form and the goal it served, then check whether the trigger refutes the core on the same goal, not just a decorative argument or a different axis.",
+  "version": "1.1.2",
   "author": {
     "name": "Andreas Spannagel"
   },

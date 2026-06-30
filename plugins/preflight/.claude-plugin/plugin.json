@@ -1,7 +1,7 @@
 {
   "name": "preflight",
-  "description": "Honest self-assessment skill — surfaces incomplete work, missing verifications, bugs, and improvement ideas before shipping.",
-  "version": "1.2.0",
+  "description": "Honest self-assessment skill that surfaces incomplete work, missing verifications, bugs, and improvement ideas before shipping.",
+  "version": "1.2.1",
   "author": {
     "name": "Andreas Spannagel"
   },

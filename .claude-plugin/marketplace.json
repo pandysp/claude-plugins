@@ -19,7 +19,7 @@
     },
     {
       "name": "preflight",
-      "description": "Honest self-assessment skill — surfaces incomplete work, missing verifications, bugs, and improvement ideas before shipping.",
+      "description": "Honest self-assessment skill that surfaces incomplete work, missing verifications, bugs, and improvement ideas before shipping.",
       "source": "./plugins/preflight",
       "category": "workflow",
       "keywords": ["reflect", "review", "assessment", "quality", "self-check"],
@@ -29,7 +29,7 @@
     },
     {
       "name": "verify-result",
-      "description": "Black-box verification of any agent output — code, documents, presentations, reports, configs. Examine from the consumer's perspective and show evidence.",
+      "description": "Black-box verification of any agent output: code, documents, presentations, reports, configs. Examine from the consumer's perspective and show evidence.",
       "source": "./plugins/verify-result",
       "category": "workflow",
       "keywords": ["verify", "test", "end-to-end", "proof", "evidence", "black-box"],
@@ -69,7 +69,7 @@
     },
     {
       "name": "steel-man-own-position",
-      "description": "Before flipping a previously-stated position under pressure, restate its strongest form and the goal it served, then check whether the trigger refutes the core on the same goal — not just a decorative argument or a different axis.",
+      "description": "Before flipping a previously-stated position under pressure, restate its strongest form and the goal it served, then check whether the trigger refutes the core on the same goal, not just a decorative argument or a different axis.",
       "source": "./plugins/steel-man-own-position",
       "category": "workflow",
       "keywords": ["steel-man", "position", "lean", "pushback", "capitulation", "resilience"],
@@ -79,7 +79,7 @@
     },
     {
       "name": "align",
-      "description": "Surface what I think we're doing before acting on it — produces a structured manifest exposing every silent commitment so the user can correct course before any artifact is produced.",
+      "description": "Surface what I think we're doing before acting on it. Produces a structured manifest exposing every silent commitment so the user can correct course before any artifact is produced.",
       "source": "./plugins/align",
       "category": "workflow",
       "keywords": ["align", "manifest", "interpretation", "shared-understanding", "fabrication", "preflight"],
@@ -89,7 +89,7 @@
     },
     {
       "name": "silent-failures",
-      "description": "Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks — delegates to the silent-failure-hunter subagent for isolation",
+      "description": "Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks. Delegates to the silent-failure-hunter subagent for isolation",
       "source": "./plugins/silent-failures",
       "category": "workflow",
       "keywords": ["error-handling", "silent-failures", "audit", "review", "fallback", "debugging"],
@@ -99,7 +99,7 @@
     },
     {
       "name": "explore",
-      "description": "Map the terrain before designing — locate, trace, pattern, constrain. Used before any substantive design or planning step. Output is mostly for the agent's grounding; only surprises and hard constraints surface to the user.",
+      "description": "Map the terrain before designing: locate, trace, pattern, constrain. Used before any substantive design or planning step. Output is mostly for the agent's grounding; only surprises and hard constraints surface to the user.",
       "source": "./plugins/explore",
       "category": "workflow",
       "keywords": ["explore", "terrain", "discovery", "context", "grounding", "pre-design", "exploration"],
@@ -109,7 +109,7 @@
     },
     {
       "name": "clarify",
-      "description": "Surface and resolve underspecified decisions before designing. Asks targeted questions about scope, edge behavior, trade-offs, integration, constraints, and audience — with defaults — so design choices aren't silently locked around hidden assumptions.",
+      "description": "Surface and resolve underspecified decisions before designing. Asks targeted questions about scope, edge behavior, trade-offs, integration, constraints, and audience (with defaults), so design choices aren't silently locked around hidden assumptions.",
       "source": "./plugins/clarify",
       "category": "workflow",
       "keywords": ["clarify", "questions", "ambiguity", "synthesis", "pre-design", "underspecified"],
@@ -119,7 +119,7 @@
     },
     {
       "name": "reflect",
-      "description": "Capture durable lessons from a session before they fade — what surprised you, what friction repeated, what should update CLAUDE.md or notes. Output goes to memory, notes, or global instructions, not just to chat.",
+      "description": "Capture durable lessons from a session before they fade: what surprised you, what friction repeated, what should update CLAUDE.md or notes. Output goes to memory, notes, or global instructions, not just to chat.",
       "source": "./plugins/reflect",
       "category": "workflow",
       "keywords": ["reflect", "lessons", "retro", "memory", "session-end", "post-mortem"],
@@ -129,7 +129,7 @@
     },
     {
       "name": "handoff",
-      "description": "Write a durable handoff for work that's about to ship — structured PR descriptions, summaries, memos, or memory notes. Tells the next reader what was built, why, what changed, and what's next, without forcing them to spelunk the diff.",
+      "description": "Write a durable handoff for work that's about to ship: structured PR descriptions, summaries, memos, or memory notes. Tells the next reader what was built, why, what changed, and what's next, without forcing them to dig through the diff.",
       "source": "./plugins/handoff",
       "category": "workflow",
       "keywords": ["handoff", "pr-description", "summary", "documentation", "wrap-up", "ship"],
@@ -139,7 +139,7 @@
     },
     {
       "name": "spec",
-      "description": "Write the implementation spec — context, approach, files to modify, utilities to reuse, verification — that drives execution after design is chosen.",
+      "description": "Write the implementation spec (context, approach, files to modify, utilities to reuse, and verification) that drives execution after design is chosen.",
       "source": "./plugins/spec",
       "category": "workflow",
       "keywords": ["spec", "implementation-plan", "scope", "design", "pre-execution"],

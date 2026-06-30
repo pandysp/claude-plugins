@@ -1,41 +1,41 @@
 ---
 name: align
-description: Surface what I think we're doing before acting on it. Use when the user types /align, says "let's align first", "check in before you start", or "mirror what you're hearing". Also invoke before starting any task with real interpretive weight — an ambiguous request, a vague spec, a "build X" with the details unstated — where drafting from the wrong premise would waste the work. Produces a structured manifest exposing every silent commitment so the user can correct course before any artifact is produced.
+description: Surface what I think we're doing before acting on it. Use when the user types /align, says "let's align first", "check in before you start", or "mirror what you're hearing". Also invoke before starting any task with real interpretive weight. An ambiguous request, a vague spec, a "build X" with the details unstated. Where drafting from the wrong premise would waste the work. Produces a structured manifest exposing every silent commitment so the user can correct course before any artifact is produced.
 ---
 
-# /align — share understanding before acting
+# /align: share understanding before acting
 
-The most expensive failures aren't bad outputs — they're outputs built on a wrong premise. By the time the user sees prose, you've silently committed to: your reading of the request, your chosen approach, your interpretations of source, your register and format choices, and a hundred small fill-ins for things that weren't specified. Each commitment looks authoritative once written.
+The most expensive failures aren't bad outputs. They're outputs built on a wrong premise. By the time the user sees prose, you've silently committed to: your reading of the request, your chosen approach, your interpretations of source, your register and format choices, and a hundred small fill-ins for things that weren't specified. Each commitment looks authoritative once written.
 
-This skill inverts that. Before producing any artifact, produce a **manifest** — a structured, scannable summary of every silent commitment. The user reacts. Drafting happens after.
+This skill inverts that. Before producing any artifact, produce a **manifest**: a structured, scannable summary of every silent commitment. The user reacts. Drafting happens after.
 
 ## The manifest
 
-Output exactly five blocks. Target <60 seconds to read. If a block balloons, the source is thin or the scope is too broad — surface that, don't pad.
+Output exactly five blocks. Target <60 seconds to read. If a block balloons, the source is thin or the scope is too broad. Surface that, don't pad.
 
 Tag every item:
-- `[grounded]` — directly stated in the prompt or source.
-- `[inferred from "X"]` — derived from grounded content; show the chain.
-- `[mine]` — autonomously introduced; no derivation from source.
+- `[grounded]`: directly stated in the prompt or source.
+- `[inferred from "X"]`: derived from grounded content; show the chain.
+- `[mine]`: autonomously introduced; no derivation from source.
 
 Tags answer different questions: grounded → confirm, inferred → correct the premise, mine → accept or override.
 
-### Block 1 — My read of the task
+### Block 1: My read of the task
 
 Paraphrase the request. State the audience. State **why** this matters / what it's for. Note any timing constraints. Form details (length, voice, structure) belong in Block 4.
 
-### Block 2 — My approach
+### Block 2: My approach
 
-Describe the method. Include scope: what to do AND what to explicitly NOT do. Surfaces silent strategy commitments — asked for a draft, got a strategy doc; asked for a bug fix, got a refactor.
+Describe the method. Include scope: what to do AND what to explicitly NOT do. Surfaces silent strategy commitments. Asked for a draft, got a strategy doc; asked for a bug fix, got a refactor.
 
-### Block 3 — What I'm working with
+### Block 3: What I'm working with
 
 Two parts:
 
-1. **Source coverage** — what's in the source, tagged.
-2. **What I'd invent if not stopped** — explicit list of plausible-sounding details you'd otherwise fabricate.
+1. **Source coverage**: what's in the source, tagged.
+2. **What I'd invent if not stopped**: explicit list of plausible-sounding details you'd otherwise fabricate.
 
-The "what I'd invent" callout is the anti-fabrication bell — forcing enumeration makes invention visible; details that would have slipped uncited get surfaced as choices.
+The "what I'd invent" callout is the anti-fabrication bell. Forcing enumeration makes invention visible; details that would have slipped uncited get surfaced as choices.
 
 Format:
 
@@ -48,9 +48,9 @@ Format:
 - A specific number or date the source doesn't mention
 ```
 
-### Block 4 — How I'd render it
+### Block 4: How I'd render it
 
-State the **shape** (length, structure, container) and a **sample** of the actual output. The sample carries register, voice, conventions — don't list style attributes the sample reveals on its own. Catches silent voice drift.
+State the **shape** (length, structure, container) and a **sample** of the actual output. The sample carries register, voice, conventions. Don't list style attributes the sample reveals on its own. Catches silent voice drift.
 
 Format:
 
@@ -59,13 +59,13 @@ Format:
 - Sample: *"[an actual opening line of the output, in the intended voice]"*
 ```
 
-### Block 5 — Blocking questions
+### Block 5: Blocking questions
 
-Only forks where any default would be unsafe. Different from gaps you'd fill with defaults — those go in Block 3 as "what I'd invent." If there are none, say so. Don't pad.
+Only forks where any default would be unsafe. Different from gaps you'd fill with defaults. Those go in Block 3 as "what I'd invent." If there are none, say so. Don't pad.
 
 ## After the manifest
 
-Stop. Wait for the user to confirm, correct, or re-scope. Once confirmed, **re-read the manifest before drafting** — committed items are load-bearing. If something needs to change during drafting, pause and surface it: *"I'd like to add X — wasn't in the manifest. OK?"* Don't drift silently.
+Stop. Wait for the user to confirm, correct, or re-scope. Once confirmed, **re-read the manifest before drafting**. The committed items are what you're building on. If something needs to change during drafting, pause and surface it: *"I'd like to add X. Wasn't in the manifest. OK?"* Don't drift silently.
 
 ## Common pitfalls
 
