@@ -1,6 +1,6 @@
 ---
 name: pre-mortem
-description: Systematically identify how a plan, design, or decision could fail before committing to it. Trigger on /pre-mortem, "what could go wrong", "failure modes", "risk analysis", "what am I missing". Also invoke proactively before finalizing significant design decisions, before deploying with irreversible consequences, or when something feels "too clean": suspiciously few concerns is exactly when pre-mortem matters most.
+description: Systematically identify how a plan, design, or decision could fail before committing to it. Trigger on /pre-mortem, "what could go wrong", "failure modes", "risk analysis", "what am I missing". Also invoke proactively before finalizing significant design decisions, before deploying with irreversible consequences, or when something feels "too clean". Suspiciously few concerns is exactly when pre-mortem matters most.
 ---
 
 # /pre-mortem: assume it failed, work backward

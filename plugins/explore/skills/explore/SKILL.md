@@ -1,6 +1,6 @@
 ---
 name: explore
-description: Map the terrain before designing. Use before any substantive design or planning step: codebase changes, doc drafting, strategy decisions, anything with non-trivial structure. Triggers on /explore, "explore first", "what's already there", "map the codebase", "survey the landscape". The output is mostly for my own grounding. Only surprises, hard constraints, and gotchas surface to the user. If exploration was uneventful, that itself is the report.
+description: Map the terrain before designing. Use before any substantive design or planning step. Codebase changes, doc drafting, strategy decisions, anything with non-trivial structure. Triggers on /explore, "explore first", "what's already there", "map the codebase", "survey the landscape". The output is mostly for my own grounding. Only surprises, hard constraints, and gotchas surface to the user. If exploration was uneventful, that itself is the report.
 ---
 
 # /explore: map the terrain before designing
