@@ -4,7 +4,7 @@ A Claude Code plugin that catches unverified claims in the agent's own responses
 
 ## Why
 
-AI agents construct narratives — plausible stories from pattern-matching — and present them as analysis. "Make.com changed their enforcement" sounds like a diagnosis but is actually a guess. This skill forces the agent to find proof for each claim, and to classify what it can't prove as exactly that instead of restating it as a conclusion.
+AI agents construct narratives (plausible stories from pattern-matching) and present them as analysis. "Make.com changed their enforcement" sounds like a diagnosis but is actually a guess. This skill forces the agent to find proof for each claim, and to classify what it can't prove as exactly that instead of restating it as a conclusion.
 
 ## Usage
 
