@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "second-opinion",
-      "description": "Get an independent review of your thinking before presenting it — from the strongest independent channel the session offers — to strengthen your reasoning.",
+      "description": "Get 1-3 independent second opinions from fresh Claude reviewers to strengthen your reasoning before presenting to the user.",
       "source": "./plugins/second-opinion",
       "category": "workflow",
       "keywords": ["review", "second-opinion", "fable", "validation", "critique"],
@@ -139,7 +139,7 @@
     },
     {
       "name": "spec",
-      "description": "Write the implementation spec — goal, definition of done, boundaries, and verification — that makes success checkable before code is written.",
+      "description": "Write the implementation spec — context, approach, files to modify, utilities to reuse, verification — that drives execution after design is chosen.",
       "source": "./plugins/spec",
       "category": "workflow",
       "keywords": ["spec", "implementation-plan", "scope", "design", "pre-execution"],
