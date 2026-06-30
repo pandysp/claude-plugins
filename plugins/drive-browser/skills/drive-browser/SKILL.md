@@ -1,6 +1,6 @@
 ---
 name: drive-browser
-description: Drive a browser with Playwright as a dual-mode superset. Resilient locators/selectors for debugging your own web app (exact DOM, sub-second timing, CSS-media emulation) and a vision/coordinate loop (screenshot → click x,y → type) for genuinely opaque UI on unknown or messy real sites. Use whenever you actually drive a browser: reproducing a UI bug in a running web app, automating or scraping a site, filling forms, or walking a checkout. Triggers on /drive-browser, "drive my browser", "drive Helium", "drive my real session", "automate the browser". This is the HOW (the mechanism). /run and /verify decide when to drive. When driving the user's REAL logged-in session, the Safety section is binding.
+description: Drive a browser with Playwright as a dual-mode superset. Resilient locators/selectors for debugging your own web app (exact DOM, sub-second timing, CSS-media emulation) and a vision/coordinate loop (screenshot → click x,y → type) for genuinely opaque UI on unknown or messy real sites. Use whenever you actually drive a browser. Reproducing a UI bug in a running web app, automating or scraping a site, filling forms, or walking a checkout. Triggers on /drive-browser, "drive my browser", "drive Helium", "drive my real session", "automate the browser". This is the HOW (the mechanism). /run and /verify decide when to drive. When driving the user's REAL logged-in session, the Safety section is binding.
 ---
 
 # /drive-browser: drive a browser with Playwright
