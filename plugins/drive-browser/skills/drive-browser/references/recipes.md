@@ -1,4 +1,4 @@
-# Recipes — copy-paste scaffolds
+# Recipes: copy-paste scaffolds
 
 Generalised from real working runs. Scripts are ESM (`.mjs`); put them under
 `~/scratch/<date>-<slug>/` and `npm i playwright-core` (attach) or `playwright`
@@ -19,7 +19,7 @@ Teardown when done (close the unauthenticated door):
 osascript -e 'tell application "Helium" to quit'; sleep 2; open -a Helium   # normal, no flag
 ```
 Chrome/Chromium proper works the same. Since **Chrome 136** the debug port is
-ignored on the *default* profile — if `connectOverCDP` can't connect, relaunch with
+ignored on the *default* profile. If `connectOverCDP` can't connect, relaunch with
 `--user-data-dir=/tmp/cdp-profile`. Helium 149 didn't need this in practice, but the
 flag self-heals if that ever changes.
 
@@ -34,10 +34,10 @@ const page = await ctx.newPage();
 await browser.close();                    // disconnects only; leaves Helium open
 ```
 
-## 3. Locator mode — debug your own app (precise + timed + CSS-media)
+## 3. Locator mode: debug your own app (precise + timed + CSS-media)
 Illustrative: log in, send something, act inside a transient window, read exact
 DOM, emulate a CSS media feature. Prefer locators; assert state instead of waiting
-on navigation. (Selectors/labels here are illustrative — match the real app.)
+on navigation. (Selectors/labels here are illustrative. Match the real app.)
 ```js
 const page = ctx ? await ctx.newPage() : await browser.newPage();
 
@@ -68,7 +68,7 @@ const pos = await page.evaluate(() =>
   getComputedStyle(document.querySelector("[data-shimmer]")).backgroundPosition);  // sample twice to see if it moves
 ```
 
-## 4. Vision mode — genuinely opaque UI
+## 4. Vision mode: genuinely opaque UI
 Only when locators can't reach the controls. Iterative loop with YOU as the eyes:
 screenshot → Read the PNG → compute coords → click → screenshot again.
 ```js
@@ -97,9 +97,9 @@ const fields = await page.evaluate(() =>
 ## Gotchas
 - `connectOverCDP` + `browser.contexts()[0]` = the real session. A *launched*
   browser starts with one fresh context instead.
-- `browser.close()` after `connectOverCDP` only disconnects — it does not close the
+- `browser.close()` after `connectOverCDP` only disconnects. It does not close the
   user's browser. The debug port stays open until you quit+reopen the browser.
-- Vision coords are screenshot (image) pixels — rescale by `devicePixelRatio`
+- Vision coords are screenshot (image) pixels. Rescale by `devicePixelRatio`
   before `mouse.click`, and re-screenshot after anything that reflows.
 - `fill`/`keyboard.type` make React inputs update; `el.value = …` does not (see
   SKILL.md "Input that React actually registers").

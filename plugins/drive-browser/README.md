@@ -1,10 +1,10 @@
 # drive-browser
 
-Drive a browser with Playwright as a dual-mode superset — resilient locators for debugging your own web app, and a vision/coordinate loop for genuinely opaque UI on unknown or messy real sites. Runs on a fresh isolated browser, or the user's real logged-in session attached over CDP.
+Drive a browser with Playwright as a dual-mode superset. Resilient locators for debugging your own web app, and a vision/coordinate loop for genuinely opaque UI on unknown or messy real sites. Runs on a fresh isolated browser, or the user's real logged-in session attached over CDP.
 
 ## Why
 
-Two browser jobs that look alike pull in opposite directions. Debugging your own app wants precision — exact DOM reads, sub-second timing, `prefers-reduced-motion` emulation — which locators and `page.evaluate` give you. Surfing an unknown site wants a human-like loop — look, click where you see the control, type — for when no selector reaches the widget. Most tools make you pick one. Playwright does both, so one skill covers both, and the trap it heads off is following the API's grain: reaching for brittle CSS, or jumping straight to vision, when the right tool sits in between.
+Two browser jobs that look alike pull in opposite directions. Debugging your own app wants precision. Exact DOM reads, sub-second timing, `prefers-reduced-motion` emulation, which locators and `page.evaluate` give you. Surfing an unknown site wants a human-like loop (look, click where you see the control, type) for when no selector reaches the widget. Most tools make you pick one. Playwright does both, so one skill covers both, and the trap it heads off is following the API's grain: reaching for brittle CSS, or jumping straight to vision, when the right tool sits in between.
 
 ## Usage
 
@@ -12,12 +12,12 @@ Two browser jobs that look alike pull in opposite directions. Debugging your own
 /drive-browser
 ```
 
-Or just describe the task — reproduce a UI bug in a running app, walk a checkout, scrape a page. Fires automatically when the work means driving a browser.
+Or just describe the task. Reproduce a UI bug in a running app, walk a checkout, scrape a page. Fires automatically when the work means driving a browser.
 
 Two independent choices, picked by the target rather than by habit:
 
-- **How you find elements** — resilient locators by default (`getByRole`/`getByLabel`), vision (screenshot → click x,y → type) only when the structure is genuinely opaque.
-- **Where the page runs** — a fresh launch (isolated, deterministic) or the user's real browser attached over CDP (their cookies and login).
+- **How you find elements**: resilient locators by default (`getByRole`/`getByLabel`), vision (screenshot → click x,y → type) only when the structure is genuinely opaque.
+- **Where the page runs**: a fresh launch (isolated, deterministic) or the user's real browser attached over CDP (their cookies and login).
 
 Copy-paste scaffolds for both modes live in [`references/recipes.md`](./skills/drive-browser/references/recipes.md).
 
