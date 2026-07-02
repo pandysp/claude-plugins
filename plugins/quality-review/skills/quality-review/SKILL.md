@@ -13,28 +13,29 @@ Usage: `/quality-review [level] [--fix] [--domain docs|code] [<target>]`
 - **--domain**: force the lens sheet. Without it, infer from the target: prose and markdown files are `docs`, source files are `code`. If the target mixes both or fits neither, ask.
 - **target**: files, directories, or a description of what to audit. Required; if missing, ask what to audit rather than guessing.
 
-## Lens kinds
+## Lens order and promotion
 
-The lens sheets in `references/` define 13 lenses in two kinds, mirroring /code-review's correctness angles and merged cleanup finder:
+All 13 lenses run at every workflow level. The effort level decides how many get a dedicated finder; the rest share merged finders. This deviates from /code-review, which drops angles at lower levels: its dropped angles are rare-case specialists on homogeneous diffs, while lens relevance varies per artifact, so coverage is not our effort knob.
 
-- **Individual lenses** (one finder each, count varies by level), in priority order: emphasis, flow, unity, proportion, depth, sensitivity, authority, brilliance, suspense. Generalists come first and specialists last (brilliance needs novel ideas to bite, suspense needs buildup); the order is the tuning surface, reorder it as yield data accumulates.
-- **Merged lenses** (one finder covering all of them, at every level): clarity, economy, precision, vividness. These are judged per sentence in a single reading pass, so separate agents buy duplicates, not coverage.
+- **Priority order** (decides promotion): emphasis, flow, unity, proportion, depth, precision, clarity, economy, sensitivity, authority, brilliance, suspense, vividness. The top comes from the generalist principle plus one measured yield run (confounded, n=1); the order is provisional and is the tuning surface.
+- **Promotion**: the first 3 lenses (high) or 5 (xhigh, max) get one finder each.
+- **Chunking**: the unpromoted lenses are split, in priority order, into merged finders of at most 5 lenses each. The capacity of 5 is sourced from /code-review's cleanup finder, the one working example of a multi-lens agent; the split criterion is list position, deliberately nothing semantic.
 
-Findings rank by severity first, then verdict, then kind. Kind is only a tiebreaker: the kinds split by reading mode, not by stakes, so a major merged-lens finding (a factually wrong number, precision) outranks a moderate structural one.
+Findings rank by severity first, then verdict, then kind (individual or merged). Kind is only a tiebreaker: it records how the lens was staffed, not how much the finding matters.
 
-Future option, gated on accumulated yield data: let the scope agent pick which individual lenses fit the artifact instead of using the fixed order. Not implemented; the fixed order keeps yield data comparable across runs.
+Future option, gated on accumulated yield data: let the scope agent pick which lenses to promote for the artifact instead of using the fixed order. Not implemented; the fixed order keeps yield data comparable across runs.
 
-## Level parameters (1:1 with /code-review)
+## Level parameters (numbers 1:1 with /code-review)
 
-| Level | Mode | Individual lenses | Candidates per finder | Sweep | Max findings |
+| Level | Mode | Finders | Candidates per lens | Sweep | Max findings |
 |---|---|---|---|---|---|
-| low | inline | whole sheet, one pass | – | no | 5 |
-| medium | inline | whole sheet, one thorough pass | – | no | 10 |
-| high | workflow | first 3 + merged finder | 6 | no | 10 |
-| xhigh | workflow | first 5 + merged finder | 8 | yes (cap 8) | 15 |
-| max | workflow | first 5 + merged finder | 8 | yes (cap 8) | 15 |
+| low | inline | none, one quick pass | – | no | 5 |
+| medium | inline | none, one thorough pass | – | no | 10 |
+| high | workflow | 3 individual + 2 merged (5+5 lenses) | 6 | no | 10 |
+| xhigh | workflow | 5 individual + 2 merged (5+3 lenses) | 8 | yes (cap 8) | 15 |
+| max | workflow | 5 individual + 2 merged (5+3 lenses) | 8 | yes (cap 8) | 15 |
 
-Max differs from xhigh in reasoning effort, not fan-out.
+Max differs from xhigh in reasoning effort, not fan-out. A merged finder's candidate cap is its lens count times the per-lens cap.
 
 ## Procedure
 
@@ -42,7 +43,7 @@ Max differs from xhigh in reasoning effort, not fan-out.
 2. Determine the domain and read the matching lens sheet from `references/` (`docs.md` or `code.md`). The sheet has one `###` section per lens plus a `## Calibration` section.
 3. **Inline (low, medium)**: review the target yourself in one pass, holding the whole sheet. Report only findings you are confident in, most severe first, each with file, verbatim quote, issue, and fix. Low means a quick pass and at most 5 findings; medium means a thorough pass and at most 10.
 4. **Workflow (high, xhigh, max)**:
-   - Build the `lenses` array from the sheet: one `{key, procedure, kind}` object per `###` section. `kind` is `"individual"` or `"merged"` per the Lens kinds section above; keep the individual lenses in the priority order listed there.
+   - Build the `lenses` array from the sheet: one `{key, procedure}` object per `###` section, sorted into the priority order listed above. The script computes promotion and chunking from the order; do not pass a kind.
    - Build `calibration` from the sheet's `## Calibration` section.
    - Resolve the target to absolute paths.
    - Invoke the Workflow tool with `scriptPath` pointing to `references/audit-workflow.js` inside this skill's base directory, and `args` as a real JSON object (never a string): `{level, target, domain, lenses, calibration}`. The script asserts its inputs and fails fast if args did not arrive.

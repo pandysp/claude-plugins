@@ -1,7 +1,7 @@
 export const meta = {
   name: 'quality-audit',
-  description: 'Multi-lens quality audit: scope, one finder per lens, per-location verification with a verdict ladder, optional gap sweep, synthesis by index, lens-yield stats',
-  whenToUse: 'Launched by the quality-review skill at level high and above. Args must be an object: {level, target, domain, lenses, calibration}.',
+  description: 'Multi-lens quality audit: scope, all lenses always run (top lenses get dedicated finders, the rest chunk into merged finders), per-location verification with a verdict ladder, optional gap sweep, synthesis by index, lens-yield stats',
+  whenToUse: 'Launched by the quality-review skill at level high and above. Args must be an object: {level, target, domain, lenses (ordered), calibration}.',
   phases: [
     { title: 'Scope', detail: 'resolve files, collect conventions and exempt vocabulary' },
     { title: 'Find', detail: 'one finder per lens' },
@@ -18,15 +18,17 @@ const TARGET = typeof args.target === 'string' ? args.target.trim() : ''
 if (!TARGET) throw new Error('quality-audit: args.target is required (files, directories, or scope description)')
 const DOMAIN = typeof args.domain === 'string' ? args.domain : 'docs'
 const LENSES = Array.isArray(args.lenses) ? args.lenses.filter(l => l && l.key && l.procedure) : []
-if (LENSES.length === 0) throw new Error('quality-audit: args.lenses must be a non-empty array of {key, procedure, kind}')
+if (LENSES.length === 0) throw new Error('quality-audit: args.lenses must be a non-empty ordered array of {key, procedure}')
 const CALIBRATION = typeof args.calibration === 'string' ? args.calibration : ''
 
-// 1:1 with the built-in /code-review workflow: individual lenses take the
-// correctness-angle slots (first N in priority order), merged lenses take the
-// cleanup slot (one finder covering all of them, at every level).
-//   high  → 3 individual + 1 merged finder, 6 candidates per angle, no sweep, ≤10 findings
-//   xhigh → 5 individual + 1 merged finder, 8 candidates per angle, sweep, ≤15 findings
+// All lenses run at every level; effort decides how many get a dedicated
+// finder. Numbers 1:1 with the built-in /code-review workflow:
+//   high  → first 3 lenses individual, 6 candidates per lens, no sweep, ≤10 findings
+//   xhigh → first 5 individual, 8 per lens, sweep, ≤15 findings
 //   max   → same fan-out as xhigh (the API reasoning effort differs, not the structure)
+// Unpromoted lenses chunk into merged finders of at most 5, in list order.
+// The capacity of 5 is sourced from /code-review's cleanup finder (5 lenses
+// in one agent); the split is positional, deliberately not semantic.
 const LEVEL_PARAMS = {
   high: { individual: 3, perLens: 6, maxFindings: 10, sweep: false },
   xhigh: { individual: 5, perLens: 8, maxFindings: 15, sweep: true },
@@ -34,10 +36,12 @@ const LEVEL_PARAMS = {
 }
 const P = LEVEL_PARAMS[LEVEL]
 const SWEEP_MAX = 8
+const MERGED_CHUNK = 5
 
-const INDIVIDUAL = LENSES.filter(l => l.kind === 'individual').slice(0, P.individual)
-const MERGED = LENSES.filter(l => l.kind === 'merged')
-if (INDIVIDUAL.length === 0) throw new Error('quality-audit: no lenses with kind "individual"; check the lens sheet parse')
+const INDIVIDUAL = LENSES.slice(0, P.individual)
+const UNPROMOTED = LENSES.slice(P.individual)
+const CHUNKS = []
+for (let i = 0; i < UNPROMOTED.length; i += MERGED_CHUNK) CHUNKS.push(UNPROMOTED.slice(i, i + MERGED_CHUNK))
 
 const VERDICT_LADDER =
   '- CONFIRMED: the quote is in the file and you can name the reader cost concretely. Cite the surrounding text.\n' +
@@ -115,7 +119,7 @@ if (!scope) return { error: 'Scope agent returned no result; cannot establish th
 if (!scope.files || scope.files.length === 0) {
   return { level: LEVEL, domain: DOMAIN, target: TARGET, summary: 'No files resolved from the target.', findings: [], stats: { finders: 0, candidates: 0, verifierAgents: 0, verified: 0 } }
 }
-log(LEVEL + ' ' + DOMAIN + ' audit: ' + scope.files.length + ' files, ' + INDIVIDUAL.length + ' individual lenses + ' + MERGED.length + ' merged')
+log(LEVEL + ' ' + DOMAIN + ' audit: ' + scope.files.length + ' files, ' + INDIVIDUAL.length + ' individual lenses + ' + UNPROMOTED.length + ' merged in ' + CHUNKS.length + ' finders')
 
 const SCOPE_BLOCK =
   '## Audit scope\n' +
@@ -139,21 +143,20 @@ const INDIVIDUAL_PROMPT = l =>
   'Read the files and audit ONLY through the lens of your assigned procedure:\n\n### ' + l.key + '\n' + l.procedure + '\n\n' +
   'Surface up to ' + P.perLens + ' candidate findings, ' + CANDIDATE_SHAPE
 
-const MERGED_CAP = MERGED.length * P.perLens
-const MERGED_PROMPT =
-  '## Quality finder — sentence-level lenses\n\n' + SCOPE_BLOCK + '\n' +
+const MERGED_PROMPT = chunk =>
+  '## Quality finder — merged lenses\n\n' + SCOPE_BLOCK + '\n' +
   'Read the files and review through EACH of the following lenses:\n\n' +
-  MERGED.map(l => '### ' + l.key + '\n' + l.procedure).join('\n\n') + '\n\n' +
+  chunk.map(l => '### ' + l.key + '\n' + l.procedure).join('\n\n') + '\n\n' +
   'Cover whichever lenses apply; you do not need findings from every lens. Prioritize the highest-cost issues across all of them. ' +
-  'Surface up to ' + MERGED_CAP + ' candidate findings, each tagged with the lens that produced it, ' + CANDIDATE_SHAPE
+  'Surface up to ' + chunk.length * P.perLens + ' candidate findings, each tagged with the lens that produced it, ' + CANDIDATE_SHAPE
 
 const FINDERS = INDIVIDUAL.map(l => ({
-  label: l.key, kind: 'individual', cap: P.perLens, defaultLens: l.key, prompt: INDIVIDUAL_PROMPT(l),
-})).concat(MERGED.length > 0 ? [{
-  label: 'sentence-level', kind: 'merged', cap: MERGED_CAP, defaultLens: 'merged', prompt: MERGED_PROMPT,
-}] : [])
+  label: l.key, kind: 'individual', cap: P.perLens, defaultLens: l.key, keys: new Set([l.key]), prompt: INDIVIDUAL_PROMPT(l),
+})).concat(CHUNKS.map((chunk, i) => ({
+  label: 'merged-' + (i + 1), kind: 'merged', cap: chunk.length * P.perLens, defaultLens: 'merged',
+  keys: new Set(chunk.map(l => l.key)), prompt: MERGED_PROMPT(chunk),
+})))
 
-const MERGED_KEYS = new Set(MERGED.map(l => l.key))
 const finderOuts = await parallel(FINDERS.map(f => () =>
   agent(f.prompt, { label: 'find:' + f.label, phase: 'Find', schema: CANDIDATES_SCHEMA }).then(r => {
     if (!r) return []
@@ -161,7 +164,7 @@ const finderOuts = await parallel(FINDERS.map(f => () =>
     return r.candidates.slice(0, f.cap).map(c => ({
       ...c,
       kind: f.kind,
-      lens: f.kind === 'individual' ? f.defaultLens : (MERGED_KEYS.has(c.lens) ? c.lens : 'merged'),
+      lens: f.kind === 'individual' ? f.defaultLens : (f.keys.has(c.lens) ? c.lens : 'merged'),
     }))
   })
 ))
@@ -242,7 +245,7 @@ log('Verify done: ' + verified.length + ' verified, ' + surviving.length + ' kep
 // Lens yield: raw candidates and confirmed-or-plausible per lens. Yield is the tuner.
 // Lenses that never ran (individual lenses beyond this level's count) stay absent.
 const lensYield = {}
-for (const l of INDIVIDUAL.concat(MERGED)) lensYield[l.key] = { raw: 0, kept: 0 }
+for (const l of LENSES) lensYield[l.key] = { raw: 0, kept: 0 }
 lensYield.merged = { raw: 0, kept: 0 }
 lensYield.sweep = { raw: 0, kept: 0 }
 for (const c of allCandidates) if (lensYield[c.lens]) lensYield[c.lens].raw++
