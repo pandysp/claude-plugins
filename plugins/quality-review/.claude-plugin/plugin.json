@@ -1,0 +1,10 @@
+{
+  "name": "quality-review",
+  "description": "Multi-lens quality audit for docs, code, and other artifacts. 13 quality adjectives as audit lenses with per-domain translation sheets, a workflow-backed finder/verifier pipeline, and lens-yield reporting.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins-private",
+  "license": "UNLICENSED"
+}
