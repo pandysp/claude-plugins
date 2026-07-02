@@ -17,10 +17,12 @@ Usage: `/quality-review [level] [--fix] [--domain docs|code] [<target>]`
 
 The lens sheets in `references/` define 13 lenses in two kinds, mirroring /code-review's correctness angles and merged cleanup finder:
 
-- **Individual lenses** (one finder each, count varies by level), in priority order: emphasis, flow, brilliance, proportion, depth, unity, sensitivity, authority, suspense. The order comes from measured lens yield and is the tuning surface; reorder it as yield data accumulates.
+- **Individual lenses** (one finder each, count varies by level), in priority order: emphasis, flow, unity, proportion, depth, sensitivity, authority, brilliance, suspense. Generalists come first and specialists last (brilliance needs novel ideas to bite, suspense needs buildup); the order is the tuning surface, reorder it as yield data accumulates.
 - **Merged lenses** (one finder covering all of them, at every level): clarity, economy, precision, vividness. These are judged per sentence in a single reading pass, so separate agents buy duplicates, not coverage.
 
-Individual-lens findings outrank merged-lens findings when the output cap forces a cut, like correctness outranks cleanup.
+Findings rank by severity first, then verdict, then kind. Kind is only a tiebreaker: the kinds split by reading mode, not by stakes, so a major merged-lens finding (a factually wrong number, precision) outranks a moderate structural one.
+
+Future option, gated on accumulated yield data: let the scope agent pick which individual lenses fit the artifact instead of using the fixed order. Not implemented; the fixed order keeps yield data comparable across runs.
 
 ## Level parameters (1:1 with /code-review)
 

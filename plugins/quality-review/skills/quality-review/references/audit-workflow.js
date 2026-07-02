@@ -257,10 +257,11 @@ if (surviving.length === 0) {
 
 // ── Phase: Synthesize: rank, merge semantic duplicates by index, cap ──
 phase('Synthesize')
-// Individual-lens findings outrank merged-lens findings, like correctness
-// outranks cleanup in /code-review; within a kind, severity then verdict.
+// Severity first, then verdict, kind only as tiebreaker. Deviation from
+// /code-review's kind-first rule: its kinds split by stakes (bugs vs
+// cleanup), ours split by reading mode, which carries no stakes signal.
 const sevRank = { major: 0, moderate: 1, minor: 2 }
-const rank = c => (c.kind === 'merged' ? 100 : 0) + sevRank[c.severity] * 2 + (c.verdict === 'PLAUSIBLE' ? 1 : 0)
+const rank = c => sevRank[c.severity] * 4 + (c.verdict === 'PLAUSIBLE' ? 2 : 0) + (c.kind === 'merged' ? 1 : 0)
 const ranked = surviving.slice().sort((a, b) => rank(a) - rank(b))
 const block = ranked.map((c, i) =>
   '### [' + i + '] ' + c.file + ' (' + c.severity + ', ' + c.verdict + ', lens: ' + c.lens + ')\nQuote: "' + c.quote + '"\n' + c.issue + '\nFix: ' + c.fix + '\nVerifier evidence: ' + c.evidence + '\n'
@@ -272,7 +273,7 @@ const report = await agent(
   '## Instructions\n' +
   'Return decisions about findings BY INDEX; never re-emit finding text.\n' +
   '1. For each distinct defect, emit one decision with its index. When several findings describe the same defect (same root cause), keep one entry and list the others in its merge array.\n' +
-  '2. Order decisions most severe first. Individual-lens findings always outrank merged-lens findings; within a kind, CONFIRMED outranks PLAUSIBLE.\n' +
+  '2. Order decisions most severe first; within a severity, CONFIRMED outranks PLAUSIBLE.\n' +
   '3. Keep at most ' + P.maxFindings + ' decisions; omit the least severe beyond the cap.\n' +
   '4. Write a 2-3 sentence summary of the audit.\n\nStructured output only.',
   { label: 'synthesize', schema: REPORT_SCHEMA }
