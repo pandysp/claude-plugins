@@ -52,6 +52,7 @@ Max differs from xhigh in reasoning effort, not fan-out.
 
 ## Notes
 
+- The level parameters assume a bounded target, the way /code-review assumes a diff. For targets beyond roughly ten files, run the audit in slices (per directory or per doc set) instead of one giant scope; do not compensate with bigger caps.
 - The lens sheets are the single source of truth for both the inline and workflow modes. Do not restate lens content in prompts; read the sheet.
 - The code sheet audits the communication half of code only. For correctness bugs, run /code-review; the two do not overlap.
 - Findings must quote the artifact verbatim. A finding whose quote does not appear in the file is refuted by definition.

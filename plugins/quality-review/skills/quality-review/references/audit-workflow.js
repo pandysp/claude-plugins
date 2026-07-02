@@ -278,11 +278,14 @@ const report = await agent(
   { label: 'synthesize', schema: REPORT_SCHEMA }
 )
 
+// Findings beyond the report cap come back as one-line entries instead of
+// being dropped: --fix can cheaply apply them, and a verified finding that
+// vanishes at a report cap is silent truncation.
 let findings
-let capDropped = 0
+let beyondCap = []
 if (!report) {
   findings = ranked.slice(0, P.maxFindings)
-  capDropped = ranked.length - findings.length
+  beyondCap = ranked.slice(P.maxFindings)
 } else {
   const seen = new Set()
   findings = []
@@ -294,14 +297,15 @@ if (!report) {
     for (const i of merged) seen.add(i)
     findings.push({ ...primary, mergedWith: merged.length > 0 ? merged.map(i => ranked[i].issue) : undefined })
   }
-  capDropped = ranked.length - seen.size
+  beyondCap = ranked.filter((c, i) => !seen.has(i))
 }
 
 return {
   level: LEVEL, domain: DOMAIN, target: TARGET,
   summary: report ? report.summary : 'Synthesis agent unavailable; findings ranked mechanically.',
   findings: findings.map(f => ({ file: f.file, severity: f.severity, verdict: f.verdict, lens: f.lens, kind: f.kind, quote: f.quote, issue: f.issue, fix: f.fix, evidence: f.evidence, mergedWith: f.mergedWith })),
-  capDropped,
+  beyondCap: beyondCap.map(f => ({ file: f.file, severity: f.severity, verdict: f.verdict, lens: f.lens, issue: f.issue })),
+  capDropped: beyondCap.length,
   stats,
   lensYield,
 }
