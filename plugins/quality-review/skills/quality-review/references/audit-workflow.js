@@ -1,7 +1,7 @@
 export const meta = {
   name: 'quality-audit',
   description: 'Multi-lens quality audit: scope, one finder per lens, per-location verification with a verdict ladder, optional gap sweep, synthesis by index, lens-yield stats',
-  whenToUse: 'Launched by the quality-review skill at level medium and above. Args must be an object: {level, target, domain, lenses, calibration}.',
+  whenToUse: 'Launched by the quality-review skill at level high and above. Args must be an object: {level, target, domain, lenses, calibration}.',
   phases: [
     { title: 'Scope', detail: 'resolve files, collect conventions and exempt vocabulary' },
     { title: 'Find', detail: 'one finder per lens' },
@@ -13,22 +13,31 @@ export const meta = {
 
 // ── Input assertions: fail fast, never improvise a target ──
 if (!args || typeof args !== 'object') throw new Error('quality-audit: args must be an object {level, target, domain, lenses, calibration}; got ' + typeof args)
-const LEVEL = ['medium', 'high', 'xhigh', 'max'].includes(args.level) ? args.level : 'high'
+const LEVEL = ['high', 'xhigh', 'max'].includes(args.level) ? args.level : 'high'
 const TARGET = typeof args.target === 'string' ? args.target.trim() : ''
 if (!TARGET) throw new Error('quality-audit: args.target is required (files, directories, or scope description)')
 const DOMAIN = typeof args.domain === 'string' ? args.domain : 'docs'
 const LENSES = Array.isArray(args.lenses) ? args.lenses.filter(l => l && l.key && l.procedure) : []
-if (LENSES.length === 0) throw new Error('quality-audit: args.lenses must be a non-empty array of {key, procedure}')
+if (LENSES.length === 0) throw new Error('quality-audit: args.lenses must be a non-empty array of {key, procedure, kind}')
 const CALIBRATION = typeof args.calibration === 'string' ? args.calibration : ''
 
+// 1:1 with the built-in /code-review workflow: individual lenses take the
+// correctness-angle slots (first N in priority order), merged lenses take the
+// cleanup slot (one finder covering all of them, at every level).
+//   high  → 3 individual + 1 merged finder, 6 candidates per angle, no sweep, ≤10 findings
+//   xhigh → 5 individual + 1 merged finder, 8 candidates per angle, sweep, ≤15 findings
+//   max   → same fan-out as xhigh (the API reasoning effort differs, not the structure)
 const LEVEL_PARAMS = {
-  medium: { perLens: 4, maxFindings: 12, sweep: false },
-  high: { perLens: 6, maxFindings: 15, sweep: false },
-  xhigh: { perLens: 8, maxFindings: 20, sweep: true },
-  max: { perLens: 8, maxFindings: 20, sweep: true },
+  high: { individual: 3, perLens: 6, maxFindings: 10, sweep: false },
+  xhigh: { individual: 5, perLens: 8, maxFindings: 15, sweep: true },
+  max: { individual: 5, perLens: 8, maxFindings: 15, sweep: true },
 }
 const P = LEVEL_PARAMS[LEVEL]
 const SWEEP_MAX = 8
+
+const INDIVIDUAL = LENSES.filter(l => l.kind === 'individual').slice(0, P.individual)
+const MERGED = LENSES.filter(l => l.kind === 'merged')
+if (INDIVIDUAL.length === 0) throw new Error('quality-audit: no lenses with kind "individual"; check the lens sheet parse')
 
 const VERDICT_LADDER =
   '- CONFIRMED: the quote is in the file and you can name the reader cost concretely. Cite the surrounding text.\n' +
@@ -57,6 +66,7 @@ const CANDIDATES_SCHEMA = {
         issue: { type: 'string', description: 'one sentence naming the defect and its reader cost' },
         fix: { type: 'string', description: 'concrete replacement text or action' },
         severity: { type: 'string', enum: ['minor', 'moderate', 'major'] },
+        lens: { type: 'string', description: 'for multi-lens finders: which lens produced this candidate' },
       },
     } },
   },
@@ -105,7 +115,7 @@ if (!scope) return { error: 'Scope agent returned no result; cannot establish th
 if (!scope.files || scope.files.length === 0) {
   return { level: LEVEL, domain: DOMAIN, target: TARGET, summary: 'No files resolved from the target.', findings: [], stats: { finders: 0, candidates: 0, verifierAgents: 0, verified: 0 } }
 }
-log(LEVEL + ' ' + DOMAIN + ' audit: ' + scope.files.length + ' files, ' + LENSES.length + ' lenses')
+log(LEVEL + ' ' + DOMAIN + ' audit: ' + scope.files.length + ' files, ' + INDIVIDUAL.length + ' individual lenses + ' + MERGED.length + ' merged')
 
 const SCOPE_BLOCK =
   '## Audit scope\n' +
@@ -119,18 +129,40 @@ const SCOPE_BLOCK =
 
 // ── Phase: Find ──
 phase('Find')
-const FINDER_PROMPT = l =>
-  '## Quality finder — ' + l.key + '\n\n' + SCOPE_BLOCK + '\n' +
-  'Read the files and audit ONLY through the lens of your assigned procedure:\n\n### ' + l.key + '\n' + l.procedure + '\n\n' +
-  'Surface up to ' + P.perLens + ' candidate findings, each with file, a verbatim quote (max 200 chars, must appear in the file), a one-sentence issue naming the reader cost, a concrete fix that respects the conventions and calibration, and a severity. ' +
+const CANDIDATE_SHAPE =
+  'each with file, a verbatim quote (max 200 chars, must appear in the file), a one-sentence issue naming the reader cost, a concrete fix that respects the conventions and calibration, and a severity. ' +
   'Pass every candidate with a nameable reader cost through; do not silently drop half-believed candidates, an independent verifier judges them next. ' +
   'If nothing qualifies, return an empty list.\n\nStructured output only.'
 
-const finderOuts = await parallel(LENSES.map(l => () =>
-  agent(FINDER_PROMPT(l), { label: 'find:' + l.key, phase: 'Find', schema: CANDIDATES_SCHEMA }).then(r => {
+const INDIVIDUAL_PROMPT = l =>
+  '## Quality finder — ' + l.key + '\n\n' + SCOPE_BLOCK + '\n' +
+  'Read the files and audit ONLY through the lens of your assigned procedure:\n\n### ' + l.key + '\n' + l.procedure + '\n\n' +
+  'Surface up to ' + P.perLens + ' candidate findings, ' + CANDIDATE_SHAPE
+
+const MERGED_CAP = MERGED.length * P.perLens
+const MERGED_PROMPT =
+  '## Quality finder — sentence-level lenses\n\n' + SCOPE_BLOCK + '\n' +
+  'Read the files and review through EACH of the following lenses:\n\n' +
+  MERGED.map(l => '### ' + l.key + '\n' + l.procedure).join('\n\n') + '\n\n' +
+  'Cover whichever lenses apply; you do not need findings from every lens. Prioritize the highest-cost issues across all of them. ' +
+  'Surface up to ' + MERGED_CAP + ' candidate findings, each tagged with the lens that produced it, ' + CANDIDATE_SHAPE
+
+const FINDERS = INDIVIDUAL.map(l => ({
+  label: l.key, kind: 'individual', cap: P.perLens, defaultLens: l.key, prompt: INDIVIDUAL_PROMPT(l),
+})).concat(MERGED.length > 0 ? [{
+  label: 'sentence-level', kind: 'merged', cap: MERGED_CAP, defaultLens: 'merged', prompt: MERGED_PROMPT,
+}] : [])
+
+const MERGED_KEYS = new Set(MERGED.map(l => l.key))
+const finderOuts = await parallel(FINDERS.map(f => () =>
+  agent(f.prompt, { label: 'find:' + f.label, phase: 'Find', schema: CANDIDATES_SCHEMA }).then(r => {
     if (!r) return []
-    log(l.key + ': ' + r.candidates.length + ' candidates')
-    return r.candidates.slice(0, P.perLens).map(c => ({ ...c, lens: l.key }))
+    log(f.label + ': ' + r.candidates.length + ' candidates')
+    return r.candidates.slice(0, f.cap).map(c => ({
+      ...c,
+      kind: f.kind,
+      lens: f.kind === 'individual' ? f.defaultLens : (MERGED_KEYS.has(c.lens) ? c.lens : 'merged'),
+    }))
   })
 ))
 
@@ -196,7 +228,7 @@ if (P.sweep) {
     { label: 'sweep', phase: 'Sweep', schema: CANDIDATES_SCHEMA }
   )
   if (sweep && sweep.candidates.length > 0) {
-    const sliced = sweep.candidates.slice(0, SWEEP_MAX).map(c => ({ ...c, file: canonFile(c.file), lens: 'sweep' }))
+    const sliced = sweep.candidates.slice(0, SWEEP_MAX).map(c => ({ ...c, file: canonFile(c.file), lens: 'sweep', kind: 'individual' }))
     candidatesSeen += sliced.length
     log('sweep: ' + sliced.length + ' candidates')
     verified = verified.concat(await verifyGroups(sliced))
@@ -208,8 +240,10 @@ const refuted = verified.filter(c => c.verdict === 'REFUTED')
 log('Verify done: ' + verified.length + ' verified, ' + surviving.length + ' kept, ' + refuted.length + ' refuted')
 
 // Lens yield: raw candidates and confirmed-or-plausible per lens. Yield is the tuner.
+// Lenses that never ran (individual lenses beyond this level's count) stay absent.
 const lensYield = {}
-for (const l of LENSES) lensYield[l.key] = { raw: 0, kept: 0 }
+for (const l of INDIVIDUAL.concat(MERGED)) lensYield[l.key] = { raw: 0, kept: 0 }
+lensYield.merged = { raw: 0, kept: 0 }
 lensYield.sweep = { raw: 0, kept: 0 }
 for (const c of allCandidates) if (lensYield[c.lens]) lensYield[c.lens].raw++
 if (P.sweep) lensYield.sweep.raw = candidatesSeen - allCandidates.length
@@ -223,8 +257,10 @@ if (surviving.length === 0) {
 
 // ── Phase: Synthesize: rank, merge semantic duplicates by index, cap ──
 phase('Synthesize')
+// Individual-lens findings outrank merged-lens findings, like correctness
+// outranks cleanup in /code-review; within a kind, severity then verdict.
 const sevRank = { major: 0, moderate: 1, minor: 2 }
-const rank = c => sevRank[c.severity] * 2 + (c.verdict === 'PLAUSIBLE' ? 1 : 0)
+const rank = c => (c.kind === 'merged' ? 100 : 0) + sevRank[c.severity] * 2 + (c.verdict === 'PLAUSIBLE' ? 1 : 0)
 const ranked = surviving.slice().sort((a, b) => rank(a) - rank(b))
 const block = ranked.map((c, i) =>
   '### [' + i + '] ' + c.file + ' (' + c.severity + ', ' + c.verdict + ', lens: ' + c.lens + ')\nQuote: "' + c.quote + '"\n' + c.issue + '\nFix: ' + c.fix + '\nVerifier evidence: ' + c.evidence + '\n'
@@ -236,7 +272,7 @@ const report = await agent(
   '## Instructions\n' +
   'Return decisions about findings BY INDEX; never re-emit finding text.\n' +
   '1. For each distinct defect, emit one decision with its index. When several findings describe the same defect (same root cause), keep one entry and list the others in its merge array.\n' +
-  '2. Order decisions most severe first. Within a severity, CONFIRMED outranks PLAUSIBLE.\n' +
+  '2. Order decisions most severe first. Individual-lens findings always outrank merged-lens findings; within a kind, CONFIRMED outranks PLAUSIBLE.\n' +
   '3. Keep at most ' + P.maxFindings + ' decisions; omit the least severe beyond the cap.\n' +
   '4. Write a 2-3 sentence summary of the audit.\n\nStructured output only.',
   { label: 'synthesize', schema: REPORT_SCHEMA }
@@ -264,7 +300,7 @@ if (!report) {
 return {
   level: LEVEL, domain: DOMAIN, target: TARGET,
   summary: report ? report.summary : 'Synthesis agent unavailable; findings ranked mechanically.',
-  findings: findings.map(f => ({ file: f.file, severity: f.severity, verdict: f.verdict, lens: f.lens, quote: f.quote, issue: f.issue, fix: f.fix, evidence: f.evidence, mergedWith: f.mergedWith })),
+  findings: findings.map(f => ({ file: f.file, severity: f.severity, verdict: f.verdict, lens: f.lens, kind: f.kind, quote: f.quote, issue: f.issue, fix: f.fix, evidence: f.evidence, mergedWith: f.mergedWith })),
   capDropped,
   stats,
   lensYield,
