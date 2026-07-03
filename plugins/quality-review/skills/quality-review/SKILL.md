@@ -40,8 +40,10 @@ All 13 lenses run at every workflow level. The effort level decides how many get
 - **Priority order** (decides promotion): precision, clarity, depth, economy, brilliance, authority, flow, unity, proportion, vividness, sensitivity, emphasis, suspense. This is the user's preference ranking (2026-07-03); it is the tuning surface, to be revised against measured lens yield.
 - **Promotion**: the first 3 lenses (high) or 6 (xhigh) get one finder each; at max, every lens does.
 - **Buckets**: each unpromoted lens joins its bucket's shared finder. Buckets group lenses whose territories overlap (they flag the same passages), so a duplicate collapses inside one head instead of crossing heads. The membership test is where the fix lands:
-  - **arrangement** (the fix moves, cuts, or reorders material): emphasis, flow, suspense, proportion, brilliance, sensitivity, economy
+  - **ordering** (the fix reorders: move the point up, introduce the term earlier): flow, suspense, sensitivity
+  - **salience** (the fix rebalances attention: cut, resize, foreground): emphasis, proportion, economy, brilliance
   - **statement** (the fix rewrites the statement in place): precision, unity, depth, authority, clarity, vividness
+- Known cut: emphasis overlaps suspense and flow across the ordering/salience boundary, so a buried-lede quote can surface in both heads. Tolerated for even head workloads: both lenses are bottom-tier, and per-location verification catches the duplicate.
 - A bucket whose remainder is a single lens becomes an individual finder; the call is identical either way.
 
 Findings rank by severity first, then verdict, then kind (individual or merged). Kind is only a tiebreaker: it records how the lens was staffed, not how much the finding matters.
@@ -54,8 +56,8 @@ Future option, gated on accumulated yield data: let the scope agent pick which l
 |---|---|---|---|---|---|
 | low | inline | none, one quick pass | – | no | 5 |
 | medium | inline | none, one thorough pass | – | no | 10 |
-| high | workflow | 5: top 3 individual + arrangement head (7 lenses) + statement head (3) | 6 | no | 10 |
-| xhigh | workflow | 8: top 6 individual + arrangement head (5) + statement head (2) | 8 | yes (cap 8) | 15 |
+| high | workflow | 6: top 3 individual + ordering head (3 lenses) + salience head (4) + statement head (3) | 6 | no | 10 |
+| xhigh | workflow | 9: top 6 individual + ordering head (3) + salience head (2) + statement head (2) | 8 | yes (cap 8) | 15 |
 | max | workflow | 13: every lens individual | 8 | yes (cap 8) | 15 |
 
 A bucket head's candidate cap is its lens count times the per-lens cap. The head compositions in the table follow from the priority order and bucket membership; the script derives them, the table just shows the result.
@@ -66,7 +68,7 @@ A bucket head's candidate cap is its lens count times the per-lens cap. The head
 2. Determine the domain and read the matching lens sheet from `references/` (`docs.md` or `code.md`). The sheet has one `###` section per lens plus a `## Calibration` section.
 3. **Inline (low, medium)**: review the target yourself in one pass, holding the whole sheet. Report only findings you are confident in, most severe first, each with file, verbatim quote, issue, and fix. Low means a quick pass and at most 5 findings; medium means a thorough pass and at most 10.
 4. **Workflow (high, xhigh, max)**:
-   - Build the `lenses` array from the sheet: one `{key, procedure, bucket}` object per `###` section, sorted into the priority order listed above, with `bucket` set to `arrangement` or `statement` per the membership list above. The script computes promotion and bucket heads from the order and membership; do not pass a kind.
+   - Build the `lenses` array from the sheet: one `{key, procedure, bucket}` object per `###` section, sorted into the priority order listed above, with `bucket` set to `ordering`, `salience`, or `statement` per the membership list above. The script computes promotion and bucket heads from the order and membership; do not pass a kind.
    - Build `calibration` from the sheet's `## Calibration` section.
    - Resolve the target to absolute paths.
    - Invoke the Workflow tool with `scriptPath` pointing to `references/audit-workflow.js` inside this skill's base directory, and `args` as a real JSON object (never a string): `{level, target, domain, lenses, calibration}`. The script asserts its inputs and fails fast if args did not arrive.
