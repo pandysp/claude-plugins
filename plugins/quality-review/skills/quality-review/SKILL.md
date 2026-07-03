@@ -37,7 +37,7 @@ This table is the canonical definition of quality. Translate before use: the bar
 
 All 13 lenses run at every workflow level. The effort level decides how many get a dedicated finder; the rest share one finder per bucket. This deviates from /code-review, which drops angles at lower levels: its dropped angles are rare-case specialists on homogeneous diffs, while lens relevance varies per artifact, so coverage is not our effort knob.
 
-- **Priority order** (decides promotion): precision, clarity, depth, economy, brilliance, authority, flow, unity, proportion, vividness, sensitivity, emphasis, suspense. This is the user's preference ranking (2026-07-03); it is the tuning surface, to be revised against measured lens yield.
+- **Priority order** (decides promotion): precision, clarity, depth, economy, brilliance, authority, flow, unity, proportion, vividness, sensitivity, emphasis, suspense. This is the plugin author's preference ranking (2026-07-03); it is the tuning surface, to be revised against measured lens yield.
 - **Promotion**: the first 3 lenses (high) or 6 (xhigh) get one finder each; at max, every lens does.
 - **Buckets**: each unpromoted lens joins its bucket's shared finder. Buckets group lenses whose territories overlap (they flag the same passages), so a duplicate collapses inside one head instead of crossing heads. The membership test is where the fix lands:
   - **ordering** (the fix reorders: move the point up, introduce the term earlier): flow, suspense, sensitivity
@@ -76,7 +76,7 @@ A bucket head's candidate cap is its lens count times the per-lens cap. The head
    - The findings, most severe first, each with file, quote, issue, fix, verdict (CONFIRMED or PLAUSIBLE), and the lens that flagged it.
    - The lens-yield table (raw vs kept per lens) and any counts the workflow dropped or capped, so coverage limits are visible.
 6. If `--fix` was passed, apply the findings now: skip any that are wrong or not worth it, keep fixes inside the style rules the scope agent collected, and state per finding what happened (fixed, skipped, or no change needed).
-7. Lens yield is the tuner. If the workspace has the quality-rubric note (`notes/growth/quality-rubric.md`), offer to append the yield numbers to its measured-yield section and to reorder the individual-lens priority when the data warrants it.
+7. Lens yield is the tuner. If the workspace keeps a note tracking lens yield across runs, offer to append this run's numbers to it; reorder the lens priority only when accumulated data warrants it.
 
 ## Notes
 

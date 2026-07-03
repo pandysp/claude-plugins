@@ -176,6 +176,16 @@
       "author": {
         "name": "Andreas Spannagel"
       }
+    },
+    {
+      "name": "quality-review",
+      "description": "Multi-lens quality audit for docs, code, and other artifacts. 13 quality adjectives as audit lenses with per-domain translation sheets, a workflow-backed finder/verifier pipeline, and lens-yield reporting.",
+      "source": "./plugins/quality-review",
+      "category": "workflow",
+      "keywords": ["quality", "review", "audit", "rubric", "docs", "lenses"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
     }
   ]
 }
