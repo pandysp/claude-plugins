@@ -43,7 +43,7 @@ All 13 lenses run at every workflow level. The effort level decides how many get
   - **ordering** (the fix reorders: move the point up, introduce the term earlier): flow, suspense, sensitivity
   - **salience** (the fix rebalances attention: cut, resize, foreground): emphasis, proportion, economy, brilliance
   - **statement** (the fix rewrites the statement in place): precision, unity, depth, authority, clarity, vividness
-- Known cut: emphasis overlaps suspense and flow across the ordering/salience boundary, so a buried-lede quote can surface in both heads. Tolerated for even head workloads: both lenses are bottom-tier, and per-location verification catches the duplicate.
+- Known cut: emphasis lives in salience (its fix foregrounds the key element), but a buried-lede defect also reads as an ordering problem (move the point up), so the same quote can surface in both the salience and ordering heads. Harmless: per-location verification collapses both flags at that quote into one verdict group.
 - A bucket whose remainder is a single lens becomes an individual finder; the call is identical either way.
 
 Findings rank by severity first, then verdict, then kind (individual or merged). Kind is only a tiebreaker: it records how the lens was staffed, not how much the finding matters.
@@ -74,7 +74,7 @@ A bucket head's candidate cap is its lens count times the per-lens cap. The head
    - Invoke the Workflow tool with `scriptPath` pointing to `references/audit-workflow.js` inside this skill's base directory, and `args` as a real JSON object (never a string): `{level, target, domain, lenses, calibration}`. The script asserts its inputs and fails fast if args did not arrive.
 5. When the workflow result arrives, report:
    - The findings, most severe first, each with file, quote, issue, fix, verdict (CONFIRMED or PLAUSIBLE), and the lens that flagged it.
-   - The lens-yield table (raw vs kept per lens) and any counts the workflow dropped or capped, so coverage limits are visible.
+   - The lens-yield table (raw vs kept per lens), plus its `untagged:<bucket>` rows for bucket-head candidates the finder left untagged and the `sweep` row when a sweep ran. Surface these rows too: a hot `untagged` row means that head's per-lens counts are undercounting. Also report any counts the workflow dropped or capped, so coverage limits are visible.
 6. If `--fix` was passed, apply the findings now: skip any that are wrong or not worth it, keep fixes inside the style rules the scope agent collected, and state per finding what happened (fixed, skipped, or no change needed).
 7. Lens yield is the tuner. If the workspace keeps a note tracking lens yield across runs, offer to append this run's numbers to it; reorder the lens priority only when accumulated data warrants it.
 
