@@ -13,6 +13,26 @@ Usage: `/quality-review [level] [--fix] [--domain docs|code] [<target>]`
 - **--domain**: force the lens sheet. Without it, infer from the target: prose and markdown files are `docs`, source files are `code`. If the target mixes both or fits neither, ask.
 - **target**: files, directories, or a description of what to audit. Required; if missing, ask what to audit rather than guessing.
 
+## The 13 adjectives
+
+| Adjective       | Meaning                                                        |
+| --------------- | -------------------------------------------------------------- |
+| **unity**       | consistency, cohesiveness, recurring themes, harmony           |
+| **vividness**   | strong, clear, detailed, lively, bright, contrasting, dynamic  |
+| **authority**   | credibility, confidence, expertise, reliability, assertiveness |
+| **economy**     | simplicity, efficiency, minimalist, brevity, maximum effect    |
+| **sensitivity** | empathy, resonance, subtlety, nuance, awareness                |
+| **clarity**     | transparency, no ambiguity, easy-to-understand, intuitive      |
+| **emphasis**    | highlighting key elements, steering attention, focus           |
+| **flow**        | seamless transitions, logical progression, 'in the zone'       |
+| **suspense**    | anticipation, buildup, keeping engaged                         |
+| **brilliance**  | innovation, exceptional creativity, excellence                 |
+| **precision**   | accuracy, exactness, consistency, reliability                  |
+| **proportion**  | balance, harmony, aesthetic appeal                             |
+| **depth**       | complexity, layers of meaning, multiple perspectives           |
+
+This table is the canonical definition of quality. Translate before use: the bare adjectives are not the instrument. The translations live exclusively in `references/` (`docs.md`, `code.md`), one hunting procedure per lens.
+
 ## Lens order and promotion
 
 All 13 lenses run at every workflow level. The effort level decides how many get a dedicated finder; the rest share merged finders. This deviates from /code-review, which drops angles at lower levels: its dropped angles are rare-case specialists on homogeneous diffs, while lens relevance varies per artifact, so coverage is not our effort knob.
