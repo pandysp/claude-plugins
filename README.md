@@ -27,6 +27,7 @@ A collection of Claude Code plugins.
 | [verify-claims](./plugins/verify-claims) | Workflow | Identify and verify unverified claims before presenting them as conclusions |
 | [verify-result](./plugins/verify-result) | Workflow | Black-box verification of any agent output — code, documents, presentations, configs |
 | [silent-failures](./plugins/silent-failures) | Workflow | Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks |
+| [quality-review](./plugins/quality-review) | Workflow | Audit docs, code, or any artifact through 13 quality lenses with a workflow-backed finder/verifier pipeline |
 | [preflight](./plugins/preflight) | Workflow | Honest self-assessment of completeness, correctness, quality, and loose ends before shipping |
 | [handoff](./plugins/handoff) | Workflow | Write a durable handoff — PR descriptions, summaries, memos, or memory notes |
 | [reflect](./plugins/reflect) | Workflow | Capture durable lessons from a session before they fade |
