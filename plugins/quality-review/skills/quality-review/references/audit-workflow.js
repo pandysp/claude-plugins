@@ -1,7 +1,7 @@
 export const meta = {
   name: 'quality-audit',
-  description: 'Multi-lens quality audit: scope, all lenses always run (top lenses get dedicated finders, the rest chunk into merged finders), per-location verification with a verdict ladder, optional gap sweep, synthesis by index, lens-yield stats',
-  whenToUse: 'Launched by the quality-review skill at level high and above. Args must be an object: {level, target, domain, lenses (ordered), calibration}.',
+  description: 'Multi-lens quality audit: scope, all lenses always run (top lenses get dedicated finders, the rest share one head per overlap bucket), per-location verification with a verdict ladder, optional gap sweep, synthesis by index, lens-yield stats',
+  whenToUse: 'Launched by the quality-review skill at level high and above. Args must be an object: {level, target, domain, lenses (ordered, each {key, procedure, bucket}), calibration}.',
   phases: [
     { title: 'Scope', detail: 'resolve files, collect conventions and exempt vocabulary' },
     { title: 'Find', detail: 'one finder per lens' },
@@ -17,31 +17,36 @@ const LEVEL = ['high', 'xhigh', 'max'].includes(args.level) ? args.level : 'high
 const TARGET = typeof args.target === 'string' ? args.target.trim() : ''
 if (!TARGET) throw new Error('quality-audit: args.target is required (files, directories, or scope description)')
 const DOMAIN = typeof args.domain === 'string' ? args.domain : 'docs'
-const LENSES = Array.isArray(args.lenses) ? args.lenses.filter(l => l && l.key && l.procedure) : []
-if (LENSES.length === 0) throw new Error('quality-audit: args.lenses must be a non-empty ordered array of {key, procedure}')
+const LENSES = Array.isArray(args.lenses) ? args.lenses.filter(l => l && l.key && l.procedure && l.bucket) : []
+if (LENSES.length === 0) throw new Error('quality-audit: args.lenses must be a non-empty ordered array of {key, procedure, bucket}')
 const CALIBRATION = typeof args.calibration === 'string' ? args.calibration : ''
 
 // All lenses run at every level; effort decides how many get a dedicated
-// finder. Numbers 1:1 with the built-in /code-review workflow:
+// finder. Candidate/finding caps 1:1 with the built-in /code-review workflow:
 //   high  → first 3 lenses individual, 6 candidates per lens, no sweep, ≤10 findings
-//   xhigh → first 5 individual, 8 per lens, sweep, ≤15 findings
-//   max   → same fan-out as xhigh (the API reasoning effort differs, not the structure)
-// Unpromoted lenses chunk into merged finders of at most 5, in list order.
-// The capacity of 5 is sourced from /code-review's cleanup finder (5 lenses
-// in one agent); the split is positional, deliberately not semantic.
+//   xhigh → first 6 individual, 8 per lens, sweep, ≤15 findings
+//   max   → every lens individual, 8 per lens, sweep, ≤15 findings
+// Unpromoted lenses share one head per bucket. Buckets group lenses whose
+// territories overlap (they fire on the same quotes), so duplicates collapse
+// inside one head instead of crossing heads. A one-lens remainder is the same
+// call as an individual finder, so it is labeled as one.
 const LEVEL_PARAMS = {
   high: { individual: 3, perLens: 6, maxFindings: 10, sweep: false },
-  xhigh: { individual: 5, perLens: 8, maxFindings: 15, sweep: true },
-  max: { individual: 5, perLens: 8, maxFindings: 15, sweep: true },
+  xhigh: { individual: 6, perLens: 8, maxFindings: 15, sweep: true },
+  max: { individual: Infinity, perLens: 8, maxFindings: 15, sweep: true },
 }
 const P = LEVEL_PARAMS[LEVEL]
 const SWEEP_MAX = 8
-const MERGED_CHUNK = 5
 
 const INDIVIDUAL = LENSES.slice(0, P.individual)
 const UNPROMOTED = LENSES.slice(P.individual)
-const CHUNKS = []
-for (let i = 0; i < UNPROMOTED.length; i += MERGED_CHUNK) CHUNKS.push(UNPROMOTED.slice(i, i + MERGED_CHUNK))
+const bucketMap = Object.create(null)
+for (const l of UNPROMOTED) (bucketMap[l.bucket] ||= []).push(l)
+const BUCKETS = []
+for (const [name, lenses] of Object.entries(bucketMap)) {
+  if (lenses.length === 1) INDIVIDUAL.push(lenses[0])
+  else BUCKETS.push({ name, lenses })
+}
 
 const VERDICT_LADDER =
   '- CONFIRMED: the quote is in the file and you can name the reader cost concretely. Cite the surrounding text.\n' +
@@ -119,7 +124,7 @@ if (!scope) return { error: 'Scope agent returned no result; cannot establish th
 if (!scope.files || scope.files.length === 0) {
   return { level: LEVEL, domain: DOMAIN, target: TARGET, summary: 'No files resolved from the target.', findings: [], stats: { finders: 0, candidates: 0, verifierAgents: 0, verified: 0 } }
 }
-log(LEVEL + ' ' + DOMAIN + ' audit: ' + scope.files.length + ' files, ' + INDIVIDUAL.length + ' individual lenses + ' + UNPROMOTED.length + ' merged in ' + CHUNKS.length + ' finders')
+log(LEVEL + ' ' + DOMAIN + ' audit: ' + scope.files.length + ' files, ' + INDIVIDUAL.length + ' individual lenses' + BUCKETS.map(b => ' + ' + b.name + ' head (' + b.lenses.length + ')').join(''))
 
 const SCOPE_BLOCK =
   '## Audit scope\n' +
@@ -143,18 +148,18 @@ const INDIVIDUAL_PROMPT = l =>
   'Read the files and audit ONLY through the lens of your assigned procedure:\n\n### ' + l.key + '\n' + l.procedure + '\n\n' +
   'Surface up to ' + P.perLens + ' candidate findings, ' + CANDIDATE_SHAPE
 
-const MERGED_PROMPT = chunk =>
-  '## Quality finder — merged lenses\n\n' + SCOPE_BLOCK + '\n' +
-  'Read the files and review through EACH of the following lenses:\n\n' +
-  chunk.map(l => '### ' + l.key + '\n' + l.procedure).join('\n\n') + '\n\n' +
+const BUCKET_PROMPT = b =>
+  '## Quality finder — ' + b.name + ' bucket\n\n' + SCOPE_BLOCK + '\n' +
+  'Read the files and review through EACH of the following lenses. Their territories overlap: when one passage violates several of them, report it once under the lens that names the defect best.\n\n' +
+  b.lenses.map(l => '### ' + l.key + '\n' + l.procedure).join('\n\n') + '\n\n' +
   'Cover whichever lenses apply; you do not need findings from every lens. Prioritize the highest-cost issues across all of them. ' +
-  'Surface up to ' + chunk.length * P.perLens + ' candidate findings, each tagged with the lens that produced it, ' + CANDIDATE_SHAPE
+  'Surface up to ' + b.lenses.length * P.perLens + ' candidate findings, each tagged with the lens that produced it, ' + CANDIDATE_SHAPE
 
 const FINDERS = INDIVIDUAL.map(l => ({
   label: l.key, kind: 'individual', cap: P.perLens, defaultLens: l.key, keys: new Set([l.key]), prompt: INDIVIDUAL_PROMPT(l),
-})).concat(CHUNKS.map((chunk, i) => ({
-  label: 'merged-' + (i + 1), kind: 'merged', cap: chunk.length * P.perLens, defaultLens: 'merged',
-  keys: new Set(chunk.map(l => l.key)), prompt: MERGED_PROMPT(chunk),
+})).concat(BUCKETS.map(b => ({
+  label: b.name, kind: 'merged', cap: b.lenses.length * P.perLens, defaultLens: 'merged',
+  keys: new Set(b.lenses.map(l => l.key)), prompt: BUCKET_PROMPT(b),
 })))
 
 const finderOuts = await parallel(FINDERS.map(f => () =>
@@ -243,7 +248,8 @@ const refuted = verified.filter(c => c.verdict === 'REFUTED')
 log('Verify done: ' + verified.length + ' verified, ' + surviving.length + ' kept, ' + refuted.length + ' refuted')
 
 // Lens yield: raw candidates and confirmed-or-plausible per lens. Yield is the tuner.
-// Lenses that never ran (individual lenses beyond this level's count) stay absent.
+// Every lens runs at every level; 'merged' counts bucket-head candidates the
+// finder did not attribute to a specific lens.
 const lensYield = {}
 for (const l of LENSES) lensYield[l.key] = { raw: 0, kept: 0 }
 lensYield.merged = { raw: 0, kept: 0 }
@@ -262,7 +268,8 @@ if (surviving.length === 0) {
 phase('Synthesize')
 // Severity first, then verdict, kind only as tiebreaker. Deviation from
 // /code-review's kind-first rule: its kinds split by stakes (bugs vs
-// cleanup), ours split by reading mode, which carries no stakes signal.
+// cleanup), ours only record how the lens was staffed, which carries no
+// stakes signal.
 const sevRank = { major: 0, moderate: 1, minor: 2 }
 const rank = c => sevRank[c.severity] * 4 + (c.verdict === 'PLAUSIBLE' ? 2 : 0) + (c.kind === 'merged' ? 1 : 0)
 const ranked = surviving.slice().sort((a, b) => rank(a) - rank(b))
