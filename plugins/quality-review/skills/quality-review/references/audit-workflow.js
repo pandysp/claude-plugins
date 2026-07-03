@@ -169,7 +169,7 @@ const finderOuts = await parallel(FINDERS.map(f => () =>
     return r.candidates.slice(0, f.cap).map(c => ({
       ...c,
       kind: f.kind,
-      lens: f.kind === 'individual' ? f.defaultLens : (f.keys.has(c.lens) ? c.lens : 'merged'),
+      lens: f.kind === 'individual' ? f.defaultLens : (f.keys.has(c.lens) ? c.lens : 'untagged:' + f.label),
     }))
   })
 ))
@@ -248,12 +248,14 @@ const refuted = verified.filter(c => c.verdict === 'REFUTED')
 log('Verify done: ' + verified.length + ' verified, ' + surviving.length + ' kept, ' + refuted.length + ' refuted')
 
 // Lens yield: raw candidates and confirmed-or-plausible per lens. Yield is the tuner.
-// Every lens runs at every level; 'merged' counts bucket-head candidates the
-// finder did not attribute to a specific lens.
+// Every lens runs at every level. Bucket-head candidates the finder did not
+// attribute to a specific lens land in that head's 'untagged:<bucket>' row, so
+// a lost tag muddies only its own bucket's lenses, not the whole set. The
+// sweep row exists only when a sweep actually ran.
 const lensYield = {}
 for (const l of LENSES) lensYield[l.key] = { raw: 0, kept: 0 }
-lensYield.merged = { raw: 0, kept: 0 }
-lensYield.sweep = { raw: 0, kept: 0 }
+for (const b of BUCKETS) lensYield['untagged:' + b.name] = { raw: 0, kept: 0 }
+if (P.sweep) lensYield.sweep = { raw: 0, kept: 0 }
 for (const c of allCandidates) if (lensYield[c.lens]) lensYield[c.lens].raw++
 if (P.sweep) lensYield.sweep.raw = candidatesSeen - allCandidates.length
 for (const c of surviving) if (lensYield[c.lens]) lensYield[c.lens].kept++
