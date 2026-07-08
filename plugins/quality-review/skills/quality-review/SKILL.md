@@ -15,23 +15,23 @@ Usage: `/quality-review [level] [--fix] [--domain docs|code] [<target>]`
 
 ## The 13 adjectives
 
-| Adjective       | Meaning                                                        |
-| --------------- | -------------------------------------------------------------- |
-| **unity**       | consistency, cohesiveness, recurring themes, harmony           |
-| **vividness**   | strong, clear, detailed, lively, bright, contrasting, dynamic  |
-| **authority**   | credibility, confidence, expertise, reliability, assertiveness |
-| **economy**     | simplicity, efficiency, minimalist, brevity, maximum effect    |
-| **sensitivity** | empathy, resonance, subtlety, nuance, awareness                |
-| **clarity**     | transparency, no ambiguity, easy-to-understand, intuitive      |
-| **emphasis**    | highlighting key elements, steering attention, focus           |
-| **flow**        | seamless transitions, logical progression, 'in the zone'       |
-| **suspense**    | anticipation, buildup, keeping engaged                         |
-| **brilliance**  | innovation, exceptional creativity, excellence                 |
-| **precision**   | accuracy, exactness, consistency, reliability                  |
-| **proportion**  | balance, harmony, aesthetic appeal                             |
-| **depth**       | complexity, layers of meaning, multiple perspectives           |
+| Adjective       | Meaning |
+| --------------- | ------- |
+| **unity**       | One idea runs the whole thing and every part serves it. Parts agree and don't contradict. Reads like one person wrote it: same voice, same terms throughout. |
+| **vividness**   | The reader sees it, not just understands it. One well-chosen concrete detail. Things happen instead of sitting there. |
+| **authority**   | The text shows command. Credentials don't count. Claims come with visible backing. Confidence matches the evidence. Takes a position you could hold it to. |
+| **economy**     | Every element earns its place. Cut it and something is lost. Good parts do several jobs at once. Nothing added for show. |
+| **sensitivity** | Register and tone fit this audience and this occasion. Doesn't lecture or presume. Knows what to leave unsaid. This is the social fit. Whether they can parse it is clarity's job. |
+| **clarity**     | Nothing between the reader and the point. Only one way to read it, and you get it first pass. Actors are subjects and actions are verbs. Uses words the reader already knows. |
+| **emphasis**    | One element dominates and the rest step back. The key point goes where attention is highest. Stands out by contrast. Emphasize only a few things. More and none of them stand out. |
+| **flow**        | Each unit starts from what the reader knows and ends on the new thing. Seamless joins. The reader keeps going because it's easy, not because they're waiting for an answer. |
+| **suspense**    | Raises a question the reader wants answered. Reveals in doses. Pays off what it set up. |
+| **brilliance**  | Surprising and right at the same time. One without the other is worthless. An unexpected connection that holds. Comes on top of the basics, never instead of them. Sits in one spot, not spread across the whole. |
+| **precision**   | The right word, not the almost-right word. Vague is a defect here. Ambiguous is clarity's. The narrowest term that is still true. Says all, most, or some and means it. |
+| **proportion**  | Space tracks importance. Part-to-whole ratios are right. No minor point gets a page and no major point gets a sentence. |
+| **depth**       | More under the surface than on it. Rereading finds another layer and the first reading was already right. Goes deep on one thing instead of touching many. Push on any claim and there's more behind it. Not a front. |
 
-This table is the canonical definition of quality. Translate before use: the bare adjectives are not the instrument. The translations live exclusively in `references/` (`docs.md`, `code.md`), one hunting procedure per lens.
+This table is the canonical definition of quality. It audits the artifact, not its effect, and grades craft, not truth. Translate before use: the bare adjectives are not the instrument. The translations live exclusively in `references/` (`docs.md`, `code.md`), one hunting procedure per lens.
 
 ## Lens order and promotion
 
