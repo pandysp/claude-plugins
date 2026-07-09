@@ -77,6 +77,7 @@ A bucket head's candidate cap is its lens count times the per-lens cap. The head
 5. When the workflow result arrives, report:
    - The findings, most severe first, each with file, quote, issue, fix, verdict (CONFIRMED or PLAUSIBLE), and the lens that flagged it.
    - The lens-yield table (raw vs kept per lens), plus its `untagged:<bucket>` rows for bucket-head candidates the finder left untagged and the `sweep` row when a sweep ran. Surface these rows too: a hot `untagged` row means that head's per-lens counts are undercounting. Also report any counts the workflow dropped or capped, so coverage limits are visible.
+   - The refuted list (`refuted`: file, lens, issue, and the verifier's grounds per kill), briefly. It is the other half of yield tuning: it shows whether a low-yield lens finds garbage or gets its findings killed unfairly.
 6. If `--fix` was passed, apply the findings now: skip any that are wrong or not worth it, keep fixes inside the style rules the scope agent collected, and state per finding what happened (fixed, skipped, or no change needed).
 7. Lens yield is the tuner. If the workspace keeps a note tracking lens yield across runs, offer to append this run's numbers to it; reorder the lens priority only when accumulated data warrants it.
 

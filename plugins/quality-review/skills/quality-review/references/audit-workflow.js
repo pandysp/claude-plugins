@@ -262,8 +262,13 @@ for (const c of surviving) if (lensYield[c.lens]) lensYield[c.lens].kept++
 
 const stats = { level: LEVEL, domain: DOMAIN, finders: LENSES.length, candidates: candidatesSeen, verifierAgents, verified: verified.length, refuted: refuted.length }
 
+// Refuted candidates are returned, not just counted (as in /code-review), and
+// carry lens + the verifier's grounds: yield tuning must distinguish a lens
+// that finds garbage from a verifier that kills its findings unfairly.
+const refutedOut = refuted.map(c => ({ file: c.file, lens: c.lens, issue: c.issue, evidence: c.evidence }))
+
 if (surviving.length === 0) {
-  return { level: LEVEL, domain: DOMAIN, target: TARGET, summary: 'No findings survived verification.', findings: [], stats, lensYield }
+  return { level: LEVEL, domain: DOMAIN, target: TARGET, summary: 'No findings survived verification.', findings: [], refuted: refutedOut, stats, lensYield }
 }
 
 // ── Phase: Synthesize: rank, merge semantic duplicates by index, cap ──
@@ -319,6 +324,7 @@ return {
   findings: findings.map(f => ({ file: f.file, severity: f.severity, verdict: f.verdict, lens: f.lens, kind: f.kind, quote: f.quote, issue: f.issue, fix: f.fix, evidence: f.evidence, mergedWith: f.mergedWith })),
   beyondCap: beyondCap.map(f => ({ file: f.file, severity: f.severity, verdict: f.verdict, lens: f.lens, issue: f.issue })),
   capDropped: beyondCap.length,
+  refuted: refutedOut,
   stats,
   lensYield,
 }
