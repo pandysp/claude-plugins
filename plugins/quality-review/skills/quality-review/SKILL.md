@@ -73,7 +73,7 @@ A bucket head's candidate cap is its lens count times the per-lens cap. The head
    - Build the `lenses` array from the sheet: one `{key, procedure, bucket}` object per `###` section, sorted into the priority order listed above, with `bucket` set to `coherence`, `arrangement`, `substance`, `efficiency`, or `stance` per the membership list above. The script computes promotion and bucket heads from the order and membership; do not pass a kind.
    - Build `calibration` from the sheet's `## Calibration` section.
    - Resolve the target to absolute paths.
-   - Invoke the Workflow tool with `scriptPath` pointing to `references/audit-workflow.js` inside this skill's base directory, and `args` as a real JSON object (never a string): `{level, target, domain, lenses, calibration}`. The script asserts its inputs and fails fast if args did not arrive.
+   - Invoke the Workflow tool with `scriptPath` pointing to `references/audit-workflow.js` inside this skill's base directory, and `args` as a real JSON object (never a string): `{level, target, domain, lenses, calibration}`, plus `model` if the user asked for a specific subagent model. The script asserts its inputs and fails fast if args did not arrive.
 5. When the workflow result arrives, report:
    - The findings, most severe first, each with file, quote, issue, fix, verdict (CONFIRMED or PLAUSIBLE), and the lens that flagged it.
    - The lens-yield table (raw vs kept per lens), plus its `untagged:<bucket>` rows for bucket-head candidates the finder left untagged and the `sweep` row when a sweep ran. Surface these rows too: a hot `untagged` row means that head's per-lens counts are undercounting. Also report any counts the workflow dropped or capped, so coverage limits are visible.

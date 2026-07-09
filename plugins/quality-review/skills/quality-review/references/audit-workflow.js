@@ -1,7 +1,7 @@
 export const meta = {
   name: 'quality-audit',
   description: 'Multi-lens quality audit: scope, all lenses always run (top lenses get dedicated finders, the rest share one head per overlap bucket), per-location verification with a verdict ladder, optional gap sweep, synthesis by index, lens-yield stats',
-  whenToUse: 'Launched by the quality-review skill at level high and above. Args must be an object: {level, target, domain, lenses (ordered, each {key, procedure, bucket}), calibration}.',
+  whenToUse: 'Launched by the quality-review skill at level high and above. Args must be an object: {level, target, domain, lenses (ordered, each {key, procedure, bucket}), calibration, model (optional subagent override)}.',
   phases: [
     { title: 'Scope', detail: 'resolve files, collect conventions and exempt vocabulary' },
     { title: 'Find', detail: 'one finder per lens' },
@@ -12,14 +12,22 @@ export const meta = {
 }
 
 // ── Input assertions: fail fast, never improvise a target ──
-if (!args || typeof args !== 'object') throw new Error('quality-audit: args must be an object {level, target, domain, lenses, calibration}; got ' + typeof args)
-const LEVEL = ['high', 'xhigh', 'max'].includes(args.level) ? args.level : 'high'
-const TARGET = typeof args.target === 'string' ? args.target.trim() : ''
+// The harness may deliver args as a JSON string even when the caller passed an
+// object (observed 2026-07-09); accept that encoding, fail fast on anything else.
+let A = args
+if (typeof A === 'string') {
+  try { A = JSON.parse(A) } catch (e) { throw new Error('quality-audit: args arrived as a string that is not valid JSON') }
+}
+if (!A || typeof A !== 'object') throw new Error('quality-audit: args must be an object {level, target, domain, lenses, calibration}; got ' + typeof args)
+const LEVEL = ['high', 'xhigh', 'max'].includes(A.level) ? A.level : 'high'
+const TARGET = typeof A.target === 'string' ? A.target.trim() : ''
 if (!TARGET) throw new Error('quality-audit: args.target is required (files, directories, or scope description)')
-const DOMAIN = typeof args.domain === 'string' ? args.domain : 'docs'
-const LENSES = Array.isArray(args.lenses) ? args.lenses.filter(l => l && l.key && l.procedure && l.bucket) : []
+const DOMAIN = typeof A.domain === 'string' ? A.domain : 'docs'
+const LENSES = Array.isArray(A.lenses) ? A.lenses.filter(l => l && l.key && l.procedure && l.bucket) : []
 if (LENSES.length === 0) throw new Error('quality-audit: args.lenses must be a non-empty ordered array of {key, procedure, bucket}')
-const CALIBRATION = typeof args.calibration === 'string' ? args.calibration : ''
+const CALIBRATION = typeof A.calibration === 'string' ? A.calibration : ''
+// Optional model override for every subagent; omitted, agents inherit the session model.
+const MODEL = typeof A.model === 'string' && A.model.trim() ? { model: A.model.trim() } : {}
 
 // All lenses run at every level; effort decides how many get a dedicated
 // finder. Candidate/finding caps 1:1 with the built-in /code-review workflow:
@@ -118,7 +126,7 @@ const scope = await agent(
   'Collect the style conventions that govern these files: applicable CLAUDE.md files, style or voice skills, declared registers (a file that announces its own format). ' +
   'Collect the product-owned vocabulary: taglines, defined terms, and mechanism names the project uses deliberately; these must not be flagged as rhetoric.\n\n' +
   'Return absolute file paths. Structured output only.',
-  { label: 'scope', schema: SCOPE_SCHEMA }
+  { label: 'scope', schema: SCOPE_SCHEMA, ...MODEL }
 )
 if (!scope) return { error: 'Scope agent returned no result; cannot establish the audit scope.' }
 if (!scope.files || scope.files.length === 0) {
@@ -163,7 +171,7 @@ const FINDERS = INDIVIDUAL.map(l => ({
 })))
 
 const finderOuts = await parallel(FINDERS.map(f => () =>
-  agent(f.prompt, { label: 'find:' + f.label, phase: 'Find', schema: CANDIDATES_SCHEMA }).then(r => {
+  agent(f.prompt, { label: 'find:' + f.label, phase: 'Find', schema: CANDIDATES_SCHEMA, ...MODEL }).then(r => {
     if (!r) return []
     log(f.label + ': ' + r.candidates.length + ' candidates')
     return r.candidates.slice(0, f.cap).map(c => ({
@@ -208,7 +216,7 @@ async function verifyGroups(candidates) {
       'Read the file and return one verdict per candidate, judged independently on its own claim. First check the quote appears in the file (trivial whitespace differences are fine; anything more is REFUTED). Then judge the issue and the fix.\n\n' +
       VERDICT_LADDER + '\n\n' +
       'Reference each candidate by its [i] index. Structured output only. Evidence must quote or cite the relevant text.',
-      { label: 'verify:' + locLabel(g[0]) + '(' + g.length + ')', phase: 'Verify', schema: GROUP_VERDICT_SCHEMA }
+      { label: 'verify:' + locLabel(g[0]) + '(' + g.length + ')', phase: 'Verify', schema: GROUP_VERDICT_SCHEMA, ...MODEL }
     )
     if (!r) return []
     const byIdx = {}
@@ -233,7 +241,7 @@ if (P.sweep) {
     '## Already-found candidates (do NOT re-derive or re-confirm these)\n' + knownBlock + '\n\n' +
     'Re-read the files looking ONLY for quality defects not already listed: cross-file inconsistencies single-lens passes miss, defects sitting between two lenses, and anything a fresh read trips over that the list does not cover. ' +
     'Surface up to ' + SWEEP_MAX + ' additional candidates in the same shape (file, verbatim quote, issue, fix, severity). If nothing new, return an empty list; do not pad.\n\nStructured output only.',
-    { label: 'sweep', phase: 'Sweep', schema: CANDIDATES_SCHEMA }
+    { label: 'sweep', phase: 'Sweep', schema: CANDIDATES_SCHEMA, ...MODEL }
   )
   if (sweep && sweep.candidates.length > 0) {
     const sliced = sweep.candidates.slice(0, SWEEP_MAX).map(c => ({ ...c, file: canonFile(c.file), lens: 'sweep', kind: 'individual' }))
@@ -293,7 +301,7 @@ const report = await agent(
   '2. Order decisions most severe first; within a severity, CONFIRMED outranks PLAUSIBLE.\n' +
   '3. Keep at most ' + P.maxFindings + ' decisions; omit the least severe beyond the cap.\n' +
   '4. Write a 2-3 sentence summary of the audit.\n\nStructured output only.',
-  { label: 'synthesize', schema: REPORT_SCHEMA }
+  { label: 'synthesize', schema: REPORT_SCHEMA, ...MODEL }
 )
 
 // Findings beyond the report cap come back as one-line entries instead of
