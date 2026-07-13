@@ -19,7 +19,7 @@ A collection of Claude Code plugins.
 | [align](./plugins/align) | Workflow | Surface what the agent thinks the task is before producing any artifact |
 | [explore](./plugins/explore) | Workflow | Map the terrain before designing — locate, trace, pattern, constrain |
 | [clarify](./plugins/clarify) | Workflow | Resolve underspecified decisions with targeted questions before designing |
-| [design-options](./plugins/design-options) | Workflow | Generate multiple strong design options with tradeoff profiles, anchored on the ideal |
+| [design-options](./plugins/design-options) | Workflow | Generate multiple strong design options with tradeoff profiles, anchored against at least two ideal targets |
 | [pre-mortem](./plugins/pre-mortem) | Workflow | Identify how a plan or design could fail before committing |
 | [second-opinion](./plugins/second-opinion) | Workflow | Spawn 1-3 independent reviewers from other models for critical perspectives |
 | [steel-man-own-position](./plugins/steel-man-own-position) | Workflow | Restate the strongest version of a prior position before flipping under pushback |

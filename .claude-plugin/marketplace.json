@@ -59,10 +59,10 @@
     },
     {
       "name": "design-options",
-      "description": "Generate multiple strong design options with explicit tradeoff profiles, starting from the ideal architecture.",
+      "description": "Generate multiple strong design options with explicit tradeoff profiles, anchored against at least two ideal target architectures.",
       "source": "./plugins/design-options",
       "category": "workflow",
-      "keywords": ["design", "architecture", "options", "tradeoffs", "ideal"],
+      "keywords": ["design", "architecture", "options", "tradeoffs", "targets"],
       "author": {
         "name": "Andreas Spannagel"
       }
