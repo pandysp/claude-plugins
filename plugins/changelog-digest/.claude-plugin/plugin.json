@@ -1,0 +1,10 @@
+{
+  "name": "changelog-digest",
+  "description": "Digest new Claude Code releases into highlights, a checklist scanned against your setup, and suppressed noise. Ships a bucketing script plus a personalization pass.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT"
+}
