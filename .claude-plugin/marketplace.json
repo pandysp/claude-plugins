@@ -186,6 +186,16 @@
       "author": {
         "name": "Andreas Spannagel"
       }
+    },
+    {
+      "name": "changelog-digest",
+      "description": "Digest new Claude Code releases into highlights, a checklist scanned against your setup, and suppressed noise. Ships a bucketing script plus a personalization pass.",
+      "source": "./plugins/changelog-digest",
+      "category": "tooling",
+      "keywords": ["changelog", "releases", "digest", "updates", "claude-code"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
     }
   ]
 }
