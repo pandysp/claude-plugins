@@ -25,7 +25,7 @@ The phases apply across domains. Adapt depth and tooling. The *questions* genera
 What artifacts, sources, prior work, or context are in play? Don't accept the user's framing as the boundary. Adjacent material often turns out to be critical.
 
 ### 2. Trace: follow how things connect
-Where does data/argument flow? What depends on what? Which derivations are critical?
+Where does data/argument flow? What depends on what? Which derivations are critical? A trace is complete when you followed the primary artifact end to end: ingress, persistence, consumption.
 
 ### 3. Pattern: identify conventions
 What recurring shapes and established ways of doing things exist? Fighting them creates friction; fitting them removes it.
