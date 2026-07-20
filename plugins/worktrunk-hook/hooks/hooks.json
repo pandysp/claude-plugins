@@ -9,6 +9,16 @@
           }
         ]
       }
+    ],
+    "WorktreeRemove": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/wt-remove-hook.py"
+          }
+        ]
+      }
     ]
   }
 }
