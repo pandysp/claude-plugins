@@ -4,7 +4,7 @@ A Claude Code plugin that generates multiple strong design options with explicit
 
 ## Why
 
-AI agents tend to present one option (their first idea) or include straw-man alternatives to make the preferred option look good. This skill enforces the ideal-first method: establish what perfect looks like, then generate options as conscious steps away from the ideal. Every one is genuinely strong, with explicit tradeoffs and a stated lean. You choose between good and better, not good and bad.
+AI agents tend to present one option (their first idea) or include straw-man alternatives to make the preferred option look good. Anchoring on a single ideal has the same failure one level up: you only choose how far to go, never which direction. This skill enforces the ideals-first method: establish at least two ideal target architectures, each unconstrained but optimizing for different values, then generate options as stepping stones toward them. Every one is genuinely strong, with explicit tradeoffs and a stated lean. You choose direction and distance, not good and bad.
 
 ## Usage
 

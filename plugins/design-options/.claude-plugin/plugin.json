@@ -1,7 +1,7 @@
 {
   "name": "design-options",
-  "description": "Generate multiple strong design options with explicit tradeoff profiles, starting from the ideal architecture.",
-  "version": "1.5.1",
+  "description": "Generate multiple strong design options with explicit tradeoff profiles, anchored against at least two ideal target architectures.",
+  "version": "1.6.0",
   "author": {
     "name": "Andreas Spannagel"
   },
