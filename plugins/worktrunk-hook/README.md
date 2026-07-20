@@ -14,7 +14,7 @@ Also ships a `WorktreeRemove` hook that calls `wt remove --foreground` when Clau
 
 ## Requirements
 
-- [worktrunk](https://github.com/max-sixty/worktrunk) **0.52 or later** on `PATH` (the create hook uses `wt switch -c --format json`; the remove hook uses `wt remove --foreground --format json`, tested on 0.58)
+- [worktrunk](https://github.com/max-sixty/worktrunk) **0.52 or later** on `PATH` (the create hook uses `wt switch -c --format json`; the remove hook uses `wt remove --foreground --format json -y`, tested on 0.58)
 - git **2.31 or later** (the remove hook uses `rev-parse --path-format=absolute`)
 - Claude Code v2.1.143 or later
 - `python3` on `PATH`
@@ -32,9 +32,11 @@ Worktrunk 0.52 resolves a repo's `.config/wt.toml` via `git show <base-ref>:.con
 
 ## Trust note
 
-The hook uses `wt switch -c -y`. The `-y` flag skips worktrunk's command-approval prompt, so any `pre-start` or `post-start` commands in a project's `.config/wt.toml` execute on the first Claude dispatch into that repo. Only enable this plugin in environments where you trust the projects you work in.
+Both hooks pass `-y`. The flag skips worktrunk's command-approval prompt, so any `pre-start`, `post-start`, `pre-remove`, or `post-remove` commands in a project's `.config/wt.toml` execute on Claude dispatches into that repo. Only enable this plugin in environments where you trust the projects you work in.
 
-To opt into approvals instead, drop `-y` from `bin/wt-create-hook.py` and approve each new project's hooks manually via foreground `wt switch -c` before its first Claude dispatch.
+The remove hook needs `-y` for a second reason: without a TTY, wt cannot prompt for approval and declines the removal (verified on 0.58), so in any project with remove-time hooks the worktree would silently never be removed.
+
+To opt into approvals instead, drop `-y` from both scripts and approve each project's hooks manually (`wt config approvals add`, or a foreground `wt switch -c`) before its first Claude dispatch. Unapproved projects then keep their worktrees on removal instead of cleaning them up.
 
 ## License
 

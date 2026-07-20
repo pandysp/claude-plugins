@@ -51,10 +51,13 @@ if os.path.realpath(git_dir) == os.path.realpath(common_dir):
 
 # wt resolves the repo from its cwd; a path argument alone fails outside a
 # repo, so run inside the worktree. --foreground because default removal is
-# backgrounded and must finish before the hook exits.
+# backgrounded and must finish before the hook exits. -y because wt cannot
+# prompt for hook approval without a TTY and declines the removal instead
+# (see the Trust note in the README); dirty-tree protection is a separate
+# flag (-f) and stays on.
 try:
     result = subprocess.run(
-        ["wt", "remove", "--foreground", "--format", "json"],
+        ["wt", "remove", "--foreground", "--format", "json", "-y"],
         cwd=path,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
