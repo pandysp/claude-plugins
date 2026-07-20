@@ -1,7 +1,7 @@
 {
   "name": "verify-result",
   "description": "Black-box verification of any agent output: code, documents, presentations, reports, configs. Examine from the consumer's perspective and show evidence.",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "author": {
     "name": "Andreas Spannagel"
   },

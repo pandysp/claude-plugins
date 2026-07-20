@@ -1,6 +1,6 @@
 ---
 name: verify-result
-description: Black-box verification of any agent output. Code, documents, presentations, reports, configs. Examine from the consumer's perspective and show evidence. Use when the user says "verify", "prove it works", "test this end-to-end", "show me it works", "check the document", "does it actually work", or /verify-result. Also trigger proactively after completing implementation (Phase 4 of the development workflow). Verification means using/examining the output as a consumer would, not re-reading what was produced.
+description: Black-box verification of any agent output. Code, documents, presentations, reports, configs. Examine from the consumer's perspective and show evidence. Use when the user says "verify", "prove it works", "test this end-to-end", "show me it works", "check the document", "does it actually work", or /verify-result. Also trigger proactively after implementation, during the Verify phase of the development workflow. Verification means using/examining the output as a consumer would, not re-reading what was produced.
 ---
 
 # /verify-result: prove it works, show evidence
