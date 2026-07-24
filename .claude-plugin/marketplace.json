@@ -186,6 +186,16 @@
       "author": {
         "name": "Andreas Spannagel"
       }
+    },
+    {
+      "name": "dispatch-bg",
+      "description": "Dispatch a background Claude Code session to the right repo and verify it actually landed, instead of trusting the dispatch banner.",
+      "source": "./plugins/dispatch-bg",
+      "category": "tooling",
+      "keywords": ["background-agent", "bg", "dispatch", "claude-bg", "agents", "worktree", "fleet"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
     }
   ]
 }

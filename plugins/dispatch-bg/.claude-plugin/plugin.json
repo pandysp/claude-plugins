@@ -1,0 +1,10 @@
+{
+  "name": "dispatch-bg",
+  "description": "Dispatch a background Claude Code session to the right repo and verify it actually landed, instead of trusting the dispatch banner.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT"
+}
