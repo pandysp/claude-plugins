@@ -125,7 +125,7 @@ Privileged ops (`dispatch`, `reply`, `attach`, `permission-response`) take `auth
 
 - **`reply{short,text}`** — message a live agent *in place*. Tested against an agent sitting at `state: blocked`: it unblocked, acted on the content (told "Use B.md" it created B.md, not A.md), and finished — same job id, same pid, roster unchanged, prompt cache intact.
 - **`dispatch` with `launch.mode:"resume", fork:false`** — revive a job whose **process has exited**, under its original `short` and `sessionId`, appending to the original transcript. Verified: roster size unchanged, no new id, no copied transcript. `claude -r <sessionId> --bg` records `fork:true` and cannot do this; the foreground path refuses outright. This is the whole reason to be on the socket.
-- **`subscribe{short,tail}`** — stream a session's output; the `claude logs` that does not exist.
+- **`subscribe{short,tail}`** — stream a session as typed JSON frames, opening with `{"type":"snapshot","record":{…}}` (the full worker record, ~8 KB) and continuing as events arrive. Keep the connection open and read; this is the `claude logs` that does not exist, and it is the natural event source to hand to a watcher instead of polling.
 - **`kill{short,evict:true}`** — stop *and* delete the worker from the roster: a real programmatic reap.
 
 **Error codes you will meet:** `ENOJOB` (no live worker — for `reply`; revive it with a `resume` dispatch first), `ENOREPLY` (worker is non-interactive right now), `ERESPAWNING`/`ESTARTING` (retry), `EAUTH` (missing or stale control key), `EPROTO` (client/daemon version mismatch), `ESTALE` (previous dispatch with that id still cleaning up), `ETIMEOUT`.
