@@ -71,8 +71,8 @@ A bucket head's candidate cap is its lens count times the per-lens cap. The scri
 3. **Inline (low, medium)**: review the target yourself in one pass, holding the whole sheet. Report only findings you are confident in, most severe first, each with file, verbatim quote, issue, and fix. Low means a quick pass and at most 5 findings; medium means a thorough pass and at most 10.
 4. **Workflow (high, xhigh, max)**:
    - Build the `lenses` array from the sheet: one `{key, procedure, bucket}` object per `###` section, sorted into the priority order listed above, with `bucket` set to `coherence`, `arrangement`, `substance`, `efficiency`, or `stance` per the membership list above. The script computes promotion and bucket heads from the order and membership; do not pass a kind.
-   - Build `calibration` from the sheet's `## Calibration` section.
-   - Resolve the target to absolute paths.
+   - Build `calibration` from the sheet's `## Calibration` section. It is a **string** (an array of lines is accepted and joined). It is required: the script refuses to run without it, because a missing calibration would silently audit every finder against no exemptions.
+   - Resolve the target to absolute paths and pass them as a **string** (an array of paths is accepted and joined). It reaches the scope agent as free text, so a scope description works too.
    - Invoke the Workflow tool with `scriptPath` pointing to `references/audit-workflow.js` inside this skill's base directory, and `args` as a real JSON object (never a string): `{level, target, domain, lenses, calibration}`, plus `model` if the user asked for a specific subagent model. The script asserts its inputs and fails fast if args did not arrive.
 5. When the workflow result arrives, report:
    - The findings, most severe first, each with file, quote, issue, fix, verdict (CONFIRMED or PLAUSIBLE), and the lens that flagged it.
