@@ -53,7 +53,9 @@ Read-only. It merges the documented roster with a best-effort harvest of each ag
 - **From `state.json`** — `detail` (the agent's own one-line status, updated while it runs), `output.result` (its closing line), `children[]` (artifacts with hrefs, so a PR it opened shows up), plus `worktreePath`, `tokens`, `intent`, and the `cliVersion` the schema belongs to.
 - **From `timeline.jsonl`** — one line per state transition with its detail, for `<id> --timeline <n>`.
 
-Those files have no stability guarantee, so every field is read defensively: a renamed or retyped key costs a line of output, never a crash or a non-zero exit. Verified against 13 mutated schemas (missing directory, non-JSON, wrong types, renamed keys) with no failures.
+Those files have no stability guarantee, so every field is read defensively: a renamed or retyped key costs a line of output, never a crash or a non-zero exit. Verified against 14 mutated schemas (missing directory, non-JSON, wrong types, renamed keys) with no failures.
+
+One property to know before you run it: with no arguments this reads *every* background agent on the machine, not only the ones you dispatched, and `detail` for a live agent is often the last thing a human typed at it. Expect conversation text in the output, and scope with `--cwd` when that matters.
 
 Stopping and resuming are deliberately *not* here. There is no CLI for either, and the scripted alternatives are sharp: `kill <pid>` can land mid-tool-call and leave a half-written worktree, and replaying the recorded `respawnFlags` to continue an agent can silently re-grant `--dangerously-skip-permissions`. The skill documents both as recipes with their cautions; the script stays blast-radius-free.
 
