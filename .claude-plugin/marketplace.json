@@ -189,7 +189,7 @@
     },
     {
       "name": "dispatch-bg",
-      "description": "Dispatch a background Claude Code session to the right repo and verify it actually landed, instead of trusting the dispatch banner.",
+      "description": "Dispatch background Claude Code sessions to the right repo, verify they landed instead of trusting the dispatch banner, and read the fleet's state, progress, results, and artifacts.",
       "source": "./plugins/dispatch-bg",
       "category": "tooling",
       "keywords": ["background-agent", "bg", "dispatch", "claude-bg", "agents", "worktree", "fleet"],

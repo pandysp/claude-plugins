@@ -5,8 +5,10 @@
 # fail silently otherwise: dispatching from the wrong cwd, and reporting success
 # off the "backgrounded · <id>" banner without confirming the session actually
 # exists in the right place. This runs the dispatch, then verifies against the
-# documented `claude agents --json` interface (not the internal jobs state file,
-# whose schema drifts between versions).
+# documented `claude agents --json` interface. The internal jobs state file is
+# read only for the best-effort "did a prompt attach" peek, and only warns — it
+# has no stability guarantee, so no verdict depends on it. Use bg-fleet to read
+# what agents are doing and what they produced.
 #
 # Usage:
 #   bg-dispatch --repo <dir> [--name <name>] [--model <model>] --prompt-file <file>
@@ -73,9 +75,9 @@ if not m:
     sys.exit(2)
 sid = m.group(1)
 
-def agents():
+def agents(*extra):
     try:
-        out = subprocess.run(["claude", "agents", "--json", "--all"],
+        out = subprocess.run(["claude", "agents", "--json", "--all", *extra],
                              capture_output=True, text=True, timeout=30)
         return json.loads(out.stdout)
     except Exception:
@@ -97,9 +99,14 @@ if not job:
 
 cwd  = os.path.realpath(job.get("cwd") or "")
 name = job.get("name") or "(unnamed)"
-# The repo itself, an in-repo worktree (<repo>/.claude/worktrees/*), or a sibling
-# worktree (<repo>.<suffix>) all count — agents fork into a worktree to do work.
-cwd_ok = cwd == repo or cwd.startswith(repo + os.sep) or cwd.startswith(repo + ".")
+# Ask the CLI, don't pattern-match paths: --cwd filters on the directory the agent
+# was dispatched from, so it still matches once the agent has moved into a worktree
+# (the reported cwd follows the live process and becomes the worktree). The string
+# comparison stays as a fallback in case that filter's semantics change: the repo
+# itself, an in-repo worktree (<repo>/.claude/worktrees/*), or a sibling <repo>.<suffix>.
+scoped = agents("--cwd", repo)
+cwd_ok = (any(str(a.get("id")) == sid for a in scoped) if scoped else False) \
+    or cwd == repo or cwd.startswith(repo + os.sep) or cwd.startswith(repo + ".")
 
 # Best-effort: confirm the prompt actually attached (empty-prompt agents are a
 # real failure mode). The jobs file is internal, so this only warns, never fails.
@@ -110,15 +117,18 @@ try:
 except Exception:
     pass
 
+# state is what the agent thinks (working/blocked/done); status+pid say whether a
+# process is alive, and both are absent once it exits. Print both, never just one.
 print(f"dispatched   {sid}  ({name})")
-print(f"  status     {job.get('status')}")
+print(f"  state      {job.get('state')}   (status {job.get('status')}, pid {job.get('pid')})")
 print(f"  cwd        {cwd}")
 print(f"  cwd match  {'yes' if cwd_ok else 'NO — not the requested repo!'}")
 if intent is False:
     print("  prompt     WARNING: session has no intent recorded — it may have started empty")
 elif intent:
     print("  prompt     attached")
-print(f"  manage     claude agents            (attach/stop in the TUI)")
+print(f"  read       bg-fleet {sid}        (state, progress, result, artifacts)")
+print(f"  manage     claude agents            (attach/stop/reply in the TUI)")
 
 if not cwd_ok:
     sys.stderr.write(f"bg-dispatch: expected cwd under {repo}, got {cwd}\n")

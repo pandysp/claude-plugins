@@ -1,11 +1,13 @@
 ---
 name: dispatch-bg
-description: Dispatch a background Claude Code session to a repo and verify it actually landed. Use when the user says "dispatch a background agent", "launch a bg agent", "run this in the background", "kick off a claude --bg session", or /dispatch-bg. Covers the fork-vs-background choice (subagents share your context and die with your session; background sessions start fresh, run independently, and outlive it), the dispatch discipline that otherwise fails silently (explicit cd into the target repo, a self-contained prompt passed via a file, name/model flags), and the load-bearing check — confirm the session exists in the expected cwd through `claude agents --json`, never the "backgrounded · <id>" banner or the non-existent `claude logs`/`attach`/`stop` subcommands. Not for in-session subagents (use the Agent tool) or scheduled routines (use /schedule).
+description: Dispatch background Claude Code sessions and read the fleet they form. Use when the user says "dispatch a background agent", "launch a bg agent", "run this in the background", "kick off a claude --bg session", or asks what their background agents are doing, whether one landed, what one produced, how to stop or reply to one, or /dispatch-bg. Covers the fork-vs-background choice (subagents share your context and die with your session; background sessions start fresh, run independently, and outlive it), the dispatch discipline that otherwise fails silently (explicit cd into the target repo, a self-contained prompt passed via a file, name/model flags), the landing check through `claude agents --json` rather than the "backgrounded · <id>" banner or the non-existent `claude logs`/`attach`/`stop` subcommands, and how to harvest state, progress, results, and PR links across every agent. Not for in-session subagents (use the Agent tool) or scheduled routines (use /schedule).
 ---
 
-# /dispatch-bg: launch a background agent and prove it landed
+# /dispatch-bg: launch background agents and read the fleet
 
-`claude --bg "<prompt>"` is the whole command. Everything that goes wrong is around it, and it goes wrong silently: the session dispatches into the wrong directory, or starts with no prompt, and the `backgrounded · <id>` banner reports success either way. So the skill is not the command. It is dispatching to the right place and confirming the session actually took the work before you report it done.
+`claude --bg "<prompt>"` is the whole command. Everything that goes wrong is around it, and it goes wrong silently: the session dispatches into the wrong directory, or starts with no prompt, and the `backgrounded · <id>` banner reports success either way. Then, because a background agent never reports back, whatever it produced sits unread.
+
+So the skill is two halves: dispatch to the right place and confirm the session took the work, then read the fleet — state, progress, results, artifacts — without attaching to anything. Both halves rest on one distinction: `claude agents --json` is the documented interface and the only thing to *verify* against; everything richer lives in internal job files and is a best-effort harvest.
 
 ## First: is a background session even the right tool?
 
@@ -37,26 +39,62 @@ It exits non-zero and warns loudly if the session lands in the wrong cwd or neve
 
 Do not report success off the `backgrounded · <id>` banner. And do not reach for `claude logs <id>`, `claude attach <id>`, or `claude stop <id>` from the dispatch banner — **those are not real subcommands** (verified on Claude Code 2.1.x). The CLI parses them as a fresh prompt, so `claude logs <id>` spins up a new session that answers the word "logs". The only job subcommand is `claude agents`.
 
-Confirm three things through the documented, TTY-free interface:
+Confirm three things through the documented, TTY-free interface (`bg-fleet <id>` shows all three plus the harvest; the raw query is here so you can run it anywhere):
 
 ```bash
 claude agents --json --all | python3 -c "import json,sys; \
-  j=[a for a in json.load(sys.stdin) if a['id']=='<id>']; print(j)"
+  j=[a for a in json.load(sys.stdin) if a.get('id')=='<id>']; print(j)"
 ```
 
 - **It exists** — the id is in the list.
-- **cwd is right** — the repo you asked for, or a worktree of it. Agents fork into `<repo>/.claude/worktrees/*` or a sibling `<repo>.<suffix>`, so all three count; anything else is a misfire.
-- **It is progressing** — `status` is `busy`/`idle`/`done`, not absent.
+- **It was dispatched where you meant** — scope with `claude agents --json --all --cwd <repo>` and check the id is in *that* list. The filter matches the **dispatch** directory, so it still finds the agent after it has moved into a worktree (and filtering by the worktree path finds nothing).
+- **It is alive or finished cleanly** — see the two axes below.
 
-`--json` alone lists only active sessions; `--all` includes completed ones. A job dropping from one view to the other is normal state-over-time, not a fault. (The internal `~/.claude/jobs/<id>/state.json` also records the prompt as `intent` — useful to confirm a prompt attached, but its schema is unstable, so treat it as a best-effort peek, not the source of truth.)
+`--json` alone lists only active sessions; `--all` includes completed ones. A job dropping from one view to the other is normal state-over-time, not a fault.
 
-## Manage a running session
+### Two axes, not one status
 
-`claude --bg` sessions are daemon jobs, not children of your session, so an in-session stop tool cannot reach them. Manage them from the `claude agents` TUI (attach, reply, stop), or script status against `claude agents --json --all`.
+Confusing these is how you misread a healthy agent as broken:
+
+- **`state`** — what the agent thinks it is doing: `working`, `blocked` (waiting on you), `done`. Survives the process.
+- **`status` + `pid`** — whether a process is alive right now: `busy`/`idle` plus a pid. **Both are absent once the process exits**, so a finished agent is normally `state: done` with no `status` and no `pid`. `state: done` *with* a live pid is also normal — the agent is finished but its process has not torn down yet.
+
+`cwd` follows the same live-vs-recorded split: while the process is alive it reports the **live** directory, which becomes the worktree the agent isolated into; once the process is gone it falls back to the directory you dispatched from. That is why the dispatch check scopes with `--cwd` instead of comparing strings.
+
+## Read the fleet programmatically
+
+The roster tells you what exists; it does not tell you what any agent *did*. `claude agents --json` carries only `id, kind, name, cwd, sessionId, startedAt, state, status, pid`. The interesting part — the progress line, the result, the PRs it opened — is in the internal per-job files, which have no stability guarantee. So keep the boundary explicit: **verify against the documented roster, harvest best-effort on top of it.**
+
+```bash
+"${CLAUDE_PLUGIN_ROOT}"/bin/bg-fleet                    # every agent: state, detail, result, PR links
+"${CLAUDE_PLUGIN_ROOT}"/bin/bg-fleet --live             # only agents with a live process
+"${CLAUDE_PLUGIN_ROOT}"/bin/bg-fleet --cwd ~/dev/work   # scope to one tree
+"${CLAUDE_PLUGIN_ROOT}"/bin/bg-fleet <id> --timeline 20 # one agent + its state transitions
+"${CLAUDE_PLUGIN_ROOT}"/bin/bg-fleet --json             # merged records for scripting
+```
+
+What it merges in from `~/.claude/jobs/<id>/`, and what each is good for:
+
+- **`state.json` → `detail`** — the agent's own one-line status, updated *while it runs*. The cheapest "what is it doing" without attaching.
+- **`state.json` → `output.result`** — its closing result line, written when it finishes.
+- **`state.json` → `children[]`** — artifacts it produced, with hrefs (a PR it opened shows up here). This is how you collect work off a fleet.
+- **`state.json` → `worktreePath`, `tokens`, `intent`, `cliVersion`** — where it really worked, what it cost, the prompt it received, and the CLI version the schema belongs to.
+- **`timeline.jsonl`** — one line per state transition with its detail. Newest line is the current state; tail it to watch progress or to see when it went `blocked`. Replies typed at the agent in the TUI land here too, so this is also where you see that a human already intervened — worth checking before you act on an agent someone else is steering.
+
+Nothing here is a stable interface. Read every field defensively — a renamed key should cost you a line of output, not a crash.
+
+## Stop, reply, and clean up
+
+There is **no** stop/attach/reply subcommand: `claude agents` takes only `--json`/`--all`/`--cwd` plus defaults for sessions dispatched from the agent view. So:
+
+- **Stop** — the TUI (`claude agents`) is the first resort. Scripted, the only lever is `kill <pid>` from the roster. That ends the *process*, not the job: within seconds `status` and `pid` drop out and `cwd` falls back to the dispatch directory, while `state`, `detail` and `result` stay intact — and replying to the job in the TUI afterwards **revives it under the same id with a new pid**. So a kill is a pause you cannot cleanly resume from, not a delete. It also lands wherever the agent happened to be, so mid-tool-call it can leave a half-written worktree. Do not reach for it as routine cleanup. An in-session stop tool cannot reach these at all — they are daemon jobs, not children of your session.
+- **Reply** — a live agent is TUI-only; resuming a session another process still holds means two writers on one transcript. For a *finished* agent, `state.json` records `resumeSessionId` and `respawnFlags`, which is how the TUI continues it — but replaying `respawnFlags` verbatim can silently re-grant `--dangerously-skip-permissions`, so pass permissions yourself rather than inheriting them. And resuming mints a **new** job id: "replying" is really "continuing in a new session".
+- **Clean up** — the roster ages out and job directories get reaped, but the session transcript under `~/.claude/projects/<slug>/<sessionId>.jsonl` outlives both. That transcript is the durable record of what an agent actually did once `bg-fleet` can no longer see it.
 
 ## Gotchas
 
 - **cwd drift** — the single most common misfire. Always `cd`; always verify.
 - **Empty-prompt session** — a botched dispatch yields a session waiting for instructions. The verify step (intent attached) catches it.
 - **Model default** — the background dispatcher can start on an older model and ignore your `settings.json`/`ANTHROPIC_MODEL`. Pass `--model` explicitly when the model matters.
-- **No results push** — nothing comes back on its own. Note the id and go read it.
+- **Nothing is pushed, but nothing is lost** — a background agent never reports back to you. It does, however, *record* its result: `detail`, `output.result`, and any PR it opened land in its job file, so you harvest with `bg-fleet` rather than having to re-read a transcript. Note the id and go collect.
+- **An unnamed agent gets its whole prompt as its name.** Pass `--name` if you ever want to find it in a list again.
