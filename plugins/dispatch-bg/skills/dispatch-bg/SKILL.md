@@ -1,6 +1,6 @@
 ---
 name: dispatch-bg
-description: Dispatch background Claude Code sessions and read the fleet they form. Use when the user says "dispatch a background agent", "launch a bg agent", "run this in the background", "kick off a claude --bg session", or asks what their background agents are doing, whether one landed, what one produced, how to stop or reply to one, or /dispatch-bg. Covers the fork-vs-background choice (subagents share your context and die with your session; background sessions start fresh, run independently, and outlive it), the dispatch discipline that otherwise fails silently (explicit cd into the target repo, a self-contained prompt passed via a file, name/model flags), the landing check through `claude agents --json` rather than the "backgrounded · <id>" banner or the non-existent `claude logs`/`attach`/`stop` subcommands, and how to harvest state, progress, results, and PR links across every agent. Not for in-session subagents (use the Agent tool) or scheduled routines (use /schedule).
+description: Dispatch background Claude Code sessions, read the fleet they form, and drive it through the daemon control socket. Use when the user says "dispatch a background agent", "launch a bg agent", "run this in the background", or asks what their background agents are doing, whether one landed, what one produced, how to reply to or unblock one, stream its output, revive or reap one, or /dispatch-bg. Covers the fork-vs-background choice (subagents share your context and die with your session; background sessions start fresh and outlive it), the dispatch discipline that fails silently (explicit cd, prompt in a file, name/model flags), the landing check through `claude agents --json` rather than the banner or the non-existent `claude logs`/`attach`/`stop` subcommands, harvesting state and results across agents, and the control-socket ops the CLI cannot do. Not for in-session subagents (use the Agent tool) or scheduled routines (use /schedule).
 ---
 
 # /dispatch-bg: launch background agents and read the fleet
@@ -85,11 +85,75 @@ Nothing here is a stable interface. Read every field defensively — a renamed k
 
 ## Stop, reply, and clean up
 
-There is **no** stop/attach/reply subcommand: `claude agents` takes only `--json`/`--all`/`--cwd` plus defaults for sessions dispatched from the agent view. So:
+The **CLI** exposes no stop, attach, or reply: `claude agents` takes only `--json`/`--all`/`--cwd` plus defaults for sessions dispatched from the agent view. The daemon does expose all three, on a private socket — see the next section. Through documented interfaces alone:
 
-- **Stop** — the TUI (`claude agents`) is the first resort. Scripted, the only lever is `kill <pid>` from the roster. That ends the *process*, not the job: within seconds `status` and `pid` drop out and `cwd` falls back to the dispatch directory, while `state`, `detail` and `result` stay intact — and replying to the job in the TUI afterwards **revives it under the same id with a new pid**. So a kill is a pause you cannot cleanly resume from, not a delete. It also lands wherever the agent happened to be, so mid-tool-call it can leave a half-written worktree. Do not reach for it as routine cleanup. An in-session stop tool cannot reach these at all — they are daemon jobs, not children of your session.
-- **Reply** — a live agent is TUI-only; resuming a session another process still holds means two writers on one transcript. For a *finished* agent, `state.json` records `resumeSessionId` and `respawnFlags`, which is how the TUI continues it — but replaying `respawnFlags` verbatim can silently re-grant `--dangerously-skip-permissions`, so pass permissions yourself rather than inheriting them. And resuming mints a **new** job id: "replying" is really "continuing in a new session".
+- **Stop** — the TUI (`claude agents`) is the first resort. Scripted, the CLI-only lever is `kill <pid>` from the roster. That ends the *process*, not the job: within seconds `status` and `pid` drop out and `cwd` falls back to the dispatch directory, while `state`, `detail` and `result` stay intact — and replying to the job in the TUI afterwards **revives it under the same id with a new pid**. So a kill is a pause you cannot cleanly resume from, not a delete. It also lands wherever the agent happened to be, so mid-tool-call it can leave a half-written worktree. Do not reach for it as routine cleanup. An in-session stop tool cannot reach these at all — they are daemon jobs, not children of your session.
+- **Reply** — do this over the socket (`reply`, or a `resume` dispatch if the process is gone); the CLI cannot. For the record, `claude -r <sessionId> --bg` silently **forks**, minting a new job id and copying the transcript, so the continuation pays a cold prefill on context it already had — the foreground path refuses outright and tells you to add `--fork-session`, while `--bg` applies that opt-in silently. If you ever do take the fork, pass `--name` (the new job is auto-named from its prompt) and record the chain yourself: nothing links a fork to its parent, `resumeSessionId` self-references by design, and lineage survives only in transcript internals where copied lines retain the parent's `session_id`.
 - **Clean up** — the roster ages out and job directories get reaped, but the session transcript under `~/.claude/projects/<slug>/<sessionId>.jsonl` outlives both. That transcript is the durable record of what an agent actually did once `bg-fleet` can no longer see it.
+
+## The daemon control socket — the real interface
+
+`claude agents` and `claude --bg` are thin wrappers over a complete fleet RPC, and the wrappers are the weaker surface: they hardcode choices the RPC lets you make. Drive the socket directly.
+
+**Connect.** `claude daemon status` (a hidden subcommand — also `run`/`logs`/`stop --keep-workers`) prints the socket path, `/tmp/cc-daemon-<uid>/<hash>/control.sock`. It speaks **newline-delimited JSON**, one request per connection, every frame carrying `proto`:
+
+```bash
+printf '{"proto":1,"op":"ping"}\n' | nc -U "$SOCK"
+# {"ok":true,"op":"ping","version":"2.1.220","proto":1}
+```
+
+Privileged ops (`dispatch`, `reply`, `attach`, `permission-response`) take `auth`: the 32-byte `~/.claude/daemon/control.key`. `ping`, `list`, `has` need none. `short` is the 8-char job id.
+
+**The ops** — a discriminated union on `op`, so this is the entire surface: `ping`, `nudge`, `yield`, `lease{client}`, `leases`, `await-ack{short,nonce,timeoutMs}`, `dispatch{d,timeoutMs,auth}`, `list`, `has{short}`, `kill{short,signal,handoff,evict}`, `reply{short,text,auth}`, `subscribe{short,tail}`, `attach{short,auth,cols,rows,caps}`, `resize{short,cols,rows}`, `ensure-spare{cwd}`, `permission-response{short,requestId,allow,auth}`, `respawn-stale{short}`, `shutdown{reapWorkers}`.
+
+**The dispatch descriptor** (`d`) is plain data — no server-minted tokens needed:
+
+```jsonc
+{"proto":1, "short":"<8 hex, yours to choose>", "sessionId":"<uuid>", "createdAt":<ms>,
+ "source":"fleet",                       // shell | slash | fleet | spare | respawn
+ "cwd":"/abs/path",
+ "launch": {"mode":"prompt","args":["--session-id","<uuid>","--name","x","<the prompt>"]},
+ // or: {"mode":"resume","sessionId":"<uuid>","transcriptPath":"…","fork":false,"flagArgs":[…]}
+ // or: {"mode":"exec","cmd":"…","args":[…]}
+ "env":{}, "isolation":"none",           // or "worktree" with worktree:{path,ownershipToken}
+ "respawnFlags":[], "agent":"claude", "seed":{"intent":"<prompt>","name":"x"}}
+```
+
+`launch.args` / `flagArgs` are just the child's argv. **You choose `short` and `sessionId`** — so a logical task can keep one stable job id for its whole life instead of accumulating a chain.
+
+**The four things the CLI cannot do, all verified:**
+
+- **`reply{short,text}`** — message a live agent *in place*. Tested against an agent sitting at `state: blocked`: it unblocked, acted on the content (told "Use B.md" it created B.md, not A.md), and finished — same job id, same pid, roster unchanged, prompt cache intact.
+- **`dispatch` with `launch.mode:"resume", fork:false`** — revive a job whose **process has exited**, under its original `short` and `sessionId`, appending to the original transcript. Verified: roster size unchanged, no new id, no copied transcript. `claude -r <sessionId> --bg` records `fork:true` and cannot do this; the foreground path refuses outright. This is the whole reason to be on the socket.
+- **`subscribe{short,tail}`** — stream a session's output; the `claude logs` that does not exist.
+- **`kill{short,evict:true}`** — stop *and* delete the worker from the roster: a real programmatic reap.
+
+**Error codes you will meet:** `ENOJOB` (no live worker — for `reply`; revive it with a `resume` dispatch first), `ENOREPLY` (worker is non-interactive right now), `ERESPAWNING`/`ESTARTING` (retry), `EAUTH` (missing or stale control key), `EPROTO` (client/daemon version mismatch), `ESTALE` (previous dispatch with that id still cleaning up), `ETIMEOUT`.
+
+**Two wrapper-only leftovers.** A pure-IPC dispatch writes a slightly thinner job record than the CLI does — `name`, `nameSource`, `respawnFlags`, `daemonShort` come from the wrapper — so pass `--name` in argv and set `respawnFlags` yourself if you want a respawn to keep its identity. And the job registry (`~/.claude/jobs/<id>/`) is written by the session as it boots, so a freshly dispatched job takes a few seconds to appear in `claude agents`; poll the daemon with `has{short}` instead, which is true immediately.
+
+## When the socket breaks under you
+
+This is a private interface with a version gate. It *will* change. When it does — `EPROTO`, an unknown op, a renamed field, a moved socket — **stop the task you are on and repair this skill first**, because every later task inherits the breakage. Then continue the original task.
+
+Re-derive from the binary rather than guessing; the whole surface above was recovered this way in minutes:
+
+```bash
+claude daemon status                     # current socket path + daemon pid/version
+printf '{"proto":1,"op":"ping"}\n' | nc -U "$SOCK"   # current proto number
+B=~/.local/share/claude/versions/$(claude --version | awk '{print $1}')
+# the op union, the dispatch descriptor, the id regex, the error codes:
+python3 - "$B" <<'EOF'
+import mmap,re,sys
+mm=mmap.mmap(open(sys.argv[1],'rb').fileno(),0,access=mmap.ACCESS_READ)
+for pat in (b'discriminatedUnion("op"', b'Wnn=Se(', b'rIe=/'):
+    i=mm.find(pat); print(re.sub(rb'[^\x20-\x7e]',b'.',mm[i:i+2600]).decode(),"\n")
+EOF
+```
+
+`Wnn` is the dispatch-descriptor schema and the symbol name is minified, so if it has moved, search instead for the literal `rendezvousSock` — the worker-record schema sits beside it, and the descriptor is referenced there as `dispatch:`. Ground truth for a *valid* descriptor is always `~/.claude/daemon/roster.json`, which stores the real one the CLI last sent for every live worker: copy its shape.
+
+Then **persist the fix here** — update the op list, the descriptor, the error codes, and note the version you verified against. A repair that lives only in a transcript is a repair you will pay for again.
 
 ## Gotchas
 

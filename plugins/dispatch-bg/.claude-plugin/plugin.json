@@ -1,7 +1,7 @@
 {
   "name": "dispatch-bg",
-  "description": "Dispatch background Claude Code sessions to the right repo, verify they landed instead of trusting the dispatch banner, and read the fleet's state, progress, results, and artifacts.",
-  "version": "0.2.0",
+  "description": "Dispatch background Claude Code sessions, verify they landed, read the fleet's state and results, and drive it through the daemon control socket the CLI does not expose.",
+  "version": "0.3.0",
   "author": {
     "name": "Andreas Spannagel"
   },
