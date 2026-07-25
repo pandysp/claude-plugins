@@ -119,6 +119,8 @@ Privileged ops (`dispatch`, `reply`, `attach`, `permission-response`) take `auth
  "respawnFlags":[], "agent":"claude", "seed":{"intent":"<prompt>","name":"x"}}
 ```
 
+`ownershipToken` looks opaque but is just the session id. `env` is where the launcher passes per-session switches worth knowing about: `CLAUDE_BG_ISOLATION`, `CLAUDE_BG_MEMORY_TOGGLED_OFF`, and `CLAUDE_BG_SESSION_PERMISSION_RULES`.
+
 `launch.args` / `flagArgs` are just the child's argv. **You choose `short` and `sessionId`** — so a logical task can keep one stable job id for its whole life instead of accumulating a chain.
 
 **The four things the CLI cannot do, all verified:**
@@ -128,7 +130,26 @@ Privileged ops (`dispatch`, `reply`, `attach`, `permission-response`) take `auth
 - **`subscribe{short,tail}`** — stream a session as typed JSON frames, opening with `{"type":"snapshot","record":{…}}` (the full worker record, ~8 KB) and continuing as events arrive. Keep the connection open and read; this is the `claude logs` that does not exist, and it is the natural event source to hand to a watcher instead of polling.
 - **`kill{short,evict:true}`** — stop *and* delete the worker from the roster: a real programmatic reap.
 
-**Error codes you will meet:** `ENOJOB` (no live worker — for `reply`; revive it with a `resume` dispatch first), `ENOREPLY` (worker is non-interactive right now), `ERESPAWNING`/`ESTARTING` (retry), `EAUTH` (missing or stale control key), `EPROTO` (client/daemon version mismatch), `ESTALE` (previous dispatch with that id still cleaning up), `ETIMEOUT`.
+**The rest of the ops, tested:** `await-ack{short,timeoutMs}` is a cheap "is this agent responsive" handshake with **no model turn** — instant for a live worker, `ETIMEOUT` for a dead one, so use it for health checks. `has{short}` answers immediately and is the right way to confirm a launch landed (see below). `ensure-spare{cwd}` pre-warms a worker for a directory; launches already report `via:"spare"`, meaning they claim an existing warm process, so pre-warming makes dispatch feel instant. `attach{short,cols,rows}` streams the PTY and returns a status summary first (`state`, `tempo`, `stale`, `cached`). `kill{handoff:true}` stops the process but marks the stop as a takeover rather than a cancellation, and leaves the job listed with its result intact. `respawn-stale{short}` only works on a job that still has a live worker; a dead one returns `ENOJOB`. The daemon also refuses connections from other uids (`EPEERUID`), so the control key is the only gate that matters locally.
+
+**Leave three alone.** `shutdown{reapWorkers}` kills every agent on the machine. `nudge` is wired to a handler that can restart the daemon — which hosts every background session, including your own if you are one. `yield` is undocumented and in the same family. None were tested here, deliberately.
+
+### Keeping an agent warm
+
+Measured against the daemon's log: **an idle worker exits 60 minutes after its last activity** (60.8, 60.2 and 61.0 minutes across three agents), retired by a sweep that runs once a minute. The clock **restarts on every interaction** — one agent finished its first task 67 minutes before dying but had replied 60.2 minutes before, so the hour ran from the reply.
+
+Two things follow, and they matter for anything long-lived:
+
+- **A live `pid` is a free indicator that the prompt cache is still warm.** The worker dies at almost exactly the point the one-hour cache expires, so you do not need to track timestamps: if the process is gone, assume a cold prefill; if it is alive, assume the context is still cheap.
+- **Only a real message keeps the cache warm.** The cache lives server-side, so `await-ack`, `has` and other local pokes keep the process alive and do nothing for it. A keep-warm touch has to be an actual `reply` inside every hour — 50 minutes gives margin. It is cheap, because the input is the cached part. Make it earn its keep: ask "anything you need from me?" and the same message doubles as your stuck-agent check.
+
+**Leases decide whether the daemon survives at all.** It is transient and exits when its last client disconnects. On a normal setup `leases` shows one holder, an open `claude agents` window. A lease lives as long as its connection, so a long-running supervisor should hold its own rather than depending on a window staying open.
+
+### Finding out what a blocked agent wants
+
+`waitingFor` in the session registry is never populated — do not build on it. The answer is simpler: a blocked agent's own `detail` field holds the question in plain text (verified: *"Should the file be called X.md or Y.md?"*). So `state: blocked` plus `detail` is the complete escalation signal, and `reply{short,text}` is the answer channel. No transcript parsing anywhere in the loop.
+
+**Error codes you will meet:** `ENOJOB` (no live worker — for `reply`; revive it with a `resume` dispatch first), `ENOREPLY` (worker is non-interactive right now), `ERESPAWNING`/`ESTARTING` (retry), `EAUTH` (missing or stale control key), `EPROTO` (client/daemon version mismatch), `ESTALE` (previous dispatch with that id still cleaning up), `ETIMEOUT`. Ordinary connections also carry a 30-second idle timeout — but streams do not, so a `subscribe` held open through 50 seconds of silence stayed connected.
 
 **Two wrapper-only leftovers.** A pure-IPC dispatch writes a slightly thinner job record than the CLI does — `name`, `nameSource`, `respawnFlags`, `daemonShort` come from the wrapper — so pass `--name` in argv and set `respawnFlags` yourself if you want a respawn to keep its identity. And the job registry (`~/.claude/jobs/<id>/`) is written by the session as it boots, so a freshly dispatched job takes a few seconds to appear in `claude agents`; poll the daemon with `has{short}` instead, which is true immediately.
 
