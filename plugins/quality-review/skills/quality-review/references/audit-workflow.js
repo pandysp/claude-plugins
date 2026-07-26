@@ -12,8 +12,9 @@ export const meta = {
 }
 
 // ── Input assertions: fail fast, never improvise a target ──
-// The harness may deliver args as a JSON string even when the caller passed an
-// object (observed 2026-07-09); accept that encoding, fail fast on anything else.
+// Args arrive JSON-encoded when the Workflow tool launches this script, and as a
+// plain object when a parent script calls it through workflow(). Decode the
+// first, take the second as it comes, reject anything else.
 let A = args
 if (typeof A === 'string') {
   try { A = JSON.parse(A) } catch (e) { throw new Error('quality-audit: args arrived as a string that is not valid JSON') }
