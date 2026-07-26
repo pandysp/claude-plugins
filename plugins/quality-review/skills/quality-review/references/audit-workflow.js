@@ -20,13 +20,10 @@ if (typeof A === 'string') {
 }
 if (!A || typeof A !== 'object') throw new Error('quality-audit: args must be an object {level, target, domain, lenses, calibration}; got ' + typeof args)
 const LEVEL = ['high', 'xhigh', 'max'].includes(A.level) ? A.level : 'high'
-// Both TARGET and CALIBRATION land in agent prompts as free text, so a string is
-// the right primitive. The caller passes arrays. SKILL.md step 4 says "resolve
-// the target to absolute paths" and "build calibration from the sheet's
-// Calibration section", and both read as instructions to assemble a list.
-// Measured 2026-07-26: five independent readings of that step, four naive plus
-// the run that prompted this fix, emitted arrays for both fields. None emitted a
-// string. Accept either shape rather than fail on it.
+// Both fields reach agent prompts as free text, so a string is the right
+// primitive. What arrives is a list: SKILL.md tells the caller to resolve the
+// target to absolute paths and to build calibration from a section of bullets.
+// Accept either shape.
 const asText = v => (Array.isArray(v) ? v.filter(x => typeof x === 'string' && x.trim()).join('\n') : typeof v === 'string' ? v : '').trim()
 const TARGET = asText(A.target)
 if (!TARGET) throw new Error('quality-audit: args.target is required (files, directories, or scope description)')
