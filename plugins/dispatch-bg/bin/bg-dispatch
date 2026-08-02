@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+# bg-dispatch — dispatch a background Claude Code session to a repo and verify it landed.
+#
+# The dispatch itself is a one-liner. The value is the two checks around it that
+# fail silently otherwise: dispatching from the wrong cwd, and reporting success
+# off the "backgrounded · <id>" banner without confirming the session actually
+# exists in the right place. This runs the dispatch, then verifies against the
+# documented `claude agents --json` interface. The internal jobs state file is
+# read only for the best-effort "did a prompt attach" peek, and only warns — it
+# has no stability guarantee, so no verdict depends on it. Use bg-fleet to read
+# what agents are doing and what they produced.
+#
+# Usage:
+#   bg-dispatch --repo <dir> [--name <name>] [--model <model>] --prompt-file <file>
+#   bg-dispatch --repo <dir> [--name <name>] [--model <model>] < prompt.md
+#
+# Exit: 0 landed in the expected repo · 2 never appeared in `claude agents` ·
+#       3 landed but cwd is not the requested repo (loud warning) · 64 usage error.
+
+set -euo pipefail
+
+repo="" name="" model="" prompt_file=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --repo)        repo="${2:-}"; shift 2 ;;
+    --name)        name="${2:-}"; shift 2 ;;
+    --model)       model="${2:-}"; shift 2 ;;
+    --prompt-file) prompt_file="${2:-}"; shift 2 ;;
+    -h|--help)     sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) echo "bg-dispatch: unknown argument: $1" >&2; exit 64 ;;
+  esac
+done
+
+command -v claude  >/dev/null 2>&1 || { echo "bg-dispatch: 'claude' not on PATH" >&2; exit 64; }
+command -v python3 >/dev/null 2>&1 || { echo "bg-dispatch: 'python3' not on PATH" >&2; exit 64; }
+
+[ -n "$repo" ] || { echo "bg-dispatch: --repo is required" >&2; exit 64; }
+[ -d "$repo" ] || { echo "bg-dispatch: --repo is not a directory: $repo" >&2; exit 64; }
+repo="$(cd "$repo" && pwd -P)"
+
+# Prompt from file or stdin. A background session starts with fresh context, so
+# the prompt is the entire handoff — refuse to dispatch an empty one.
+if [ -n "$prompt_file" ]; then
+  [ -f "$prompt_file" ] || { echo "bg-dispatch: --prompt-file not found: $prompt_file" >&2; exit 64; }
+  prompt="$(cat "$prompt_file")"
+elif [ ! -t 0 ]; then
+  prompt="$(cat)"
+else
+  echo "bg-dispatch: no prompt (pass --prompt-file <file> or pipe on stdin)" >&2
+  exit 64
+fi
+[ -n "${prompt//[[:space:]]/}" ] || { echo "bg-dispatch: prompt is empty" >&2; exit 64; }
+
+# Dispatch from inside the repo. Explicit cd, never the caller's cwd.
+set -- --bg
+[ -n "$name" ]  && set -- "$@" --name "$name"
+[ -n "$model" ] && set -- "$@" --model "$model"
+banner="$(cd "$repo" && claude "$@" "$prompt" 2>&1)" || {
+  echo "bg-dispatch: claude --bg failed:" >&2; echo "$banner" >&2; exit 1
+}
+
+# Parse id, poll the documented interface, verify cwd. Python owns the JSON and
+# the wait loop (time.sleep, not the shell's blocked `sleep`).
+BANNER="$banner" REPO="$repo" python3 - <<'PY'
+import json, os, re, subprocess, sys, time
+
+banner = os.environ["BANNER"]
+repo   = os.path.realpath(os.environ["REPO"])
+plain  = re.sub(r"\x1b\[[0-9;]*m", "", banner)          # strip ANSI colour codes
+
+m = re.search(r"backgrounded[^0-9a-f]*([0-9a-f]{6,})", plain, re.I)
+if not m:
+    sys.stderr.write("bg-dispatch: could not parse a session id from:\n" + banner + "\n")
+    sys.exit(2)
+sid = m.group(1)
+
+def agents(*extra):
+    try:
+        out = subprocess.run(["claude", "agents", "--json", "--all", *extra],
+                             capture_output=True, text=True, timeout=30)
+        return json.loads(out.stdout)
+    except Exception:
+        return None
+
+job = None
+for _ in range(15):                                     # ~15s for a cold daemon
+    data = agents()
+    if data:
+        job = next((a for a in data if str(a.get("id")) == sid), None)
+        if job:
+            break
+    time.sleep(1)
+
+if not job:
+    sys.stderr.write(f"bg-dispatch: session {sid} never appeared in `claude agents` — "
+                     "dispatch may have failed. Check `claude agents`.\n")
+    sys.exit(2)
+
+cwd  = os.path.realpath(job.get("cwd") or "")
+name = job.get("name") or "(unnamed)"
+# Ask the CLI, don't pattern-match paths: --cwd filters on the directory the agent
+# was dispatched from, so it still matches once the agent has moved into a worktree
+# (the reported cwd follows the live process and becomes the worktree). The string
+# comparison stays as a fallback in case that filter's semantics change: the repo
+# itself, an in-repo worktree (<repo>/.claude/worktrees/*), or a sibling <repo>.<suffix>.
+scoped = agents("--cwd", repo)
+cwd_ok = (any(str(a.get("id")) == sid for a in scoped) if scoped else False) \
+    or cwd == repo or cwd.startswith(repo + os.sep) or cwd.startswith(repo + ".")
+
+# Best-effort: confirm the prompt actually attached (empty-prompt agents are a
+# real failure mode). The jobs file is internal, so this only warns, never fails.
+intent = None
+try:
+    st = json.load(open(os.path.expanduser(f"~/.claude/jobs/{sid}/state.json")))
+    intent = bool((st.get("intent") or "").strip())
+except Exception:
+    pass
+
+# state is what the agent thinks (working/blocked/done); status+pid say whether a
+# process is alive, and both are absent once it exits. Print both, never just one.
+print(f"dispatched   {sid}  ({name})")
+print(f"  state      {job.get('state')}   (status {job.get('status')}, pid {job.get('pid')})")
+print(f"  cwd        {cwd}")
+print(f"  cwd match  {'yes' if cwd_ok else 'NO — not the requested repo!'}")
+if intent is False:
+    print("  prompt     WARNING: session has no intent recorded — it may have started empty")
+elif intent:
+    print("  prompt     attached")
+print(f"  read       bg-fleet {sid}        (state, progress, result, artifacts)")
+print(f"  manage     claude agents            (attach/stop/reply in the TUI)")
+
+if not cwd_ok:
+    sys.stderr.write(f"bg-dispatch: expected cwd under {repo}, got {cwd}\n")
+    sys.exit(3)
+sys.exit(0)
+PY

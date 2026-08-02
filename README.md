@@ -34,6 +34,7 @@ A collection of Claude Code plugins.
 | [understudy](./plugins/understudy) | Workflow | Write code, comments, tests, and commits that read as if the project's own maintainer wrote them |
 | [worktrunk-hook](./plugins/worktrunk-hook) | Tooling | Route Claude Code's auto-created git worktrees through worktrunk so sessions inherit project hooks |
 | [drive-browser](./plugins/drive-browser) | Tooling | Drive a browser with Playwright. Resilient locators for your own app, a vision loop for opaque sites |
+| [dispatch-bg](./plugins/dispatch-bg) | Tooling | Dispatch background agents, read the fleet, and drive it over the daemon control socket — reply in place, revive, stream, reap |
 
 ## Development
 

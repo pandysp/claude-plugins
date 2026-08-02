@@ -12,7 +12,13 @@
       "description": "Get 1-3 independent second opinions from fresh Claude reviewers to strengthen your reasoning before presenting to the user.",
       "source": "./plugins/second-opinion",
       "category": "workflow",
-      "keywords": ["review", "second-opinion", "fable", "validation", "critique"],
+      "keywords": [
+        "review",
+        "second-opinion",
+        "fable",
+        "validation",
+        "critique"
+      ],
       "author": {
         "name": "Andreas Spannagel"
       }
@@ -22,7 +28,13 @@
       "description": "Honest self-assessment skill that surfaces incomplete work, missing verifications, bugs, and improvement ideas before shipping.",
       "source": "./plugins/preflight",
       "category": "workflow",
-      "keywords": ["reflect", "review", "assessment", "quality", "self-check"],
+      "keywords": [
+        "reflect",
+        "review",
+        "assessment",
+        "quality",
+        "self-check"
+      ],
       "author": {
         "name": "Andreas Spannagel"
       }
@@ -32,7 +44,14 @@
       "description": "Black-box verification of any agent output: code, documents, presentations, reports, configs. Examine from the consumer's perspective and show evidence.",
       "source": "./plugins/verify-result",
       "category": "workflow",
-      "keywords": ["verify", "test", "end-to-end", "proof", "evidence", "black-box"],
+      "keywords": [
+        "verify",
+        "test",
+        "end-to-end",
+        "proof",
+        "evidence",
+        "black-box"
+      ],
       "author": {
         "name": "Andreas Spannagel"
       }
@@ -42,7 +61,14 @@
       "description": "Identify and verify unverified claims in the agent's own responses before presenting them as conclusions.",
       "source": "./plugins/verify-claims",
       "category": "workflow",
-      "keywords": ["verify", "claims", "proof", "evidence", "accuracy", "confabulation"],
+      "keywords": [
+        "verify",
+        "claims",
+        "proof",
+        "evidence",
+        "accuracy",
+        "confabulation"
+      ],
       "author": {
         "name": "Andreas Spannagel"
       }
@@ -52,7 +78,13 @@
       "description": "Systematically identify how a plan or design could fail before committing to it.",
       "source": "./plugins/pre-mortem",
       "category": "workflow",
-      "keywords": ["risk", "failure", "pre-mortem", "analysis", "detection"],
+      "keywords": [
+        "risk",
+        "failure",
+        "pre-mortem",
+        "analysis",
+        "detection"
+      ],
       "author": {
         "name": "Andreas Spannagel"
       }
@@ -62,7 +94,13 @@
       "description": "Generate multiple strong design options with explicit tradeoff profiles, anchored against at least two ideal target architectures.",
       "source": "./plugins/design-options",
       "category": "workflow",
-      "keywords": ["design", "architecture", "options", "tradeoffs", "targets"],
+      "keywords": [
+        "design",
+        "architecture",
+        "options",
+        "tradeoffs",
+        "targets"
+      ],
       "author": {
         "name": "Andreas Spannagel"
       }
@@ -72,7 +110,14 @@
       "description": "Before flipping a previously-stated position under pressure, restate its strongest form and the goal it served, then check whether the trigger refutes the core on the same goal, not just a decorative argument or a different axis.",
       "source": "./plugins/steel-man-own-position",
       "category": "workflow",
-      "keywords": ["steel-man", "position", "lean", "pushback", "capitulation", "resilience"],
+      "keywords": [
+        "steel-man",
+        "position",
+        "lean",
+        "pushback",
+        "capitulation",
+        "resilience"
+      ],
       "author": {
         "name": "Andreas Spannagel"
       }
@@ -82,7 +127,14 @@
       "description": "Surface what I think we're doing before acting on it. Produces a structured manifest exposing every silent commitment so the user can correct course before any artifact is produced.",
       "source": "./plugins/align",
       "category": "workflow",
-      "keywords": ["align", "manifest", "interpretation", "shared-understanding", "fabrication", "preflight"],
+      "keywords": [
+        "align",
+        "manifest",
+        "interpretation",
+        "shared-understanding",
+        "fabrication",
+        "preflight"
+      ],
       "author": {
         "name": "Andreas Spannagel"
       }
@@ -92,7 +144,14 @@
       "description": "Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks. Delegates to the silent-failure-hunter subagent for isolation",
       "source": "./plugins/silent-failures",
       "category": "workflow",
-      "keywords": ["error-handling", "silent-failures", "audit", "review", "fallback", "debugging"],
+      "keywords": [
+        "error-handling",
+        "silent-failures",
+        "audit",
+        "review",
+        "fallback",
+        "debugging"
+      ],
       "author": {
         "name": "Andreas Spannagel"
       }
@@ -102,7 +161,15 @@
       "description": "Map the terrain before designing: locate, trace, pattern, constrain. Used before any substantive design or planning step. Output is mostly for the agent's grounding; only surprises and hard constraints surface to the user.",
       "source": "./plugins/explore",
       "category": "workflow",
-      "keywords": ["explore", "terrain", "discovery", "context", "grounding", "pre-design", "exploration"],
+      "keywords": [
+        "explore",
+        "terrain",
+        "discovery",
+        "context",
+        "grounding",
+        "pre-design",
+        "exploration"
+      ],
       "author": {
         "name": "Andreas Spannagel"
       }
@@ -112,7 +179,14 @@
       "description": "Surface and resolve underspecified decisions before designing. Asks targeted questions about scope, edge behavior, trade-offs, integration, constraints, and audience (with defaults), so design choices aren't silently locked around hidden assumptions.",
       "source": "./plugins/clarify",
       "category": "workflow",
-      "keywords": ["clarify", "questions", "ambiguity", "synthesis", "pre-design", "underspecified"],
+      "keywords": [
+        "clarify",
+        "questions",
+        "ambiguity",
+        "synthesis",
+        "pre-design",
+        "underspecified"
+      ],
       "author": {
         "name": "Andreas Spannagel"
       }
@@ -122,7 +196,14 @@
       "description": "Capture durable lessons from a session before they fade: what surprised you, what friction repeated, what should update CLAUDE.md or notes. Output goes to memory, notes, or global instructions, not just to chat.",
       "source": "./plugins/reflect",
       "category": "workflow",
-      "keywords": ["reflect", "lessons", "retro", "memory", "session-end", "post-mortem"],
+      "keywords": [
+        "reflect",
+        "lessons",
+        "retro",
+        "memory",
+        "session-end",
+        "post-mortem"
+      ],
       "author": {
         "name": "Andreas Spannagel"
       }
@@ -132,7 +213,14 @@
       "description": "Write a durable handoff for work that's about to ship: structured PR descriptions, summaries, memos, or memory notes. Tells the next reader what was built, why, what changed, and what's next, without forcing them to dig through the diff.",
       "source": "./plugins/handoff",
       "category": "workflow",
-      "keywords": ["handoff", "pr-description", "summary", "documentation", "wrap-up", "ship"],
+      "keywords": [
+        "handoff",
+        "pr-description",
+        "summary",
+        "documentation",
+        "wrap-up",
+        "ship"
+      ],
       "author": {
         "name": "Andreas Spannagel"
       }
@@ -142,7 +230,13 @@
       "description": "Write the implementation spec (context, approach, files to modify, utilities to reuse, and verification) that drives execution after design is chosen.",
       "source": "./plugins/spec",
       "category": "workflow",
-      "keywords": ["spec", "implementation-plan", "scope", "design", "pre-execution"],
+      "keywords": [
+        "spec",
+        "implementation-plan",
+        "scope",
+        "design",
+        "pre-execution"
+      ],
       "author": {
         "name": "Andreas Spannagel"
       }
@@ -152,7 +246,15 @@
       "description": "Write code, comments, tests, or commit messages that read as if the project's own maintainer wrote them, so a contribution is accepted as native rather than rejected as foreign. A foreign-looking patch is a cost to the maintainer even when it's correct.",
       "source": "./plugins/understudy",
       "category": "workflow",
-      "keywords": ["understudy", "style", "house-style", "idiom", "contribution", "maintainer", "seamless"],
+      "keywords": [
+        "understudy",
+        "style",
+        "house-style",
+        "idiom",
+        "contribution",
+        "maintainer",
+        "seamless"
+      ],
       "author": {
         "name": "Andreas Spannagel"
       }
@@ -162,7 +264,15 @@
       "description": "Route Claude Code's auto-created git worktrees through worktrunk so background and --worktree sessions inherit project hooks (env symlinks, installs, port allocation).",
       "source": "./plugins/worktrunk-hook",
       "category": "tooling",
-      "keywords": ["worktrunk", "worktree", "hook", "background-agent", "bg", "isolation", "wt"],
+      "keywords": [
+        "worktrunk",
+        "worktree",
+        "hook",
+        "background-agent",
+        "bg",
+        "isolation",
+        "wt"
+      ],
       "author": {
         "name": "Andreas Spannagel"
       }
@@ -172,7 +282,14 @@
       "description": "Drive a browser with Playwright as a dual-mode superset. Resilient locators for debugging your own web app and a vision/coordinate loop for opaque real sites, on a fresh browser or the user's real logged-in session.",
       "source": "./plugins/drive-browser",
       "category": "tooling",
-      "keywords": ["browser", "playwright", "automation", "cdp", "vision", "scraping"],
+      "keywords": [
+        "browser",
+        "playwright",
+        "automation",
+        "cdp",
+        "vision",
+        "scraping"
+      ],
       "author": {
         "name": "Andreas Spannagel"
       }
@@ -182,7 +299,35 @@
       "description": "Multi-lens quality audit for docs, code, and other artifacts. 13 quality adjectives as audit lenses with per-domain translation sheets, a workflow-backed finder/verifier pipeline, and lens-yield reporting.",
       "source": "./plugins/quality-review",
       "category": "workflow",
-      "keywords": ["quality", "review", "audit", "rubric", "docs", "lenses"],
+      "keywords": [
+        "quality",
+        "review",
+        "audit",
+        "rubric",
+        "docs",
+        "lenses"
+      ],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
+    },
+    {
+      "name": "dispatch-bg",
+      "description": "Dispatch background Claude Code sessions, verify they landed, read the fleet's state and results, and drive it through the daemon control socket the CLI does not expose.",
+      "source": "./plugins/dispatch-bg",
+      "category": "tooling",
+      "keywords": [
+        "background-agent",
+        "bg",
+        "dispatch",
+        "claude-bg",
+        "agents",
+        "worktree",
+        "fleet",
+        "ipc",
+        "control-socket",
+        "daemon"
+      ],
       "author": {
         "name": "Andreas Spannagel"
       }

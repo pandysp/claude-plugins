@@ -1,0 +1,214 @@
+#!/usr/bin/env python3
+"""bg-fleet — read the background-agent fleet: state, progress, results, PRs.
+
+`claude agents --json` is the documented roster, but it carries only
+{id, kind, name, cwd, sessionId, startedAt, state, status, pid} — not what an
+agent actually did. The one-line progress detail, the final result, the PRs it
+opened, and the worktree it worked in live in the internal per-job state file
+(~/.claude/jobs/<id>/state.json), which has no stability guarantee. This merges
+the two: the documented roster is the source of truth for what exists, the
+internal file is a best-effort harvest on top. Every internal field is optional
+— a schema change drops a line from the output, it does not break the tool.
+
+Read-only. Stopping and resuming are deliberately not here (see the skill).
+
+Usage:
+  bg-fleet [--cwd <path>] [--live] [--json]   # the fleet
+  bg-fleet <id> [--timeline <n>] [--json]     # one agent, with its transitions
+
+Exit: 0 ok · 2 roster unavailable · 3 no such agent · 64 usage error.
+"""
+
+import json
+import os
+import subprocess
+import sys
+import time
+
+JOBS = os.path.expanduser("~/.claude/jobs")
+
+
+def die(msg, code):
+    sys.stderr.write(f"bg-fleet: {msg}\n")
+    sys.exit(code)
+
+
+def roster(cwd_filter):
+    """The documented interface. --all so completed agents are included."""
+    cmd = ["claude", "agents", "--json", "--all"]
+    if cwd_filter:
+        cmd += ["--cwd", cwd_filter]
+    try:
+        out = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError) as e:
+        die(f"could not run `claude agents`: {e}", 2)
+    if out.returncode != 0:
+        die(f"`claude agents` failed: {out.stderr.strip() or out.returncode}", 2)
+    try:
+        return json.loads(out.stdout or "[]")
+    except json.JSONDecodeError:
+        die("`claude agents --json` did not return JSON", 2)
+
+
+def harvest(sid):
+    """Best-effort read of the internal job file. Never raises."""
+    try:
+        with open(os.path.join(JOBS, sid, "state.json")) as fh:
+            st = json.load(fh)
+    except (OSError, ValueError):
+        return {}
+    if not isinstance(st, dict):
+        return {}
+    out = st.get("output")
+    children = st.get("children")
+    return {
+        "detail": st.get("detail"),
+        "result": out.get("result") if isinstance(out, dict) else None,
+        "links": [c.get("href") for c in children
+                  if isinstance(c, dict) and c.get("href")] if isinstance(children, list) else [],
+        "worktree": st.get("worktreePath"),
+        "tokens": st.get("tokens"),
+        "cliVersion": st.get("cliVersion"),
+        "hasPrompt": bool((st.get("intent") or "").strip()) if "intent" in st else None,
+    }
+
+
+def timeline(sid, n):
+    """State transitions with their one-line details. Best-effort."""
+    try:
+        with open(os.path.join(JOBS, sid, "timeline.jsonl")) as fh:
+            rows = [json.loads(ln) for ln in fh if ln.strip()]
+    except (OSError, ValueError):
+        return []
+    return [r for r in rows if isinstance(r, dict)][-n:]
+
+
+def merge(job):
+    sid = str(job.get("id") or "")
+    rec = {k: job.get(k) for k in
+           ("id", "name", "kind", "state", "status", "pid", "cwd", "sessionId", "startedAt")}
+    # status and pid exist only while a process is alive; state is what the agent
+    # thinks it is. A done agent whose process has exited has state without status.
+    rec["live"] = job.get("pid") is not None
+    rec.update(harvest(sid))
+    return rec
+
+
+def tilde(p):
+    home = os.path.expanduser("~")
+    return p.replace(home, "~", 1) if isinstance(p, str) and p.startswith(home) else (p or "")
+
+
+def age(ms):
+    if not isinstance(ms, (int, float)):
+        return ""
+    s = max(0, time.time() - ms / 1000)
+    for div, unit in ((86400, "d"), (3600, "h"), (60, "m")):
+        if s >= div:
+            return f"{int(s // div)}{unit}"
+    return f"{int(s)}s"
+
+
+def toks(n):
+    if not isinstance(n, (int, float)):
+        return ""
+    return f"{n / 1000:.0f}k" if n >= 1000 else str(int(n))
+
+
+def show(rec, tl=None):
+    """One agent as a block: identity, where, then whatever was harvestable."""
+    live = "live" if rec["live"] else "—"
+    # An unnamed agent gets its whole prompt as a name — keep the table a table.
+    name = rec.get("name") or "(unnamed)"
+    print(f"{rec['id']}  {str(rec.get('state') or '?'):<9} {live:<5} "
+          f"{toks(rec.get('tokens')):>5}  {age(rec.get('startedAt')):>4}  "
+          f"{name if len(name) <= 64 else name[:63] + '…'}")
+    where = tilde(rec.get("cwd"))
+    wt = tilde(rec.get("worktree"))
+    print(f"  where    {where}" + (f"  ↳ worktree {wt}" if wt and wt != where else ""))
+    detail, result = rec.get("detail"), rec.get("result")
+    if detail:
+        # A status line, not prose: clip it. The full text is in --json / --timeline.
+        print(f"  detail   {detail if len(detail) <= 120 else detail[:119] + '…'}")
+    # Agents often set the result to the same text as the last detail. Print once.
+    if result and not (detail and (result.startswith(detail[:60]) or detail.startswith(result[:60]))):
+        print(f"  result   {result}")
+    for href in rec.get("links") or []:
+        print(f"  link     {href}")
+    if rec.get("hasPrompt") is False:
+        print("  prompt   WARNING: no prompt recorded — this agent may have started empty")
+    if tl is not None:
+        if rec.get("cliVersion"):
+            print(f"  cli      {rec['cliVersion']}  (job files are internal; schema tracks this version)")
+        for row in tl:
+            at = (row.get("at") or "")[:19].replace("T", " ")
+            print(f"  {at}  {str(row.get('state') or ''):<8} {(row.get('detail') or '')[:88]}")
+
+
+def main(argv):
+    want_json = False
+    live_only = False
+    cwd_filter = None
+    tl_n = 8
+    sid = None
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a == "--json":
+            want_json = True
+        elif a == "--live":
+            live_only = True
+        elif a == "--cwd":
+            i += 1
+            cwd_filter = argv[i] if i < len(argv) else None
+            if not cwd_filter:
+                die("--cwd needs a path", 64)
+        elif a == "--timeline":
+            i += 1
+            try:
+                tl_n = int(argv[i])
+            except (IndexError, ValueError):
+                die("--timeline needs a number", 64)
+        elif a in ("-h", "--help"):
+            print(__doc__.strip())
+            return 0
+        elif a.startswith("-"):
+            die(f"unknown argument: {a}", 64)
+        elif sid is None:
+            sid = a
+        else:
+            die(f"unexpected argument: {a}", 64)
+        i += 1
+
+    jobs = roster(cwd_filter)
+
+    if sid:
+        job = next((j for j in jobs if str(j.get("id")) == sid), None)
+        if not job:
+            die(f"no agent {sid} in `claude agents --json --all`"
+                " (the roster ages out; the session transcript outlives it)", 3)
+        rec = merge(job)
+        tl = timeline(sid, tl_n)
+        if want_json:
+            print(json.dumps({**rec, "timeline": tl}, indent=2))
+        else:
+            show(rec, tl)
+        return 0
+
+    recs = [merge(j) for j in jobs]
+    if live_only:
+        recs = [r for r in recs if r["live"]]
+    recs.sort(key=lambda r: (not r["live"], -(r.get("startedAt") or 0)))
+    if want_json:
+        print(json.dumps(recs, indent=2))
+        return 0
+    if not recs:
+        print("no background agents" + (f" under {cwd_filter}" if cwd_filter else ""))
+        return 0
+    for rec in recs:
+        show(rec)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

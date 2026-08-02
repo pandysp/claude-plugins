@@ -1,0 +1,10 @@
+{
+  "name": "dispatch-bg",
+  "description": "Dispatch background Claude Code sessions, verify they landed, read the fleet's state and results, and drive it through the daemon control socket the CLI does not expose.",
+  "version": "0.4.0",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT"
+}
