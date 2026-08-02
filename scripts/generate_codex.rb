@@ -16,11 +16,7 @@ module CodexGenerator
   }.freeze
 
   UNAVAILABLE_PLUGINS = %w[
-    explore
     quality-review
-    reflect
-    second-opinion
-    silent-failures
     worktrunk-hook
   ].freeze
 

@@ -1,6 +1,6 @@
 {
   "name": "design-options",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "Generate multiple strong design options with explicit tradeoff profiles, anchored against at least two ideal target architectures.",
   "author": {
     "name": "Andreas Spannagel"

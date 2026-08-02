@@ -1,9 +1,9 @@
 ---
 name: explore
-description: Map the terrain before designing. Use before any substantive design or planning step. Codebase changes, doc drafting, strategy decisions, anything with non-trivial structure. Triggers on /explore, "explore first", "what's already there", "map the codebase", "survey the landscape". The output is mostly for my own grounding. Only surprises, hard constraints, and gotchas surface to the user. If exploration was uneventful, that itself is the report.
+description: Map the terrain before designing. Use before any substantive design or planning step. Codebase changes, doc drafting, strategy decisions, anything with non-trivial structure. Trigger when the user invokes the explore skill, says "explore first", "what's already there", "map the codebase", or "survey the landscape". The output is mostly for my own grounding. Only surprises, hard constraints, and gotchas surface to the user. If exploration was uneventful, that itself is the report.
 ---
 
-# /explore: map the terrain before designing
+# Explore: map the terrain before designing
 
 Designing without exploring produces options grounded in general priors rather than the actual terrain. They look reasonable in the abstract but don't fit how this codebase / client / domain actually works.
 
@@ -13,8 +13,8 @@ This skill enforces a discipline: **before any design step, systematically map w
 
 Match the tool to the operation, not the domain:
 
-- **Autonomous broad exploration.** Spawn the `Explore` subagent: one when scope is known, several in parallel when scope is uncertain or spans subsystems. Each agent gets a *distinct* search focus. Fan out as wide as the terrain warrants, just never duplicate a focus.
-- **Targeted lookups.** Use `Grep`/`Read` directly when you need raw content in your own context.
+- **Autonomous broad exploration.** When the host offers fresh, read-only exploration workers, spawn one when scope is known and several in parallel when scope is uncertain or spans subsystems. Give each worker a *distinct* search focus. If no worker channel exists, perform the same focused passes with the host's search and file-reading capabilities.
+- **Targeted lookups.** Use the host's search and file-reading capabilities directly when you need raw content in your own context.
 - **Non-codebase sources.** File reads against notes/docs, web search, MCP queries.
 
 ## The four phases
@@ -48,4 +48,4 @@ Findings are grounding for the next step, typically design. If you're proceeding
 - **Confusing locate with trace.** Listing artifacts isn't tracing how things connect. The phases build on each other.
 - **Skipping because the terrain feels familiar.** Map it anyway when the work is non-trivial. The finding you'd skip past is often the one that reshapes the design.
 - **Treating exploration as a deliverable.** It's grounding, not a research project. Time-box it.
-- **Fanning out the same prompt to multiple Explore agents.** Each agent should have a distinct search focus, otherwise you're paying 3× for the same answer.
+- **Fanning out the same prompt to multiple exploration workers.** Each worker should have a distinct search focus, otherwise you're paying 3× for the same answer.

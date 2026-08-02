@@ -1,7 +1,7 @@
 {
   "name": "silent-failures",
-  "version": "1.1.2",
-  "description": "Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks. Delegates to the silent-failure-hunter subagent for isolation",
+  "version": "1.2.0",
+  "description": "Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks using one canonical methodology and the strongest isolated reviewer available.",
   "author": {
     "name": "Andreas Spannagel"
   },
@@ -18,8 +18,8 @@
   ],
   "interface": {
     "displayName": "Silent Failures",
-    "shortDescription": "Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks.",
-    "longDescription": "Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks. Delegates to the silent-failure-hunter subagent for isolation",
+    "shortDescription": "Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks using one canonical method...",
+    "longDescription": "Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks using one canonical methodology and the strongest isolated reviewer available.",
     "developerName": "Andreas Spannagel",
     "category": "Productivity",
     "capabilities": [

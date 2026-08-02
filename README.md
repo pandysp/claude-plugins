@@ -36,10 +36,10 @@ Codex automatically refreshes configured Git marketplaces on startup. Start a
 new Codex session after installation or a plugin version change so it loads the
 updated bundle.
 
-The catalog contains all 18 Claude Code plugins. Codex currently offers the 12
-with verified host-neutral execution paths and withholds six host-specific
-plugins. See [the compatibility report](./CODEX-COMPATIBILITY.md) for the exact
-boundary.
+The catalog contains all 18 Claude Code plugins. Codex currently offers the 16
+with verified host-neutral execution paths and withholds two plugins whose core
+lifecycle is unavailable there. See [the compatibility
+report](./CODEX-COMPATIBILITY.md) for the exact boundary.
 
 ## Plugin catalog
 
@@ -50,7 +50,7 @@ boundary.
 | [clarify](./plugins/clarify) | Workflow | Resolve underspecified decisions with targeted questions before designing |
 | [design-options](./plugins/design-options) | Workflow | Generate multiple strong design options with tradeoff profiles, anchored against at least two ideal targets |
 | [pre-mortem](./plugins/pre-mortem) | Workflow | Identify how a plan or design could fail before committing |
-| [second-opinion](./plugins/second-opinion) | Workflow | Spawn 1-3 independent reviewers from other models for critical perspectives |
+| [second-opinion](./plugins/second-opinion) | Workflow | Get an independent review through the strongest channel the host provides |
 | [steel-man-own-position](./plugins/steel-man-own-position) | Workflow | Restate the strongest version of a prior position before flipping under pushback |
 | [spec](./plugins/spec) | Workflow | Write the implementation spec that drives execution after design is chosen |
 | [verify-claims](./plugins/verify-claims) | Workflow | Identify and verify unverified claims before presenting them as conclusions |

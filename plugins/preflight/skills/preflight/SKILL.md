@@ -1,9 +1,9 @@
 ---
 name: preflight
-description: Honest self-assessment of the current state of work before shipping. Use when the user asks "how happy are you", "how do you feel about this", "preflight check", "honest assessment", "are you satisfied", "what's the state of things", or /preflight. This is about surfacing what's genuinely good, what's incomplete, what's buggy, and what could be better, with concrete actionable items.
+description: Honest self-assessment of the current state of work before shipping. Use when the user invokes the preflight skill or asks "how happy are you", "how do you feel about this", "preflight check", "honest assessment", "are you satisfied", or "what's the state of things". This is about surfacing what's genuinely good, what's incomplete, what's buggy, and what could be better, with concrete actionable items.
 ---
 
-# /preflight: honest assessment before shipping
+# Preflight: honest assessment before shipping
 
 Stop and honestly assess: how happy are you with the current state of the work?
 
@@ -13,7 +13,7 @@ Not "are you happy" (binary, invites a polite yes). "HOW happy" (graduated, dema
 
 Review what actually exists. Read files, check the diff, examine the produced artifacts. Don't assess from memory.
 
-Self-assessment has a built-in blind spot: you're grading your own work. For high-stakes ships, don't rely on introspection alone. Route the work through an independent review (`/second-opinion`) and fold its findings into the assessment below.
+Self-assessment has a built-in blind spot: you're grading your own work. For high-stakes ships, don't rely on introspection alone. Invoke the second-opinion skill and fold its independent findings into the assessment below.
 
 Then assess across these dimensions:
 

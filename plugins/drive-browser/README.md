@@ -1,6 +1,6 @@
 # drive-browser
 
-Drive a browser with Playwright as a dual-mode superset. Resilient locators for debugging your own web app, and a vision/coordinate loop for genuinely opaque UI on unknown or messy real sites. Runs on a fresh isolated browser, or the user's real logged-in session attached over CDP.
+A Claude Code and Codex plugin for driving a browser with Playwright as a dual-mode superset. It uses resilient locators for debugging your own web app and a vision/coordinate loop for genuinely opaque UI on unknown or messy real sites, in a fresh isolated browser or the user's real logged-in session attached over CDP.
 
 ## Why
 
@@ -8,9 +8,8 @@ Two browser jobs that look alike pull in opposite directions. Debugging your own
 
 ## Usage
 
-```
-/drive-browser
-```
+- Claude Code: `/drive-browser`
+- Codex: `$drive-browser`
 
 Or just describe the task. Reproduce a UI bug in a running app, walk a checkout, scrape a page. Fires automatically when the work means driving a browser.
 
@@ -32,10 +31,7 @@ Attaching over CDP hands you the user's live logged-in session with no consent p
 
 ## Installation
 
-```bash
-/plugin marketplace add pandysp/claude-plugins
-/plugin install drive-browser@pandysp
-```
+See the repository's [Claude Code and Codex marketplace instructions](../../README.md).
 
 ## License
 

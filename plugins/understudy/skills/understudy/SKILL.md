@@ -6,7 +6,7 @@ description: >-
   rejected as foreign. Use when writing into a codebase or document you don't own:
   a pull request or patch to an upstream project, a fix matching a specific
   maintainer's style, a change that has to blend into a teammate's module. Triggers
-  on /understudy, "match the style", "make it look like theirs", "fit the house
+  when the user invokes the understudy skill, says "match the style", "make it look like theirs", "fit the house
   style", "will this look out of place in their repo", or before opening a PR
   against someone else's project. Also invoke proactively whenever you're about to
   write into code or prose whose style isn't your own. A foreign-looking
@@ -14,7 +14,7 @@ description: >-
   time to match their hand is before you've written in yours.
 ---
 
-# /understudy: write as the maintainer
+# Understudy: write as the maintainer
 
 A maintainer rejects foreign-looking code even when it's correct. A patch in the wrong idiom is a cost to them (something to mentally translate, reformat, or turn down), so a contribution that doesn't look like theirs raises the bar to merging it, sometimes past the point they'll bother. Your default makes this worse: a generic, competent style that quietly announces "written by an outsider", the same tell that reads as AI. This skill is the discipline of effacing your own hand and writing as the host, so the work arrives already in their voice and costs nothing to accept.
 

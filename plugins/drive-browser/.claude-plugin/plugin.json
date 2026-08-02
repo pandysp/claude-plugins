@@ -1,7 +1,7 @@
 {
   "name": "drive-browser",
   "description": "Drive a browser with Playwright as a dual-mode superset. Resilient locators for debugging your own web app and a vision/coordinate loop for opaque real sites, on a fresh browser or the user's real logged-in session.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "Andreas Spannagel"
   },

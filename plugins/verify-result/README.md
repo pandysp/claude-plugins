@@ -1,6 +1,6 @@
 # verify-result
 
-A Claude Code plugin for black-box, end-to-end verification of any agent output: code, documents, presentations, reports, configs.
+A Claude Code and Codex plugin for black-box, end-to-end verification of any agent output: code, documents, presentations, reports, configs.
 
 ## Why
 
@@ -8,18 +8,14 @@ AI agents claim things work because they produced the output. "The tests pass" i
 
 ## Usage
 
-```
-/verify-result
-```
+- Claude Code: `/verify-result`
+- Codex: `$verify-result`
 
 Or just say: "Prove it works." / "Verify the document." / "Check the result."
 
 ## Installation
 
-```bash
-/plugin marketplace add pandysp/claude-plugins
-/plugin install verify-result@pandysp
-```
+See the repository's [Claude Code and Codex marketplace instructions](../../README.md).
 
 ## License
 

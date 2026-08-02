@@ -1,9 +1,9 @@
 ---
 name: spec
-description: Write the implementation spec (the structured document that drives execution). Use after design is chosen (e.g., via /design-options) and before writing code. Triggers on /spec, "write the spec", "draft the implementation plan", "scope this out". Also invoke proactively when starting non-trivial implementation. A spec makes success checkable and catches scope creep and missed reuse before code is written.
+description: Write the implementation spec (the structured document that drives execution). Use after design is chosen, for example through the design-options skill, and before writing code. Trigger when the user invokes the spec skill, says "write the spec", "draft the implementation plan", or "scope this out". Also invoke proactively when starting non-trivial implementation. A spec makes success checkable and catches scope creep and missed reuse before code is written.
 ---
 
-# /spec: write the implementation spec
+# Spec: write the implementation specification
 
 After the design is chosen, the spec is what the agent reads while implementing. Its job is to make success **checkable before any code exists**: bind the goal, the definition of done, the boundaries, and the verification into one durable artifact a fresh-context implementer (or verifier) could execute without re-deciding.
 
@@ -39,4 +39,4 @@ Concise enough to scan in one pass, detailed enough to execute without re-decidi
 - **No boundaries.** Omitting non-goals invites scope creep. Say what not to touch as clearly as what to build.
 - **Padded goal.** The goal is the outcome and why, not a retelling of the conversation. One paragraph.
 - **Empty terrain from not looking.** Either genuinely greenfield (say so) or you haven't grepped. Explore first.
-- **Specing trivial work.** A one-line fix doesn't need a spec. Use /spec for non-trivial implementations.
+- **Specing trivial work.** A one-line fix doesn't need a spec. Use this skill for non-trivial implementations.
