@@ -1,0 +1,32 @@
+{
+  "name": "explore",
+  "version": "1.2.2",
+  "description": "Map the terrain before designing: locate, trace, pattern, constrain. Used before any substantive design or planning step. Output is mostly for the agent's grounding; only surprises and hard constraints surface to the user.",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "repository": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT",
+  "keywords": [
+    "explore",
+    "terrain",
+    "discovery",
+    "context",
+    "grounding",
+    "pre-design",
+    "exploration"
+  ],
+  "interface": {
+    "displayName": "Explore",
+    "shortDescription": "Map the terrain before designing: locate, trace, pattern, constrain.",
+    "longDescription": "Map the terrain before designing: locate, trace, pattern, constrain. Used before any substantive design or planning step. Output is mostly for the agent's grounding; only surprises and hard constraints surface to the user.",
+    "developerName": "Andreas Spannagel",
+    "category": "Productivity",
+    "capabilities": [
+
+    ],
+    "defaultPrompt": "Apply the Explore workflow to this task."
+  },
+  "skills": "./skills/"
+}

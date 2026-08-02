@@ -1,8 +1,9 @@
-# Claude Plugins by pandysp
+# Claude Code and Codex Plugins by pandysp
 
-A collection of Claude Code plugins.
+A dual-host collection of plugins with shared skill sources and native
+marketplaces for Claude Code and Codex.
 
-## Installation
+## Claude Code installation
 
 ```bash
 # Add the marketplace
@@ -11,6 +12,22 @@ A collection of Claude Code plugins.
 # Install a plugin
 /plugin install <plugin-name>@pandysp
 ```
+
+## Codex installation
+
+```bash
+# Add the Git marketplace
+codex plugin marketplace add pandysp/claude-plugins
+
+# Inspect and install a plugin
+codex plugin list --marketplace pandysp --available --json
+codex plugin add <plugin-name>@pandysp
+```
+
+Start a new Codex session after installation so it loads the bundled skills.
+Packaging support does not imply behavioral parity for every plugin; review
+[the compatibility report](./CODEX-COMPATIBILITY.md) before relying on a
+host-specific workflow.
 
 ## Available Plugins
 
@@ -38,10 +55,13 @@ A collection of Claude Code plugins.
 ## Development
 
 ```bash
+ruby scripts/generate_codex.rb
 ruby scripts/validate.rb
 ```
 
-CI runs the same validation on pull requests and pushes to `main`.
+The generator derives Codex manifests and the Codex marketplace from the Claude
+metadata. CI verifies that generated files are current and validates both host
+packages on pull requests and pushes to `main`.
 
 ## License
 

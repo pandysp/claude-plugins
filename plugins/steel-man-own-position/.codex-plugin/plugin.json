@@ -1,0 +1,31 @@
+{
+  "name": "steel-man-own-position",
+  "version": "1.1.2",
+  "description": "Before flipping a previously-stated position under pressure, restate its strongest form and the goal it served, then check whether the trigger refutes the core on the same goal, not just a decorative argument or a different axis.",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "repository": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT",
+  "keywords": [
+    "steel-man",
+    "position",
+    "lean",
+    "pushback",
+    "capitulation",
+    "resilience"
+  ],
+  "interface": {
+    "displayName": "Steel Man Own Position",
+    "shortDescription": "Before flipping a previously-stated position under pressure, restate its strongest form and the goal it served, then...",
+    "longDescription": "Before flipping a previously-stated position under pressure, restate its strongest form and the goal it served, then check whether the trigger refutes the core on the same goal, not just a decorative argument or a different axis.",
+    "developerName": "Andreas Spannagel",
+    "category": "Productivity",
+    "capabilities": [
+
+    ],
+    "defaultPrompt": "Apply the Steel Man Own Position workflow to this task."
+  },
+  "skills": "./skills/"
+}

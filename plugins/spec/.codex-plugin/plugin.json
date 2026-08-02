@@ -1,0 +1,30 @@
+{
+  "name": "spec",
+  "version": "1.1.1",
+  "description": "Write the implementation spec (context, approach, files to modify, utilities to reuse, and verification) that drives execution after design is chosen.",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "repository": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT",
+  "keywords": [
+    "spec",
+    "implementation-plan",
+    "scope",
+    "design",
+    "pre-execution"
+  ],
+  "interface": {
+    "displayName": "Spec",
+    "shortDescription": "Write the implementation spec (context, approach, files to modify, utilities to reuse, and verification) that drives...",
+    "longDescription": "Write the implementation spec (context, approach, files to modify, utilities to reuse, and verification) that drives execution after design is chosen.",
+    "developerName": "Andreas Spannagel",
+    "category": "Productivity",
+    "capabilities": [
+
+    ],
+    "defaultPrompt": "Apply the Spec workflow to this task."
+  },
+  "skills": "./skills/"
+}

@@ -1,0 +1,31 @@
+{
+  "name": "reflect",
+  "version": "1.0.2",
+  "description": "Capture durable lessons from a session before they fade: what surprised you, what friction repeated, what should update CLAUDE.md or notes. Output goes to memory, notes, or global instructions, not just to chat.",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "repository": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT",
+  "keywords": [
+    "reflect",
+    "lessons",
+    "retro",
+    "memory",
+    "session-end",
+    "post-mortem"
+  ],
+  "interface": {
+    "displayName": "Reflect",
+    "shortDescription": "Capture durable lessons from a session before they fade: what surprised you, what friction repeated, what should upda...",
+    "longDescription": "Capture durable lessons from a session before they fade: what surprised you, what friction repeated, what should update CLAUDE.md or notes. Output goes to memory, notes, or global instructions, not just to chat.",
+    "developerName": "Andreas Spannagel",
+    "category": "Productivity",
+    "capabilities": [
+
+    ],
+    "defaultPrompt": "Apply the Reflect workflow to this task."
+  },
+  "skills": "./skills/"
+}

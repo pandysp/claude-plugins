@@ -1,0 +1,31 @@
+{
+  "name": "align",
+  "version": "1.1.2",
+  "description": "Surface what I think we're doing before acting on it. Produces a structured manifest exposing every silent commitment so the user can correct course before any artifact is produced.",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "repository": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT",
+  "keywords": [
+    "align",
+    "manifest",
+    "interpretation",
+    "shared-understanding",
+    "fabrication",
+    "preflight"
+  ],
+  "interface": {
+    "displayName": "Align",
+    "shortDescription": "Surface what I think we're doing before acting on it.",
+    "longDescription": "Surface what I think we're doing before acting on it. Produces a structured manifest exposing every silent commitment so the user can correct course before any artifact is produced.",
+    "developerName": "Andreas Spannagel",
+    "category": "Productivity",
+    "capabilities": [
+
+    ],
+    "defaultPrompt": "Apply the Align workflow to this task."
+  },
+  "skills": "./skills/"
+}
