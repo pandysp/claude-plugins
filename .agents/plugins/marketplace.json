@@ -11,7 +11,7 @@
         "path": "./plugins/second-opinion"
       },
       "policy": {
-        "installation": "AVAILABLE",
+        "installation": "NOT_AVAILABLE",
         "authentication": "ON_INSTALL"
       },
       "category": "Productivity"
@@ -107,7 +107,7 @@
         "path": "./plugins/silent-failures"
       },
       "policy": {
-        "installation": "AVAILABLE",
+        "installation": "NOT_AVAILABLE",
         "authentication": "ON_INSTALL"
       },
       "category": "Productivity"
@@ -119,7 +119,7 @@
         "path": "./plugins/explore"
       },
       "policy": {
-        "installation": "AVAILABLE",
+        "installation": "NOT_AVAILABLE",
         "authentication": "ON_INSTALL"
       },
       "category": "Productivity"
@@ -143,7 +143,7 @@
         "path": "./plugins/reflect"
       },
       "policy": {
-        "installation": "AVAILABLE",
+        "installation": "NOT_AVAILABLE",
         "authentication": "ON_INSTALL"
       },
       "category": "Productivity"
@@ -191,7 +191,7 @@
         "path": "./plugins/worktrunk-hook"
       },
       "policy": {
-        "installation": "AVAILABLE",
+        "installation": "NOT_AVAILABLE",
         "authentication": "ON_INSTALL"
       },
       "category": "Developer Tools"
@@ -215,7 +215,7 @@
         "path": "./plugins/quality-review"
       },
       "policy": {
-        "installation": "AVAILABLE",
+        "installation": "NOT_AVAILABLE",
         "authentication": "ON_INSTALL"
       },
       "category": "Productivity"

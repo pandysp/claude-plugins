@@ -5,6 +5,7 @@ require "json"
 require "pathname"
 require "rbconfig"
 require "yaml"
+require_relative "generate_codex"
 
 ROOT = Pathname.new(__dir__).parent
 failures = []
@@ -175,8 +176,12 @@ begin
       failures << "Codex marketplace: #{name}.source must point to #{expected_path}"
     end
     policy = entry["policy"]
-    unless policy == { "installation" => "AVAILABLE", "authentication" => "ON_INSTALL" }
-      failures << "Codex marketplace: #{name}.policy must use the supported defaults"
+    expected_policy = {
+      "installation" => CodexGenerator.installation_policy(name),
+      "authentication" => "ON_INSTALL"
+    }
+    unless policy == expected_policy
+      failures << "Codex marketplace: #{name}.policy must be #{expected_policy}"
     end
     unless entry["category"].is_a?(String) && !entry["category"].empty?
       failures << "Codex marketplace: #{name} missing category"

@@ -36,11 +36,12 @@ Codex automatically refreshes configured Git marketplaces on startup. Start a
 new Codex session after installation or a plugin version change so it loads the
 updated bundle.
 
-Packaging support does not imply behavioral parity for every plugin; review
-[the compatibility report](./CODEX-COMPATIBILITY.md) before relying on a
-host-specific workflow.
+The catalog contains all 18 Claude Code plugins. Codex currently offers the 12
+with verified host-neutral execution paths and withholds six host-specific
+plugins. See [the compatibility report](./CODEX-COMPATIBILITY.md) for the exact
+boundary.
 
-## Available Plugins
+## Plugin catalog
 
 | Plugin | Category | Description |
 |--------|----------|-------------|

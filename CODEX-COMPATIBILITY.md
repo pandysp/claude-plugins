@@ -5,11 +5,12 @@ Codex marketplace and manifests are generated from the Claude marketplace and
 plugin metadata; the files under `skills/`, `agents/`, `hooks/`, and `bin/`
 remain the shared source of truth.
 
-Marketplace availability means that Codex can discover and install the package.
-It does not claim that every host-specific instruction or integration already
-has behavioral parity.
+The Codex catalog includes all 18 plugins, but only plugins with a verified
+execution path are installable. Twelve are currently `AVAILABLE`; the six
+host-specific plugins documented below are `NOT_AVAILABLE` until adapted and
+verified.
 
-## Ready without Codex-specific changes
+## Available in Codex without host-specific changes
 
 These plugins are instruction-only or already describe their dependencies in
 host-neutral terms:
@@ -32,7 +33,7 @@ while Codex uses `$` mentions. Existing slash-command trigger phrases remain in
 the shared skill descriptions until there is a deliberate cross-host wording
 design.
 
-## Codex-specific work deliberately not included
+## Catalogued but unavailable in Codex
 
 ### `explore`
 
@@ -66,10 +67,11 @@ orchestrator before those modes work.
 
 ### `worktrunk-hook`
 
-The hook uses Claude Code's `WorktreeCreate` and `WorktreeRemove` events,
-`CLAUDE_PLUGIN_ROOT`, and Claude-specific worktree lifecycle assumptions. Do not
-enable it in Codex until its events, environment, trust behavior, and teardown
-semantics have been ported and verified end to end.
+Codex already supplies `CLAUDE_PLUGIN_ROOT` for hook compatibility. The blocker
+is lifecycle: the plugin's entire behavior depends on Claude Code's
+`WorktreeCreate` and `WorktreeRemove` events, which Codex does not provide. Do
+not emulate them with session hooks; creation, teardown, and deletion semantics
+must match before this plugin can be enabled safely.
 
 ## Keeping the host packages synchronized
 

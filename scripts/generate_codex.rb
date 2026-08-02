@@ -15,6 +15,15 @@ module CodexGenerator
     "tooling" => "Developer Tools"
   }.freeze
 
+  UNAVAILABLE_PLUGINS = %w[
+    explore
+    quality-review
+    reflect
+    second-opinion
+    silent-failures
+    worktrunk-hook
+  ].freeze
+
   module_function
 
   def titleize(name)
@@ -34,6 +43,10 @@ module CodexGenerator
 
   def source_marketplace
     JSON.parse(CLAUDE_MARKETPLACE.read)
+  end
+
+  def installation_policy(name)
+    UNAVAILABLE_PLUGINS.include?(name) ? "NOT_AVAILABLE" : "AVAILABLE"
   end
 
   def codex_manifest(entry)
@@ -81,7 +94,7 @@ module CodexGenerator
             "path" => entry.fetch("source")
           },
           "policy" => {
-            "installation" => "AVAILABLE",
+            "installation" => installation_policy(entry.fetch("name")),
             "authentication" => "ON_INSTALL"
           },
           "category" => CATEGORY_NAMES.fetch(entry.fetch("category"))
