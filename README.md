@@ -13,6 +13,14 @@ marketplaces for Claude Code and Codex.
 /plugin install <plugin-name>@pandysp
 ```
 
+Claude Code disables auto-update by default for third-party marketplaces. To
+keep these plugins current, run `/plugin`, open **Marketplaces**, select
+`pandysp`, and enable auto-update. Claude Code updates plugins on disk in the
+background after startup; run `/reload-plugins` when notified, or start a new
+session, to load them. Because this marketplace publishes explicit plugin
+versions, each release must bump the version before Claude Code installs the
+new bundle.
+
 ## Codex installation
 
 ```bash
@@ -24,7 +32,10 @@ codex plugin list --marketplace pandysp --available --json
 codex plugin add <plugin-name>@pandysp
 ```
 
-Start a new Codex session after installation so it loads the bundled skills.
+Codex automatically refreshes configured Git marketplaces on startup. Start a
+new Codex session after installation or a plugin version change so it loads the
+updated bundle.
+
 Packaging support does not imply behavioral parity for every plugin; review
 [the compatibility report](./CODEX-COMPATIBILITY.md) before relying on a
 host-specific workflow.
