@@ -1,15 +1,21 @@
 ---
 name: silent-failures
-description: Audit error handling in local code changes for silent failures, inadequate error feedback, and inappropriate fallback behavior. Triggers on /silent-failures, "check error handling", "find silent failures", "audit fallbacks", "review error handling". Also invoke proactively right after writing or modifying error handling. Try-catch blocks, callbacks, fallback logic, retries, or any code that could swallow an error.
+description: Audit error handling in local code changes for silent failures, inadequate error feedback, and inappropriate fallback behavior. Trigger when the user invokes the silent-failures skill, says "check error handling", "find silent failures", "audit fallbacks", or "review error handling". Also invoke proactively right after writing or modifying error handling. Try-catch blocks, callbacks, fallback logic, retries, or any code that could swallow an error.
 ---
 
-# /silent-failures: audit error handling for hidden failures
+# Silent failures: audit error handling for hidden failures
 
-Delegate the audit to the `silent-failure-hunter` subagent. The subagent runs the methodology in isolation and returns severity-ranked findings. The findings are for **your** grounding. Synthesize before surfacing anything to the user.
+Read [the canonical hunter methodology](references/hunter-methodology.md) completely, then run it through the strongest isolated review channel the host provides. The findings are for **your** grounding. Synthesize before surfacing anything to the user.
 
-## How to delegate
+## How to run the isolated review
 
-Use the Agent tool with `subagent_type="silent-failures:silent-failure-hunter"`: plugin agents are namespaced by plugin name. Pass the diff or specific files under review (default: `git diff` of unstaged + staged changes). The subagent returns severity-ranked findings.
+Use this capability order:
+
+1. **Plugin-provided hunter available**: delegate the target to the specialized silent-failure reviewer. It is a thin host adapter over the same canonical methodology.
+2. **Fresh subagent available**: spawn one read-only, peer-strength reviewer in fresh context. Pass the target and the canonical methodology without adding your own verdicts or suspected findings.
+3. **No independent worker available**: apply the methodology inline and label the result as self-review. Do not pretend that it had isolation.
+
+Pass the diff or specific files under review; default to the unstaged and staged local changes. The reviewer returns severity-ranked findings.
 
 ## How to handle the findings
 

@@ -1,9 +1,9 @@
 ---
 name: second-opinion
-description: Get an independent review of your thinking before presenting it to the user, from the strongest independent channel the session offers (a full-transcript advisor tool if available, fresh-context reviewers otherwise). Use when you need a fresh take, alternative approaches, or independent validation on a design, plan, code, or any non-trivial decision. Triggers on "second opinion", "another perspective", "ask fable", "independent review", or /second-opinion. Also trigger proactively during the design and plan review phases, before presenting options or a spec.
+description: Get an independent review of your thinking before presenting it to the user, from the strongest independent channel the session offers (a full-transcript advisor tool if available, fresh-context reviewers otherwise). Use when you need a fresh take, alternative approaches, or independent validation on a design, plan, code, or any non-trivial decision. Trigger when the user invokes the second-opinion skill, asks for a "second opinion", "another perspective", or "independent review". Also trigger proactively during the design and plan review phases, before presenting options or a spec.
 ---
 
-# /second-opinion: independent review before presenting
+# Second opinion: independent review before presenting
 
 Before presenting non-trivial thinking to the user, get an independent review of it. A second opinion is what a second doctor does: look at the situation fresh, form an independent view, say where they agree and where they'd do differently. The output is for *you*. The user sees the result of your improved reasoning, not the raw review.
 
@@ -20,7 +20,7 @@ Bind to the strongest channel available in this session that satisfies all three
 In rough order of preference:
 
 1. **A dedicated reviewer/advisor tool the harness exposes** that sees the full transcript: best on the "fully informed" axis, no distillation loss.
-2. **Fresh-context subagents at peer strength** (e.g. the Agent tool), given a faithful distillation, when no full-transcript channel exists. Spawn more than one for high-stakes or genuinely multi-faceted decisions; they run in parallel and their convergence or divergence is itself signal.
+2. **Fresh-context subagents at peer strength**, given a faithful distillation, when no full-transcript channel exists. Spawn more than one for high-stakes or genuinely multi-faceted decisions; run them in parallel when the host supports it. Their convergence or divergence is itself signal.
 3. **No independent channel available**: say so plainly and fall back to a structured self-critique, *labeled as such*. A self-review honestly named beats one dressed up as independent. Don't simulate a second opinion that isn't there.
 
 Let the stakes drive depth (a quick sanity check versus a full adversarial pass), not a fixed reviewer count.
@@ -49,4 +49,4 @@ When multiple reviewers converge, absorb the confidence. When they fundamentally
 
 ## Before finalizing: steel-man
 
-Apply **Hold the Line**: re-articulate your prior position and the goal it served, then check whether the review refutes the core on the same goal, or merely operates on a different axis. The specific failure mode: a reviewer's "fresh take" silently replaces the *problem* you were solving rather than critiquing your *answer*, and you absorb the reframe because it arrived wrapped in confidence. Reframes deserve a *harder* pass, not a softer one. If the full procedural check would help, run `/steel-man-own-position`.
+Apply **Hold the Line**: re-articulate your prior position and the goal it served, then check whether the review refutes the core on the same goal, or merely operates on a different axis. The specific failure mode: a reviewer's "fresh take" silently replaces the *problem* you were solving rather than critiquing your *answer*, and you absorb the reframe because it arrived wrapped in confidence. Reframes deserve a *harder* pass, not a softer one. If the full procedural check would help, invoke the steel-man-own-position skill.

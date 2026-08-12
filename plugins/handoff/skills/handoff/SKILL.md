@@ -1,9 +1,9 @@
 ---
 name: handoff
-description: Write a durable handoff for work that's about to ship. Structured PR descriptions, summaries, memos, or memory notes about completed work. Use when creating a PR, wrapping up a session, writing a project summary, drafting documentation about what was built, or composing memory notes for future sessions. Triggers on /handoff, "write the PR description", "summarize what we did", "wrap up the work", "create a summary". Also invoke proactively when shipping substantive work. Opening a PR, wrapping up a session, or handing a thread to a teammate.
+description: Write a durable handoff for work that's about to ship. Structured PR descriptions, summaries, memos, or memory notes about completed work. Use when creating a PR, wrapping up a session, writing a project summary, drafting documentation about what was built, or composing memory notes for future sessions. Trigger when the user invokes the handoff skill, says "write the PR description", "summarize what we did", "wrap up the work", or "create a summary". Also invoke proactively when shipping substantive work. Opening a PR, wrapping up a session, or handing a thread to a teammate.
 ---
 
-# /handoff: write a durable handoff
+# Handoff: write a durable handoff
 
 The work is done. Now write a handoff that serves the next reader without forcing them to dig through the diff.
 

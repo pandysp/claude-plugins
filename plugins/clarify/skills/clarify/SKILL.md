@@ -1,9 +1,9 @@
 ---
 name: clarify
-description: Surface and resolve underspecified decisions before designing. Use after task interpretation and terrain mapping, when you've understood what's being asked AND what's already there but still need user input on judgment calls. Boundaries and scope, edge behavior, trade-offs and calibration, integration with surroundings, hard constraints, audience specifics. Triggers on /clarify, "any clarifying questions", "what should I confirm", "before designing, what's unclear". Also invoke proactively before substantive design or planning work. Designing without resolving ambiguities locks them in silently.
+description: Surface and resolve underspecified decisions before designing. Use after task interpretation and terrain mapping, when you've understood what's being asked AND what's already there but still need user input on judgment calls. Boundaries and scope, edge behavior, trade-offs and calibration, integration with surroundings, hard constraints, audience specifics. Trigger when the user invokes the clarify skill, asks "any clarifying questions", "what should I confirm", or "before designing, what's unclear". Also invoke proactively before substantive design or planning work. Designing without resolving ambiguities locks them in silently.
 ---
 
-# /clarify: exhaust questions before designing
+# Clarify: exhaust questions before designing
 
 Before proposing design options, surface the synthesis questions: places where the task and terrain leave something genuinely undecided. Locking a design around a hidden assumption is more expensive than asking up front.
 

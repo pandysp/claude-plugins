@@ -1,6 +1,6 @@
 # pre-mortem
 
-A Claude Code plugin that forces systematic risk identification before committing to a plan or design.
+A Claude Code and Codex plugin that forces systematic risk identification before committing to a plan or design.
 
 ## Why
 
@@ -8,18 +8,14 @@ Optimism bias is real. "Will this work?" biases toward yes. This skill flips the
 
 ## Usage
 
-```
-/pre-mortem
-```
+- Claude Code: `/pre-mortem`
+- Codex: `$pre-mortem`
 
 Or: "What could go wrong with this approach?"
 
 ## Installation
 
-```bash
-/plugin marketplace add pandysp/claude-plugins
-/plugin install pre-mortem@pandysp
-```
+See the repository's [Claude Code and Codex marketplace instructions](../../README.md).
 
 ## License
 

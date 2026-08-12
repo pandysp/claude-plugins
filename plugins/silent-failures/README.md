@@ -1,6 +1,6 @@
 # silent-failures
 
-A Claude Code plugin that audits local code changes for silent failures, inadequate error handling, and inappropriate fallback behavior.
+A Claude Code and Codex plugin that audits local code changes for silent failures, inadequate error handling, and inappropriate fallback behavior.
 
 ## Why
 
@@ -8,22 +8,18 @@ Silent failures are among the most expensive defects: an error happens, the syst
 
 ## How it works
 
-The `silent-failures` skill is a thin orchestrator that delegates to the `silent-failure-hunter` subagent. The subagent applies the full audit methodology in its own context and returns severity-ranked findings; the main agent fixes or surfaces what matters. The verbose methodology never enters the main context.
+The skill owns one canonical hunter methodology. Claude Code's named `silent-failure-hunter` is a thin adapter that loads it; Codex gives the same method to a fresh reviewer. When the host has no independent worker, the skill runs inline and labels the reduced isolation. The main agent fixes or surfaces what matters instead of pasting the full reviewer report.
 
 ## Usage
 
-```
-/silent-failures
-```
+- Claude Code: `/silent-failures`
+- Codex: `$silent-failures`
 
 Or just describe what you want reviewed: "check error handling in my last commit", "audit fallbacks in the auth module".
 
 ## Installation
 
-```bash
-/plugin marketplace add pandysp/claude-plugins
-/plugin install silent-failures@pandysp
-```
+See the repository's [Claude Code and Codex marketplace instructions](../../README.md).
 
 ## License
 

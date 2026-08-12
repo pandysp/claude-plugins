@@ -1,6 +1,6 @@
 # design-options
 
-A Claude Code plugin that generates multiple strong design options with explicit tradeoff profiles.
+A Claude Code and Codex plugin that generates multiple strong design options with explicit tradeoff profiles.
 
 ## Why
 
@@ -8,18 +8,14 @@ AI agents tend to present one option (their first idea) or include straw-man alt
 
 ## Usage
 
-```
-/design-options
-```
+- Claude Code: `/design-options`
+- Codex: `$design-options`
 
 Or: "What are my options for this?"
 
 ## Installation
 
-```bash
-/plugin marketplace add pandysp/claude-plugins
-/plugin install design-options@pandysp
-```
+See the repository's [Claude Code and Codex marketplace instructions](../../README.md).
 
 ## License
 

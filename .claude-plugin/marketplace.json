@@ -9,10 +9,10 @@
   "plugins": [
     {
       "name": "second-opinion",
-      "description": "Get 1-3 independent second opinions from fresh Claude reviewers to strengthen your reasoning before presenting to the user.",
+      "description": "Get an independent review through the strongest available channel before presenting non-trivial reasoning to the user.",
       "source": "./plugins/second-opinion",
       "category": "workflow",
-      "keywords": ["review", "second-opinion", "fable", "validation", "critique"],
+      "keywords": ["review", "second-opinion", "peer-review", "validation", "critique"],
       "author": {
         "name": "Andreas Spannagel"
       }
@@ -89,7 +89,7 @@
     },
     {
       "name": "silent-failures",
-      "description": "Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks. Delegates to the silent-failure-hunter subagent for isolation",
+      "description": "Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks using one canonical methodology and the strongest isolated reviewer available.",
       "source": "./plugins/silent-failures",
       "category": "workflow",
       "keywords": ["error-handling", "silent-failures", "audit", "review", "fallback", "debugging"],
@@ -119,7 +119,7 @@
     },
     {
       "name": "reflect",
-      "description": "Capture durable lessons from a session before they fade: what surprised you, what friction repeated, what should update CLAUDE.md or notes. Output goes to memory, notes, or global instructions, not just to chat.",
+      "description": "Capture durable lessons from a session before they fade, routing each insight to the applicable instructions, memory, project notes, or tooling ticket.",
       "source": "./plugins/reflect",
       "category": "workflow",
       "keywords": ["reflect", "lessons", "retro", "memory", "session-end", "post-mortem"],

@@ -1,6 +1,6 @@
 # spec
 
-A Claude Code plugin that writes the implementation spec: the structured document that drives execution after design is chosen.
+A Claude Code and Codex plugin that writes the implementation spec: the structured document that drives execution after design is chosen.
 
 ## Why
 
@@ -8,18 +8,14 @@ Plans written ad-hoc tend to forget the essential pieces: existing utilities to 
 
 ## Usage
 
-```
-/spec
-```
+- Claude Code: `/spec`
+- Codex: `$spec`
 
 Or: "Write the spec for this." / "Draft the implementation plan."
 
 ## Installation
 
-```bash
-/plugin marketplace add pandysp/claude-plugins
-/plugin install spec@pandysp
-```
+See the repository's [Claude Code and Codex marketplace instructions](../../README.md).
 
 ## License
 

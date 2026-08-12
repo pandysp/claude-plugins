@@ -1,7 +1,7 @@
 {
   "name": "reflect",
-  "version": "1.0.2",
-  "description": "Capture durable lessons from a session before they fade: what surprised you, what friction repeated, what should update CLAUDE.md or notes. Output goes to memory, notes, or global instructions, not just to chat.",
+  "version": "1.1.0",
+  "description": "Capture durable lessons from a session before they fade, routing each insight to the applicable instructions, memory, project notes, or tooling ticket.",
   "author": {
     "name": "Andreas Spannagel"
   },
@@ -18,8 +18,8 @@
   ],
   "interface": {
     "displayName": "Reflect",
-    "shortDescription": "Capture durable lessons from a session before they fade: what surprised you, what friction repeated, what should upda...",
-    "longDescription": "Capture durable lessons from a session before they fade: what surprised you, what friction repeated, what should update CLAUDE.md or notes. Output goes to memory, notes, or global instructions, not just to chat.",
+    "shortDescription": "Capture durable lessons from a session before they fade, routing each insight to the applicable instructions, memory,...",
+    "longDescription": "Capture durable lessons from a session before they fade, routing each insight to the applicable instructions, memory, project notes, or tooling ticket.",
     "developerName": "Andreas Spannagel",
     "category": "Productivity",
     "capabilities": [

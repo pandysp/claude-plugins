@@ -55,8 +55,29 @@ end
 skill_paths = Dir.glob(ROOT.join("plugins/*/skills/*/SKILL.md")).sort.map { |path| Pathname.new(path) }
 skill_paths.each { |path| validate_frontmatter.call(path, path.dirname.basename.to_s) }
 
+skill_names = skill_paths.map { |path| path.dirname.basename.to_s }
+slash_invocation = %r{(?<![A-Za-z0-9_.-])/(?:#{skill_names.map { |name| Regexp.escape(name) }.join("|")})(?=\b|:)}
+skill_paths.each do |path|
+  plugin_name = path.relative_path_from(ROOT).each_filename.to_a.fetch(1)
+  next if CodexGenerator::UNAVAILABLE_PLUGINS.include?(plugin_name)
+
+  match = path.read.match(slash_invocation)
+  if match
+    failures << "#{path.relative_path_from(ROOT)}: host-specific skill invocation '#{match[0]}'"
+  end
+end
+
 agent_paths = Dir.glob(ROOT.join("plugins/*/agents/*.md")).sort.map { |path| Pathname.new(path) }
 agent_paths.each { |path| validate_frontmatter.call(path, path.basename(".md").to_s) }
+
+hunter_reference = ROOT.join("plugins/silent-failures/skills/silent-failures/references/hunter-methodology.md")
+failures << "silent-failures: missing canonical hunter methodology" unless hunter_reference.exist?
+if agent_paths.any? { |path| path.basename.to_s == "silent-failure-hunter.md" }
+  agent_body = ROOT.join("plugins/silent-failures/agents/silent-failure-hunter.md").read
+  unless agent_body.include?("skills/silent-failures/references/hunter-methodology.md")
+    failures << "silent-failures: Claude agent must load the canonical hunter methodology"
+  end
+end
 
 # --- plugin manifests, hooks, scripts ------------------------------------------
 

@@ -1,6 +1,6 @@
 # understudy
 
-A Claude Code plugin for writing into a codebase you don't own so the contribution reads as if the maintainer wrote it.
+A Claude Code and Codex plugin for writing into a codebase you don't own so the contribution reads as if the maintainer wrote it.
 
 ## Why
 
@@ -10,18 +10,14 @@ Style only. The skill matches how the code reads. It doesn't silence your judgme
 
 ## Usage
 
-```
-/understudy
-```
+- Claude Code: `/understudy`
+- Codex: `$understudy`
 
 Or naturally: "match the style", "make it look like theirs", "will this look out of place in their repo", or before opening a PR against someone else's project.
 
 ## Installation
 
-```bash
-/plugin marketplace add pandysp/claude-plugins
-/plugin install understudy@pandysp
-```
+See the repository's [Claude Code and Codex marketplace instructions](../../README.md).
 
 ## License
 
