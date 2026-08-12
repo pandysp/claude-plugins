@@ -70,16 +70,15 @@ end
 agent_paths = Dir.glob(ROOT.join("plugins/*/agents/*.md")).sort.map { |path| Pathname.new(path) }
 agent_paths.each { |path| validate_frontmatter.call(path, path.basename(".md").to_s) }
 
-hunter_reference = ROOT.join("plugins/silent-failures/skills/silent-failures/references/hunter-methodology.md")
-failures << "silent-failures: missing canonical hunter methodology" unless hunter_reference.exist?
 silent_failures_skill = ROOT.join("plugins/silent-failures/skills/silent-failures/SKILL.md").read
-unless silent_failures_skill.include?("relative to the directory that contains this `SKILL.md`") &&
-       silent_failures_skill.match?(/not relative to the\s+plugin root or its parent `skills\/` directory/)
-  failures << "silent-failures: skill must anchor the hunter methodology path to its own directory"
+unless silent_failures_skill.include?("## Hunter methodology") &&
+       silent_failures_skill.include?("### Principles") &&
+       silent_failures_skill.include?("### Process")
+  failures << "silent-failures: shared skill must contain the canonical hunter methodology"
 end
 if agent_paths.any? { |path| path.basename.to_s == "silent-failure-hunter.md" }
   agent_body = ROOT.join("plugins/silent-failures/agents/silent-failure-hunter.md").read
-  unless agent_body.include?("skills/silent-failures/references/hunter-methodology.md")
+  unless agent_body.include?("skills/silent-failures/SKILL.md") && agent_body.include?("Hunter methodology")
     failures << "silent-failures: Claude agent must load the canonical hunter methodology"
   end
 end

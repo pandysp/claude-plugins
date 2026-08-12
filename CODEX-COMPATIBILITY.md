@@ -43,8 +43,8 @@ source:
 - `second-opinion` prefers a full-transcript independent advisor, then fresh
   peer-strength subagents, then a clearly labelled self-critique. Public
   metadata no longer promises a particular model or tool.
-- `silent-failures` keeps the hunter methodology in one canonical skill
-  reference. Claude's named plugin agent is a thin adapter over it; hosts
+- `silent-failures` keeps the hunter methodology inside the shared `SKILL.md`.
+  Claude's named plugin agent is a thin adapter over it; hosts
   without that agent pass the same methodology to a fresh reviewer.
 
 ## Catalogued but unavailable in Codex
