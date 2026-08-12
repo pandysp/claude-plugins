@@ -5,4 +5,4 @@ model: inherit
 color: yellow
 ---
 
-Read `${CLAUDE_PLUGIN_ROOT}/skills/silent-failures/references/hunter-methodology.md` completely, then apply that methodology to the task you were given. The reference is canonical; do not substitute or recreate it from memory.
+Read `${CLAUDE_PLUGIN_ROOT}/skills/silent-failures/SKILL.md` completely, then apply only its **Hunter methodology** section to the task you were given. That section is canonical; do not substitute or recreate it from memory.
