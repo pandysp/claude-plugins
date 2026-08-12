@@ -5,7 +5,13 @@ description: Audit error handling in local code changes for silent failures, ina
 
 # Silent failures: audit error handling for hidden failures
 
-Read [the canonical hunter methodology](references/hunter-methodology.md) completely, then run it through the strongest isolated review channel the host provides. The findings are for **your** grounding. Synthesize before surfacing anything to the user.
+First, resolve [the canonical hunter methodology](references/hunter-methodology.md)
+relative to the directory that contains this `SKILL.md`—not relative to the
+plugin root or its parent `skills/` directory—and read that file completely.
+Do not continue from memory or from an adapter's summary if that read fails.
+Then run the methodology through the strongest isolated review channel the host
+provides. The findings are for **your** grounding. Synthesize before surfacing
+anything to the user.
 
 ## How to run the isolated review
 

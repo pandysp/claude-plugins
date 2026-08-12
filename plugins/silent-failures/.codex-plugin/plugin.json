@@ -1,6 +1,6 @@
 {
   "name": "silent-failures",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks using one canonical methodology and the strongest isolated reviewer available.",
   "author": {
     "name": "Andreas Spannagel"

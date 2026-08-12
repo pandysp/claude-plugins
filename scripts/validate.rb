@@ -72,6 +72,11 @@ agent_paths.each { |path| validate_frontmatter.call(path, path.basename(".md").t
 
 hunter_reference = ROOT.join("plugins/silent-failures/skills/silent-failures/references/hunter-methodology.md")
 failures << "silent-failures: missing canonical hunter methodology" unless hunter_reference.exist?
+silent_failures_skill = ROOT.join("plugins/silent-failures/skills/silent-failures/SKILL.md").read
+unless silent_failures_skill.include?("relative to the directory that contains this `SKILL.md`") &&
+       silent_failures_skill.match?(/not relative to the\s+plugin root or its parent `skills\/` directory/)
+  failures << "silent-failures: skill must anchor the hunter methodology path to its own directory"
+end
 if agent_paths.any? { |path| path.basename.to_s == "silent-failure-hunter.md" }
   agent_body = ROOT.join("plugins/silent-failures/agents/silent-failure-hunter.md").read
   unless agent_body.include?("skills/silent-failures/references/hunter-methodology.md")
