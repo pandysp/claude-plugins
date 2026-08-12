@@ -1,0 +1,30 @@
+{
+  "name": "preflight",
+  "version": "1.2.2",
+  "description": "Honest self-assessment skill that surfaces incomplete work, missing verifications, bugs, and improvement ideas before shipping.",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "repository": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT",
+  "keywords": [
+    "reflect",
+    "review",
+    "assessment",
+    "quality",
+    "self-check"
+  ],
+  "interface": {
+    "displayName": "Preflight",
+    "shortDescription": "Honest self-assessment skill that surfaces incomplete work, missing verifications, bugs, and improvement ideas before...",
+    "longDescription": "Honest self-assessment skill that surfaces incomplete work, missing verifications, bugs, and improvement ideas before shipping.",
+    "developerName": "Andreas Spannagel",
+    "category": "Productivity",
+    "capabilities": [
+
+    ],
+    "defaultPrompt": "Apply the Preflight workflow to this task."
+  },
+  "skills": "./skills/"
+}

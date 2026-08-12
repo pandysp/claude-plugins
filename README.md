@@ -1,8 +1,9 @@
-# Claude Plugins by pandysp
+# Claude Code and Codex Plugins by pandysp
 
-A collection of Claude Code plugins.
+A dual-host collection of plugins with shared skill sources and native
+marketplaces for Claude Code and Codex.
 
-## Installation
+## Claude Code installation
 
 ```bash
 # Add the marketplace
@@ -12,7 +13,35 @@ A collection of Claude Code plugins.
 /plugin install <plugin-name>@pandysp
 ```
 
-## Available Plugins
+Claude Code disables auto-update by default for third-party marketplaces. To
+keep these plugins current, run `/plugin`, open **Marketplaces**, select
+`pandysp`, and enable auto-update. Claude Code updates plugins on disk in the
+background after startup; run `/reload-plugins` when notified, or start a new
+session, to load them. Because this marketplace publishes explicit plugin
+versions, each release must bump the version before Claude Code installs the
+new bundle.
+
+## Codex installation
+
+```bash
+# Add the Git marketplace
+codex plugin marketplace add pandysp/claude-plugins
+
+# Inspect and install a plugin
+codex plugin list --marketplace pandysp --available --json
+codex plugin add <plugin-name>@pandysp
+```
+
+Codex automatically refreshes configured Git marketplaces on startup. Start a
+new Codex session after installation or a plugin version change so it loads the
+updated bundle.
+
+The catalog contains all 18 Claude Code plugins. Codex currently offers the 16
+with verified host-neutral execution paths and withholds two plugins whose core
+lifecycle is unavailable there. See [the compatibility
+report](./CODEX-COMPATIBILITY.md) for the exact boundary.
+
+## Plugin catalog
 
 | Plugin | Category | Description |
 |--------|----------|-------------|
@@ -21,7 +50,7 @@ A collection of Claude Code plugins.
 | [clarify](./plugins/clarify) | Workflow | Resolve underspecified decisions with targeted questions before designing |
 | [design-options](./plugins/design-options) | Workflow | Generate multiple strong design options with tradeoff profiles, anchored against at least two ideal targets |
 | [pre-mortem](./plugins/pre-mortem) | Workflow | Identify how a plan or design could fail before committing |
-| [second-opinion](./plugins/second-opinion) | Workflow | Spawn 1-3 independent reviewers from other models for critical perspectives |
+| [second-opinion](./plugins/second-opinion) | Workflow | Get an independent review through the strongest channel the host provides |
 | [steel-man-own-position](./plugins/steel-man-own-position) | Workflow | Restate the strongest version of a prior position before flipping under pushback |
 | [spec](./plugins/spec) | Workflow | Write the implementation spec that drives execution after design is chosen |
 | [verify-claims](./plugins/verify-claims) | Workflow | Identify and verify unverified claims before presenting them as conclusions |
@@ -38,10 +67,13 @@ A collection of Claude Code plugins.
 ## Development
 
 ```bash
+ruby scripts/generate_codex.rb
 ruby scripts/validate.rb
 ```
 
-CI runs the same validation on pull requests and pushes to `main`.
+The generator derives Codex manifests and the Codex marketplace from the Claude
+metadata. CI verifies that generated files are current and validates both host
+packages on pull requests and pushes to `main`.
 
 ## License
 

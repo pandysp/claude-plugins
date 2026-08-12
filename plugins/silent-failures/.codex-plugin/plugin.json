@@ -1,0 +1,31 @@
+{
+  "name": "silent-failures",
+  "version": "1.2.0",
+  "description": "Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks using one canonical methodology and the strongest isolated reviewer available.",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "repository": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT",
+  "keywords": [
+    "error-handling",
+    "silent-failures",
+    "audit",
+    "review",
+    "fallback",
+    "debugging"
+  ],
+  "interface": {
+    "displayName": "Silent Failures",
+    "shortDescription": "Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks using one canonical method...",
+    "longDescription": "Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks using one canonical methodology and the strongest isolated reviewer available.",
+    "developerName": "Andreas Spannagel",
+    "category": "Productivity",
+    "capabilities": [
+
+    ],
+    "defaultPrompt": "Apply the Silent Failures workflow to this task."
+  },
+  "skills": "./skills/"
+}

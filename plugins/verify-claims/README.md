@@ -1,6 +1,6 @@
 # verify-claims
 
-A Claude Code plugin that catches unverified claims in the agent's own responses and forces verification before presenting them as conclusions.
+A Claude Code and Codex plugin that catches unverified claims in the agent's own responses and forces verification before presenting them as conclusions.
 
 ## Why
 
@@ -8,9 +8,8 @@ AI agents construct narratives (plausible stories from pattern-matching) and pre
 
 ## Usage
 
-```
-/verify-claims
-```
+- Claude Code: `/verify-claims`
+- Codex: `$verify-claims`
 
 Or just say: "Check your claims." / "Back that up." / "Prove it."
 
@@ -18,10 +17,7 @@ Also self-invokes when a claim is about to become the foundation for action.
 
 ## Installation
 
-```bash
-/plugin marketplace add pandysp/claude-plugins
-/plugin install verify-claims@pandysp
-```
+See the repository's [Claude Code and Codex marketplace instructions](../../README.md).
 
 ## License
 

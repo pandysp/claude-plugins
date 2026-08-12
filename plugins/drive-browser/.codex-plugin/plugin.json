@@ -1,0 +1,31 @@
+{
+  "name": "drive-browser",
+  "version": "1.0.1",
+  "description": "Drive a browser with Playwright as a dual-mode superset. Resilient locators for debugging your own web app and a vision/coordinate loop for opaque real sites, on a fresh browser or the user's real logged-in session.",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "repository": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT",
+  "keywords": [
+    "browser",
+    "playwright",
+    "automation",
+    "cdp",
+    "vision",
+    "scraping"
+  ],
+  "interface": {
+    "displayName": "Drive Browser",
+    "shortDescription": "Drive a browser with Playwright as a dual-mode superset.",
+    "longDescription": "Drive a browser with Playwright as a dual-mode superset. Resilient locators for debugging your own web app and a vision/coordinate loop for opaque real sites, on a fresh browser or the user's real logged-in session.",
+    "developerName": "Andreas Spannagel",
+    "category": "Developer Tools",
+    "capabilities": [
+
+    ],
+    "defaultPrompt": "Apply the Drive Browser workflow to this task."
+  },
+  "skills": "./skills/"
+}

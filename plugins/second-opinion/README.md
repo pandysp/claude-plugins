@@ -1,26 +1,21 @@
 # second-opinion
 
-A Claude Code plugin that spawns 1-3 independent reviewers to challenge and sharpen the agent's thinking before presenting to the user.
+A Claude Code and Codex plugin that gets an independent review of the agent's thinking before presenting it to the user.
 
 ## How it works
 
-The agent distills the current context and sends it to 1-3 reviewer subagents running in parallel: fresh Claude Fable instances with no stake in the original reasoning. The reviewers critically evaluate the approach and suggest alternatives; the agent synthesizes the feedback internally. You see improved reasoning, not raw reviewer output.
+The skill chooses the strongest independent channel the host provides: a full-transcript advisor first, fresh peer-strength reviewers second, and a clearly labelled self-critique only when no independent channel exists. Reviewers critically evaluate the approach and suggest alternatives; the agent synthesizes the feedback internally. You see improved reasoning, not a raw reviewer transcript.
 
 ## Usage
 
-```
-/second-opinion      # 1 reviewer
-/second-opinion 3    # 3 reviewers in parallel
-```
+- Claude Code: `/second-opinion`
+- Codex: `$second-opinion`
 
 Or naturally: "get a second opinion", "another perspective on this". The agent also uses the skill proactively during design and plan review phases.
 
 ## Installation
 
-```bash
-/plugin marketplace add pandysp/claude-plugins
-/plugin install second-opinion@pandysp
-```
+See the repository's [Claude Code and Codex marketplace instructions](../../README.md).
 
 ## Philosophy
 

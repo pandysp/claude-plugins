@@ -1,6 +1,6 @@
 # align
 
-A Claude Code plugin that makes the agent surface its task interpretation, approach, source coverage, rendering choices, and gap-fill defaults *before* producing any artifact.
+A Claude Code and Codex plugin that makes the agent surface its task interpretation, approach, source coverage, rendering choices, and gap-fill defaults *before* producing any artifact.
 
 ## Why
 
@@ -10,9 +10,8 @@ This skill inverts that. The agent produces a **manifest** first: a structured, 
 
 ## Usage
 
-```
-/align
-```
+- Claude Code: `/align`
+- Codex: `$align`
 
 Or just ask naturally: "let's align first", "mirror what you're hearing", "check in before you start".
 
@@ -20,10 +19,7 @@ The agent produces the manifest, stops, and waits for you to confirm, correct, o
 
 ## Installation
 
-```bash
-/plugin marketplace add pandysp/claude-plugins
-/plugin install align@pandysp
-```
+See the repository's [Claude Code and Codex marketplace instructions](../../README.md).
 
 ## License
 

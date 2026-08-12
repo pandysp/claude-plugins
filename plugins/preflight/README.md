@@ -1,6 +1,6 @@
 # preflight
 
-A Claude Code plugin that makes the agent honestly assess the current state of its work before shipping.
+A Claude Code and Codex plugin that makes the agent honestly assess the current state of its work before shipping.
 
 ## Why
 
@@ -10,9 +10,8 @@ The key insight: ask "**how** happy are you?" not "**are** you happy?" The forme
 
 ## Usage
 
-```
-/preflight
-```
+- Claude Code: `/preflight`
+- Codex: `$preflight`
 
 Or just ask naturally: "How happy are you with the current state?"
 
@@ -20,10 +19,7 @@ The agent reviews the actual artifacts (not memory) and presents concrete items,
 
 ## Installation
 
-```bash
-/plugin marketplace add pandysp/claude-plugins
-/plugin install preflight@pandysp
-```
+See the repository's [Claude Code and Codex marketplace instructions](../../README.md).
 
 ## License
 

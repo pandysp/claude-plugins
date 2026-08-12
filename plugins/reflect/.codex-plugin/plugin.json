@@ -1,0 +1,31 @@
+{
+  "name": "reflect",
+  "version": "1.1.0",
+  "description": "Capture durable lessons from a session before they fade, routing each insight to the applicable instructions, memory, project notes, or tooling ticket.",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "repository": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT",
+  "keywords": [
+    "reflect",
+    "lessons",
+    "retro",
+    "memory",
+    "session-end",
+    "post-mortem"
+  ],
+  "interface": {
+    "displayName": "Reflect",
+    "shortDescription": "Capture durable lessons from a session before they fade, routing each insight to the applicable instructions, memory,...",
+    "longDescription": "Capture durable lessons from a session before they fade, routing each insight to the applicable instructions, memory, project notes, or tooling ticket.",
+    "developerName": "Andreas Spannagel",
+    "category": "Productivity",
+    "capabilities": [
+
+    ],
+    "defaultPrompt": "Apply the Reflect workflow to this task."
+  },
+  "skills": "./skills/"
+}
