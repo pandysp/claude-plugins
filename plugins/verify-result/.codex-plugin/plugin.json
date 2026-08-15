@@ -2,30 +2,5 @@
   "name": "verify-result",
   "version": "2.0.4",
   "description": "Black-box verification of any agent output: code, documents, presentations, reports, configs. Examine from the consumer's perspective and show evidence.",
-  "author": {
-    "name": "Andreas Spannagel"
-  },
-  "homepage": "https://github.com/pandysp/claude-plugins",
-  "repository": "https://github.com/pandysp/claude-plugins",
-  "license": "MIT",
-  "keywords": [
-    "verify",
-    "test",
-    "end-to-end",
-    "proof",
-    "evidence",
-    "black-box"
-  ],
-  "interface": {
-    "displayName": "Verify Result",
-    "shortDescription": "Black-box verification of any agent output: code, documents, presentations, reports, configs.",
-    "longDescription": "Black-box verification of any agent output: code, documents, presentations, reports, configs. Examine from the consumer's perspective and show evidence.",
-    "developerName": "Andreas Spannagel",
-    "category": "Productivity",
-    "capabilities": [
-
-    ],
-    "defaultPrompt": "Apply the Verify Result workflow to this task."
-  },
   "skills": "./skills/"
 }

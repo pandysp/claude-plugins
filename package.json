@@ -1,0 +1,34 @@
+{
+  "name": "pandysp-plugins",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Workflow skills by pandysp, packaged for Pi.",
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pandysp/claude-plugins.git"
+  },
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "license": "MIT",
+  "pi": {
+    "skills": [
+      "plugins/second-opinion/skills/second-opinion",
+      "plugins/preflight/skills/preflight",
+      "plugins/verify-result/skills/verify-result",
+      "plugins/verify-claims/skills/verify-claims",
+      "plugins/pre-mortem/skills/pre-mortem",
+      "plugins/design-options/skills/design-options",
+      "plugins/steel-man-own-position/skills/steel-man-own-position",
+      "plugins/align/skills/align",
+      "plugins/silent-failures/skills/silent-failures",
+      "plugins/explore/skills/explore",
+      "plugins/clarify/skills/clarify",
+      "plugins/reflect/skills/reflect",
+      "plugins/handoff/skills/handoff",
+      "plugins/spec/skills/spec",
+      "plugins/understudy/skills/understudy"
+    ]
+  }
+}

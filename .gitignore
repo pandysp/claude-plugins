@@ -1,1 +1,7 @@
 __pycache__/
+node_modules/
+
+# Pi runs the consumer's configured package manager in its checkout. npm is the
+# default and its lockfile is committed; pnpm writes its own and would otherwise
+# show up as local drift.
+pnpm-lock.yaml

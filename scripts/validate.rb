@@ -5,14 +5,13 @@ require "json"
 require "pathname"
 require "rbconfig"
 require "yaml"
-require_relative "generate_codex"
+require_relative "generate"
 
 ROOT = Pathname.new(__dir__).parent
 failures = []
 
-generator = ROOT.join("scripts/generate_codex.rb")
-unless system(RbConfig.ruby, generator.to_s, "--check")
-  failures << "Codex generated files are stale; run ruby scripts/generate_codex.rb"
+unless system(RbConfig.ruby, ROOT.join("scripts/generate.rb").to_s, "--check")
+  failures << "Generated Codex and Pi files are stale; run ruby scripts/generate.rb"
 end
 
 plugin_dirs = Dir.glob(ROOT.join("plugins/*")).select { |p| File.directory?(p) }
@@ -21,6 +20,8 @@ plugin_dirs = Dir.glob(ROOT.join("plugins/*")).select { |p| File.directory?(p) }
 failures << "No plugin directories found under plugins/" if plugin_dirs.empty?
 
 # --- skill and agent frontmatter ----------------------------------------------
+
+skill_frontmatter = {}
 
 validate_frontmatter = lambda do |path, expected_name|
   relative_path = path.relative_path_from(ROOT)
@@ -50,16 +51,17 @@ validate_frontmatter = lambda do |path, expected_name|
   failures << "#{relative_path}: frontmatter.description must be a non-empty string" unless description.is_a?(String) && !description.empty?
   failures << "#{relative_path}: frontmatter.name '#{name}' must match '#{expected_name}'" if name.is_a?(String) && !name.empty? && name != expected_name
   failures << "#{relative_path}: description exceeds 1024 characters (#{description.length})" if description.is_a?(String) && description.length > 1024
+
+  skill_frontmatter[path.to_s] = name if name.is_a?(String) && !name.empty?
 end
 
 skill_paths = Dir.glob(ROOT.join("plugins/*/skills/*/SKILL.md")).sort.map { |path| Pathname.new(path) }
 skill_paths.each { |path| validate_frontmatter.call(path, path.dirname.basename.to_s) }
 
-skill_names = skill_paths.map { |path| path.dirname.basename.to_s }
-slash_invocation = %r{(?<![A-Za-z0-9_.-])/(?:#{skill_names.map { |name| Regexp.escape(name) }.join("|")})(?=\b|:)}
+slash_invocation = %r{(?<![A-Za-z0-9_.-])/(?:#{skill_paths.map { |path| Regexp.escape(path.dirname.basename.to_s) }.join("|")})(?=\b|:)}
 skill_paths.each do |path|
   plugin_name = path.relative_path_from(ROOT).each_filename.to_a.fetch(1)
-  next if CodexGenerator::UNAVAILABLE_PLUGINS.include?(plugin_name)
+  next unless HostPackages.supported?(plugin_name, :codex) || HostPackages.supported?(plugin_name, :pi)
 
   match = path.read.match(slash_invocation)
   if match
@@ -89,7 +91,6 @@ claude_manifests = {}
 plugin_dirs.each do |dir|
   name = dir.basename.to_s
   claude_manifest_path = dir.join(".claude-plugin/plugin.json")
-  codex_manifest_path = dir.join(".codex-plugin/plugin.json")
 
   unless claude_manifest_path.exist?
     failures << "plugins/#{name}: missing .claude-plugin/plugin.json"
@@ -109,44 +110,6 @@ plugin_dirs.each do |dir|
     failures << "plugins/#{name}: Claude plugin.json missing #{field}" unless claude_manifest.key?(field)
   end
 
-  unless codex_manifest_path.exist?
-    failures << "plugins/#{name}: missing .codex-plugin/plugin.json"
-    next
-  end
-
-  begin
-    codex_manifest = JSON.parse(codex_manifest_path.read)
-  rescue JSON::ParserError => error
-    failures << "plugins/#{name}: invalid Codex plugin.json: #{error.message}"
-    next
-  end
-
-  %w[name version description author homepage license].each do |field|
-    unless codex_manifest[field] == claude_manifest[field]
-      failures << "plugins/#{name}: Codex #{field} differs from Claude plugin.json"
-    end
-  end
-  unless codex_manifest["repository"] == "https://github.com/pandysp/claude-plugins"
-    failures << "plugins/#{name}: Codex repository is incorrect"
-  end
-
-  interface = codex_manifest["interface"]
-  unless interface.is_a?(Hash)
-    failures << "plugins/#{name}: Codex plugin.json missing interface"
-  else
-    %w[displayName shortDescription longDescription developerName category capabilities defaultPrompt].each do |field|
-      failures << "plugins/#{name}: Codex interface missing #{field}" unless interface.key?(field)
-    end
-  end
-
-  has_skills = !Dir.glob(dir.join("skills/*/SKILL.md")).empty?
-  if has_skills
-    unless codex_manifest["skills"] == "./skills/"
-      failures << "plugins/#{name}: Codex skills must be ./skills/"
-    end
-  elsif codex_manifest.key?("skills")
-    failures << "plugins/#{name}: Codex skills declared without a skills directory"
-  end
   failures << "plugins/#{name}: README.md missing" unless dir.join("README.md").exist?
 
   hooks_path = dir.join("hooks/hooks.json")
@@ -186,36 +149,58 @@ rescue JSON::ParserError => error
   failures << ".claude-plugin/marketplace.json: invalid JSON: #{error.message}"
 end
 
-begin
-  marketplace = JSON.parse(ROOT.join(".agents/plugins/marketplace.json").read)
-  entries = marketplace.fetch("plugins", []).to_h { |entry| [entry["name"], entry] }
-  dir_names = plugin_dirs.map { |dir| dir.basename.to_s }
+# --- pi skill names -------------------------------------------------------------
 
-  (dir_names - entries.keys).each { |name| failures << "Codex marketplace: missing entry for plugins/#{name}" }
-  (entries.keys - dir_names).each { |name| failures << "Codex marketplace: entry '#{name}' has no plugin directory" }
+# generate.rb writes package.json from disk, so paths and membership are covered
+# by --check. Uniqueness is not: two plugins could ship skills whose frontmatter
+# names collide, and Pi would keep the first and only warn.
+skill_names = {}
+HostPackages::HOST_SUPPORT.each_key do |plugin|
+  next unless HostPackages.supported?(plugin, :pi)
 
-  entries.each do |name, entry|
-    expected_path = "./plugins/#{name}"
-    source = entry["source"]
-    unless source == { "source" => "local", "path" => expected_path }
-      failures << "Codex marketplace: #{name}.source must point to #{expected_path}"
-    end
-    policy = entry["policy"]
-    expected_policy = {
-      "installation" => CodexGenerator.installation_policy(name),
-      "authentication" => "ON_INSTALL"
-    }
-    unless policy == expected_policy
-      failures << "Codex marketplace: #{name}.policy must be #{expected_policy}"
-    end
-    unless entry["category"].is_a?(String) && !entry["category"].empty?
-      failures << "Codex marketplace: #{name} missing category"
+  HostPackages.skill_dirs(plugin).each do |dir|
+    name = skill_frontmatter[ROOT.join(dir, "SKILL.md").to_s]
+    next if name.nil?
+
+    if skill_names.key?(name)
+      failures << "Pi would drop a skill: '#{name}' is declared by #{skill_names[name]} and #{dir}"
+    else
+      skill_names[name] = dir
     end
   end
-rescue Errno::ENOENT
-  failures << ".agents/plugins/marketplace.json: missing"
-rescue JSON::ParserError => error
-  failures << ".agents/plugins/marketplace.json: invalid JSON: #{error.message}"
+end
+
+# --- host support declaration ---------------------------------------------------
+
+# Fail closed: a plugin that does not state its Codex and Pi support cannot ship.
+declared = HostPackages::HOST_SUPPORT
+dir_names = plugin_dirs.map { |dir| dir.basename.to_s }
+
+(dir_names - declared.keys).each do |name|
+  failures << "generate.rb: plugins/#{name} is missing from HOST_SUPPORT; state codex and pi support"
+end
+(declared.keys - dir_names).each do |name|
+  failures << "generate.rb: HOST_SUPPORT declares '#{name}', which has no plugin directory"
+end
+
+declared.each do |name, hosts|
+  %i[codex pi].each do |host|
+    value = hosts[host]
+    case value
+    when true then next
+    when String then failures << "generate.rb: #{name}.#{host} reason must not be empty" if value.strip.empty?
+    when nil then failures << "generate.rb: #{name} does not state #{host} support"
+    else failures << "generate.rb: #{name}.#{host} must be true or a reason string"
+    end
+  end
+end
+
+# Every withheld plugin is named in the README's Withheld section, so the reason
+# reaches readers instead of living only in generate.rb.
+withheld_section = ROOT.join("README.md").read[/^## Withheld.*?(?=^## |\z)/m].to_s
+declared.each do |name, hosts|
+  next if hosts[:codex] == true && hosts[:pi] == true
+  failures << "README.md: withheld plugin #{name} is not explained under ## Withheld" unless withheld_section.include?("`#{name}`")
 end
 
 # --- root README index ----------------------------------------------------------
@@ -227,7 +212,7 @@ plugin_dirs.each do |dir|
 end
 
 if failures.empty?
-  puts "Validated #{skill_paths.length} skills, #{agent_paths.length} agents, and #{plugin_dirs.length} dual-host plugins: frontmatter, manifests, hooks, marketplaces, generated-file sync, README index."
+  puts "Validated #{plugin_dirs.length} plugins (#{skill_paths.length} skills, #{agent_paths.length} agents): declared host support, generated Codex and Pi packages, manifests, hooks, marketplaces, README."
 else
   warn "Validation failed:"
   failures.each { |failure| warn "  - #{failure}" }

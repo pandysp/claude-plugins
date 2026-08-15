@@ -26,3 +26,15 @@ jobs:
 
       - name: Validate plugins
         run: ruby scripts/validate.rb
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Check the Pi checkout stays clean
+        run: |
+          npm install --omit=dev
+          git status --porcelain
+          test -z "$(git status --porcelain)"
+          test ! -d node_modules

@@ -1,31 +1,5 @@
 {
   "name": "worktrunk-hook",
   "version": "0.3.3",
-  "description": "Route Claude Code's auto-created git worktrees through worktrunk so background and --worktree sessions inherit project hooks (env symlinks, installs, port allocation).",
-  "author": {
-    "name": "Andreas Spannagel"
-  },
-  "homepage": "https://github.com/pandysp/claude-plugins",
-  "repository": "https://github.com/pandysp/claude-plugins",
-  "license": "MIT",
-  "keywords": [
-    "worktrunk",
-    "worktree",
-    "hook",
-    "background-agent",
-    "bg",
-    "isolation",
-    "wt"
-  ],
-  "interface": {
-    "displayName": "Worktrunk Hook",
-    "shortDescription": "Route Claude Code's auto-created git worktrees through worktrunk so background and --worktree sessions inherit projec...",
-    "longDescription": "Route Claude Code's auto-created git worktrees through worktrunk so background and --worktree sessions inherit project hooks (env symlinks, installs, port allocation).",
-    "developerName": "Andreas Spannagel",
-    "category": "Developer Tools",
-    "capabilities": [
-
-    ],
-    "defaultPrompt": "Help me configure Worktrunk Hook."
-  }
+  "description": "Route Claude Code's auto-created git worktrees through worktrunk so background and --worktree sessions inherit project hooks (env symlinks, installs, port allocation)."
 }

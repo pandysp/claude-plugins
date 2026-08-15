@@ -2,31 +2,5 @@
   "name": "understudy",
   "version": "1.1.2",
   "description": "Write code, comments, tests, or commit messages that read as if the project's own maintainer wrote them, so a contribution is accepted as native rather than rejected as foreign. A foreign-looking patch is a cost to the maintainer even when it's correct.",
-  "author": {
-    "name": "Andreas Spannagel"
-  },
-  "homepage": "https://github.com/pandysp/claude-plugins",
-  "repository": "https://github.com/pandysp/claude-plugins",
-  "license": "MIT",
-  "keywords": [
-    "understudy",
-    "style",
-    "house-style",
-    "idiom",
-    "contribution",
-    "maintainer",
-    "seamless"
-  ],
-  "interface": {
-    "displayName": "Understudy",
-    "shortDescription": "Write code, comments, tests, or commit messages that read as if the project's own maintainer wrote them, so a contrib...",
-    "longDescription": "Write code, comments, tests, or commit messages that read as if the project's own maintainer wrote them, so a contribution is accepted as native rather than rejected as foreign. A foreign-looking patch is a cost to the maintainer even when it's correct.",
-    "developerName": "Andreas Spannagel",
-    "category": "Productivity",
-    "capabilities": [
-
-    ],
-    "defaultPrompt": "Apply the Understudy workflow to this task."
-  },
   "skills": "./skills/"
 }
