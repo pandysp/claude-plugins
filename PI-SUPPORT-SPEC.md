@@ -14,7 +14,7 @@ Audit baseline: merged main `76f244279605c73d2b3d2d782ffe71bf042ca69d`. This is 
 ## Package lifecycle
 
 - [ ] Root Pi metadata is dependency-free and script-free, exposes no extensions/prompts/themes, and has a committed deterministic lockfile.
-- [ ] The exact candidate installs from its HTTPS GitHub source in an isolated Pi environment. Its checkout stays clean after Pi's install step.
+- [ ] The exact candidate installs from its HTTPS GitHub source in an isolated Pi environment. At every install, update, pin, rollback, and return-to-moving-source state, the resolved checkout is correct and `git status --porcelain` is empty after Pi's install step; no lifecycle operation leaves persistent drift.
 - [ ] Extension-disabled inventories show exactly the approved skills and no Pi extensions, prompts, or themes. Resource loading is treated as trusted-code execution; SDK registry inspection is labeled equivalent-configuration instrumentation, not CLI-process proof.
 - [ ] Targeted update, pin/rollback, return to the moving source, coexistence with relevant global/project/ancestor configuration, and removal all work without changing unrelated packages or configuration.
 - [ ] After removal and restart, package resources disappear. Checkout/cache retention behavior is documented and matches observation.
