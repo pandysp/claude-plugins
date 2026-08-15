@@ -10,7 +10,7 @@ Audit baseline: merged main `76f244279605c73d2b3d2d782ffe71bf042ca69d` (tree `42
 
 ### 1. Exact-source classification
 
-- [ ] All 17 `SKILL.md` files at the candidate SHA are re-read and classified. The classification records each file hash, decision, reason, runtime assumptions, candidate commit, and tree. A reviewer explicitly approves it before package exposure.
+- [ ] All 17 `SKILL.md` files at the candidate SHA are re-read and classified together with every script, reference, asset, agent, or other file they transitively reference. The classification records every reviewed file hash, decision, reason, runtime assumptions, candidate commit, and tree. Helpers are runtime surface even when a skill is excluded (for example, `quality-review`'s workflow). A reviewer explicitly approves the complete resource closure before package exposure.
 - [ ] The `pi.skills` list contains only approved, explicit file paths: no directory discovery or globs. Its resolved inventory equals the approved list byte-for-byte and contains no duplicate skill names.
 - [ ] The following baseline list is **provisional, not approved**: `align`, `clarify`, `design-options`, `explore`, `handoff`, `pre-mortem`, `reflect`, `second-opinion`, `silent-failures`, `spec`, `steel-man-own-position`, `understudy`, `verify-claims`, and `verify-result`.
 - [ ] `preflight`, `quality-review`, and `drive-browser` are absent unless their gates below pass on the same candidate. `worktrunk-hook` remains absent because it has no Pi skill/resource.
@@ -58,7 +58,7 @@ Audit baseline: merged main `76f244279605c73d2b3d2d782ffe71bf042ca69d` (tree `42
 
 - [ ] README and a Pi compatibility document give exact HTTPS install, targeted update, pin/rollback, remove, filtering, and enable/disable instructions. They distinguish catalog/startup notification from installed-content updates.
 - [ ] A sanitized durable artifact attached to the candidate's GitHub run records commands, tool versions, resolved SHAs, inventories, behavior verdicts, coexistence results, and exclusions. It contains no credentials, auth symlinks, raw hidden reasoning, or live app state.
-- [ ] Claude Code and Codex generation/validation still pass, their marketplace inventories are unchanged, and representative shared skills still load on both hosts.
+- [ ] Codex generation/validation passes, every `plugins/*` directory passes Claude's strict plugin validator, both marketplace inventories are unchanged, and representative shared skills still load on both hosts. Validating one plugin does not support a repository-wide compatibility claim.
 
 ## Boundaries
 
@@ -84,7 +84,7 @@ Run, in order, against the final candidate SHA:
 ruby scripts/generate_codex.rb --check
 ruby scripts/validate.rb
 ruby scripts/validate_pi_package.rb
-claude plugin validate plugins/preflight --strict
+for plugin in plugins/*; do claude plugin validate "$plugin" --strict; done
 npm install --ignore-scripts
 git diff --exit-code -- package.json package-lock.json
 bash scripts/test_pi_package.sh <candidate-sha>
