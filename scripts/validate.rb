@@ -83,6 +83,34 @@ if agent_paths.any? { |path| path.basename.to_s == "silent-failure-hunter.md" }
   end
 end
 
+preflight_skill = ROOT.join("plugins/preflight/skills/preflight/SKILL.md").read
+preflight_fallback_contract = [
+  "try to invoke and follow the second-opinion skill",
+  "take exactly one branch",
+  "**Skill absent**",
+  "Second-opinion skill unavailable",
+  "not **Independent review channel unavailable**",
+  "perform a structured self-critique directly, labeled as self-review",
+  "**Skill present, no independent channel**",
+  "after following the skill's channel-selection procedure",
+  "Independent review channel unavailable",
+  "not **Second-opinion skill unavailable**",
+  "use its labeled self-review fallback",
+  "**Independent review obtained**",
+  "fold its findings into the assessment",
+  "Do not use either unavailable label",
+  "For the first two branches",
+  "Missing independent review",
+  "under **What needs attention NOW**",
+  "put the branch's availability label in that item",
+  "Never present self-review as independent"
+]
+preflight_fallback_contract.each do |requirement|
+  unless preflight_skill.include?(requirement)
+    failures << "preflight: missing independent-review fallback contract '#{requirement}'"
+  end
+end
+
 # --- plugin manifests, hooks, scripts ------------------------------------------
 
 claude_manifests = {}

@@ -13,7 +13,13 @@ Not "are you happy" (binary, invites a polite yes). "HOW happy" (graduated, dema
 
 Review what actually exists. Read files, check the diff, examine the produced artifacts. Don't assess from memory.
 
-Self-assessment has a built-in blind spot: you're grading your own work. For high-stakes ships, don't rely on introspection alone. Invoke the second-opinion skill and fold its independent findings into the assessment below.
+Self-assessment has a built-in blind spot: you're grading your own work. For high-stakes ships, don't rely on introspection alone. Before assessing, try to invoke and follow the second-opinion skill, then take exactly one branch:
+
+- **Skill absent**: state **Second-opinion skill unavailable**—not **Independent review channel unavailable**—and perform a structured self-critique directly, labeled as self-review.
+- **Skill present, no independent channel**: after following the skill's channel-selection procedure, state **Independent review channel unavailable**—not **Second-opinion skill unavailable**—and use its labeled self-review fallback.
+- **Independent review obtained**: fold its findings into the assessment. Do not use either unavailable label.
+
+For the first two branches, include a **Missing independent review** item under **What needs attention NOW**, put the branch's availability label in that item, and preserve the self-review label. Never present self-review as independent.
 
 Then assess across these dimensions:
 
