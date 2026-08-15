@@ -16,10 +16,14 @@ Review what actually exists. Read files, check the diff, examine the produced ar
 Self-assessment has a built-in blind spot: you're grading your own work. For high-stakes ships, don't rely on introspection alone. Before assessing, try to invoke and follow the second-opinion skill, then take exactly one branch:
 
 - **Skill absent**: state **Second-opinion skill unavailable**—not **Independent review channel unavailable**—and perform a structured self-critique directly, labeled as self-review.
-- **Skill present, no independent channel**: after following the skill's channel-selection procedure, state **Independent review channel unavailable**—not **Second-opinion skill unavailable**—and use its labeled self-review fallback.
-- **Independent review obtained**: fold its findings into the assessment. Do not use either unavailable label.
+- **Skill present, no independent channel**: if no distinct reviewer/advisor execution returns findings after following the skill's channel-selection procedure, state **Independent review channel unavailable**—not **Second-opinion skill unavailable**—and use its labeled self-review fallback. Loading the skill alone is this branch, not an independent review.
+- **Independent review obtained**: only after a distinct reviewer/advisor execution returns findings, fold those findings into the assessment. Do not use either unavailable label or mention **Missing independent review** anywhere—not even as resolved or not applicable.
 
 For the first two branches, include a **Missing independent review** item under **What needs attention NOW**, put the branch's availability label in that item, and preserve the self-review label. Never present self-review as independent.
+
+Before presenting, enforce the selected branch in the final output:
+- First or second branch: the NOW section must contain the missing-review item.
+- Third branch: the NOW section must contain only artifact findings. Scan the draft and delete any missing-review item, including one marked resolved or not applicable.
 
 Then assess across these dimensions:
 

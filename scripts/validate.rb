@@ -92,18 +92,26 @@ preflight_fallback_contract = [
   "not **Independent review channel unavailable**",
   "perform a structured self-critique directly, labeled as self-review",
   "**Skill present, no independent channel**",
+  "no distinct reviewer/advisor execution returns findings",
   "after following the skill's channel-selection procedure",
   "Independent review channel unavailable",
   "not **Second-opinion skill unavailable**",
   "use its labeled self-review fallback",
+  "Loading the skill alone is this branch",
   "**Independent review obtained**",
-  "fold its findings into the assessment",
-  "Do not use either unavailable label",
+  "only after a distinct reviewer/advisor execution returns findings",
+  "fold those findings into the assessment",
+  "Do not use either unavailable label or mention **Missing independent review** anywhere",
+  "not even as resolved or not applicable",
   "For the first two branches",
   "Missing independent review",
   "under **What needs attention NOW**",
   "put the branch's availability label in that item",
-  "Never present self-review as independent"
+  "Never present self-review as independent",
+  "Before presenting, enforce the selected branch in the final output",
+  "First or second branch: the NOW section must contain the missing-review item",
+  "Third branch: the NOW section must contain only artifact findings",
+  "delete any missing-review item, including one marked resolved or not applicable"
 ]
 preflight_fallback_contract.each do |requirement|
   unless preflight_skill.include?(requirement)
