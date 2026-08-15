@@ -21,7 +21,7 @@ Audit baseline: merged main `76f244279605c73d2b3d2d782ffe71bf042ca69d`. This is 
 
 ## Behavioral compatibility
 
-- [ ] A support matrix names exact Pi CLI, OS/architecture, Node/npm, provider/model, and relevant runtime versions. Evidence records those exact versions; matrix changes rerun affected package and behavior gates.
+- [ ] A support matrix names exact Pi CLI, OS/architecture, Node/npm, provider/model, and relevant runtime versions. Every applicable execution/fallback branch passes on every supported matrix row; matrix changes rerun the affected cross-product. Evidence records exact versions.
 - [ ] Classification enumerates every Pi-relevant execution and fallback branch. Every approved branch passes an exact-candidate Pi black-box test against an inert fixture; loading, manifests, static checks, or another branch's pass cannot substitute.
 - [ ] Semantic safety and artifact correctness are judged separately. Formatting and citation style are non-gating unless the skill itself requires them.
 - [ ] Every shared skill/helper changed by Pi support passes its relevant Claude Code and Codex black-box branches. Static validation or loading alone is insufficient.
@@ -30,8 +30,8 @@ Audit baseline: merged main `76f244279605c73d2b3d2d782ffe71bf042ca69d`. This is 
 ## Evidence and compatibility
 
 - [ ] Generic repository validation, Codex generation, and strict validation of every Claude plugin pass; marketplace inventories remain unchanged except for deliberate version metadata.
-- [ ] Sanitized release evidence records the candidate SHA, support matrix, lifecycle results, branch coverage, behavior verdicts, coexistence/removal results, and exclusions. Its policy-backed storage location and retention period are documented, and availability is checked before release; expiring CI artifacts alone are not durable proof. It contains no credentials, auth symlinks, hidden reasoning, or live app state.
+- [ ] Sanitized release evidence records the candidate SHA, support matrix, lifecycle results, branch coverage, behavior verdicts, coexistence/removal results, and exclusions. Its policy-backed storage location retains it through the supported release lifetime plus the project's deprecation window, and availability is checked before release; expiring CI artifacts alone are not durable proof. It contains no credentials, auth symlinks, hidden reasoning, or live app state.
 - [ ] README and Pi compatibility documentation explain install, update, rollback, removal, filtering, exclusions, and the difference between startup notification and installed-content updates.
 - [ ] Manual or stochastic samples are labeled as such. Green CI, package loading, generated manifests, and validators are never presented as behavioral proof.
 
-Pi support is not done until every checked item above refers to the same candidate SHA and an independent reviewer approves the evidence.
+Pi support is not done until every checked item above refers to the same candidate SHA and an identified maintainer or release reviewer approves the evidence.
