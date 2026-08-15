@@ -1,97 +1,37 @@
-# Native Pi support — implementation spec
+# Native Pi support — Definition of Done
 
-## Goal & why
+Pi support is done when this repository can expose an approved subset of its shared skills as a native Pi package without regressing Claude Code or Codex.
 
-Make this repository installable as a native Pi package without weakening its Claude Code or Codex behavior. Pi support means a reviewed subset of shared skills can be installed, updated, rolled back, inventoried, and exercised from the repository's HTTPS GitHub source. It does **not** mean that Pi implements either host's plugin protocol or reviewer/workflow/browser capabilities.
+Audit baseline: merged main `76f244279605c73d2b3d2d782ffe71bf042ca69d`. This is provenance only. All acceptance evidence must bind to the exact implementation candidate SHA; any candidate change invalidates affected evidence.
 
-Audit baseline: merged main `76f244279605c73d2b3d2d782ffe71bf042ca69d` (tree `428048781b6128b6131e87a43707f41b3955e186`). This is provenance only. Adding Pi metadata creates a new candidate commit; every acceptance result below must name and test that exact candidate SHA. Any candidate change invalidates prior results.
+## Approved scope
 
-## Definition of Done
+- [ ] Every skill and its referenced scripts, agents, references, and assets are hashed, reviewed, classified, and approved at the candidate SHA.
+- [ ] The package exposes only an explicit approved-path allowlist. No globs, accidental discovery, missing paths, or duplicate skill names remain.
+- [ ] The provisional list is reclassified before exposure: `align`, `clarify`, `design-options`, `explore`, `handoff`, `pre-mortem`, `preflight`, `reflect`, `second-opinion`, `silent-failures`, `spec`, `steel-man-own-position`, `understudy`, `verify-claims`, and `verify-result`. The entire list is unapproved; package exposure waits for exact-candidate classification and all applicable runtime gates.
+- [ ] `quality-review` and `drive-browser` remain excluded unless their workflow and browser/runtime dependencies pass Pi-specific black-box gates. `worktrunk-hook` remains outside the Pi skill package.
 
-### 1. Exact-source classification
+## Package lifecycle
 
-- [ ] All 17 `SKILL.md` files at the candidate SHA are re-read and classified together with every script, reference, asset, agent, or other file they transitively reference. The classification records every reviewed file hash, decision, reason, runtime assumptions, candidate commit, and tree. Helpers are runtime surface even when a skill is excluded (for example, `quality-review`'s workflow). A reviewer explicitly approves the complete resource closure before package exposure.
-- [ ] The `pi.skills` list contains only approved, explicit file paths: no directory discovery or globs. Its resolved inventory equals the approved list byte-for-byte and contains no duplicate skill names.
-- [ ] The following baseline list is **provisional, not approved**: `align`, `clarify`, `design-options`, `explore`, `handoff`, `pre-mortem`, `reflect`, `second-opinion`, `silent-failures`, `spec`, `steel-man-own-position`, `understudy`, `verify-claims`, and `verify-result`.
-- [ ] `preflight`, `quality-review`, and `drive-browser` are absent unless their gates below pass on the same candidate. `worktrunk-hook` remains absent because it has no Pi skill/resource.
+- [ ] Root Pi metadata is dependency-free and script-free, exposes no extensions/prompts/themes, and has a committed deterministic lockfile.
+- [ ] The exact candidate installs from its HTTPS GitHub source in an isolated Pi environment. Its checkout stays clean after Pi's install step.
+- [ ] Extension-disabled inventories show exactly the approved skills and no executable package resources. Resource loading is treated as trusted-code execution; SDK registry inspection is labeled equivalent-configuration instrumentation, not CLI-process proof.
+- [ ] Targeted update, pin/rollback, return to the moving source, coexistence with relevant global/project/ancestor configuration, and removal all work without changing unrelated packages or configuration.
+- [ ] After removal and restart, package resources disappear. Checkout/cache retention behavior is documented and matches observation.
 
-### 2. Package mechanics
+## Behavioral compatibility
 
-- [ ] A support matrix is approved before testing. It names exact Pi CLI version(s), OS/architecture, Node and npm versions, provider/model identifiers for semantic runs, and any reviewer/browser runtime. Evidence records the observed version of every component, not aliases such as `latest`.
-- [ ] Package mechanics and applicable behavior branches pass every supported matrix row. Changing a Pi CLI, model, provider, or runtime row invalidates the affected compatibility evidence and reruns its package, behavior, and coexistence gates.
-- [ ] Root `package.json` is private and contains Pi metadata, but no `scripts` and no dependency field of any kind (`dependencies`, `devDependencies`, `peerDependencies`, `optionalDependencies`, or bundled dependencies). It exposes no extensions, prompts, or themes.
-- [ ] A lockfile generated from that metadata is committed. With the supported npm versions documented by the implementation, two clean `npm install --ignore-scripts` runs leave both `package.json` and `package-lock.json` byte-identical. The lockfile guard runs in CI.
-- [ ] Installing the exact candidate through an HTTPS GitHub source succeeds in isolated `HOME`, `PI_CODING_AGENT_DIR`, cwd, settings, and package cache. The installed clone resolves to the candidate SHA, `git status --porcelain` stays empty after Pi's `npm install`, generated `node_modules/` is ignored, and install/update creates no persistent checkout drift.
-- [ ] Static inventories run with extensions explicitly disabled. They report exactly the approved skill paths/names and zero package extensions, prompts, and themes. Because resource loading executes trusted code, no configured or project extension may load during inventory.
-- [ ] Any Pi SDK registry inspection is labeled **equivalent-configuration instrumentation**, not proof of what the CLI process loaded. CLI claims require CLI trace or output.
-- [ ] A controlled moving HTTPS ref advances from candidate A to candidate B through a targeted package update without changing unrelated packages. Reinstalling/pinning A rolls back its checkout and inventory; restoring the moving source returns to B. Every step records source, ref, resolved SHA, settings, and inventory.
-- [ ] Coexistence passes against isolated copies of relevant global, project, cwd, and ancestor skill configuration. Pi emits no unresolved duplicate-name warning, the selected resource for every collision matches documented precedence, and Claude/Codex marketplaces remain unchanged.
-- [ ] `ruby scripts/validate_pi_package.rb` fails on an unapproved path, glob, missing file, duplicate name, extension exposure, lifecycle script, dependency field, stale lockfile, or generated install drift.
+- [ ] A support matrix names exact Pi CLI, OS/architecture, Node/npm, provider/model, and relevant runtime versions. Evidence records those exact versions; matrix changes rerun affected package and behavior gates.
+- [ ] Classification enumerates every Pi-relevant execution and fallback branch. Every approved branch passes an exact-candidate Pi black-box test against an inert fixture; loading, manifests, static checks, or another branch's pass cannot substitute.
+- [ ] Semantic safety and artifact correctness are judged separately. Formatting and citation style are non-gating unless the skill itself requires them.
+- [ ] Every shared skill/helper changed by Pi support passes its relevant Claude Code and Codex black-box branches. Static validation or loading alone is insufficient.
+- [ ] Reviewer independence is never inferred from a manifest or child spawn. Any claimed independent review proves distinct context, peer strength, sufficient neutral context, direct artifact access, returned findings, and substantive integration. High-stakes reviewer count follows an explicit `second-opinion` policy.
 
-### 3. Skill behavior
+## Evidence and compatibility
 
-- [ ] `bash scripts/test_pi_skills.sh <candidate-sha>` runs real Pi CLI sessions against inert fixtures with isolated resources, extensions disabled, least-privilege tools, and sanitized logs. Loading, manifest validation, fake-model expansion, or green static CI does not satisfy this gate.
-- [ ] Classification enumerates every Pi-relevant execution and fallback branch in each included skill. The black-box matrix maps one or more semantic cases to every enumerated branch; no branch may be marked compatible from loading, expansion, manifests, static analysis, or another branch's pass.
-- [ ] Every included skill has passing semantic black-box coverage for all of those branches, tied to the candidate SHA:
+- [ ] Generic repository validation, Codex generation, and strict validation of every Claude plugin pass; marketplace inventories remain unchanged except for deliberate version metadata.
+- [ ] Sanitized release evidence records the candidate SHA, support matrix, lifecycle results, branch coverage, behavior verdicts, coexistence/removal results, and exclusions. Its policy-backed storage location and retention period are documented, and availability is checked before release; expiring CI artifacts alone are not durable proof. It contains no credentials, auth symlinks, hidden reasoning, or live app state.
+- [ ] README and Pi compatibility documentation explain install, update, rollback, removal, filtering, exclusions, and the difference between startup notification and installed-content updates.
+- [ ] Manual or stochastic samples are labeled as such. Green CI, package loading, generated manifests, and validators are never presented as behavioral proof.
 
-  | Skill(s) | Required observable behavior |
-  |---|---|
-  | `align`, `clarify` | Surface understanding or unresolved decisions, then wait rather than silently choosing. |
-  | `design-options`, `pre-mortem` | Produce genuinely distinct tradeoffs or concrete failure modes without implementing them. |
-  | `explore` | Inspect real fixture files, cite grounded findings, and leave the tree unchanged. |
-  | `handoff`, `reflect` | Produce accurate durable context; write only to an explicitly allowed isolated destination. |
-  | `second-opinion` | With no reviewer channel, label the result as self-critique and make no independence claim. |
-  | `silent-failures` | Find the planted swallowed-error defect and identify its concrete user/operational impact. |
-  | `spec` | Produce checkable DoDs, boundaries, terrain, and end-to-end verification. |
-  | `steel-man-own-position` | Restate the prior position and its goal before accepting or rejecting pushback. |
-  | `understudy` | Infer fixture conventions and produce a conforming isolated change. |
-  | `verify-claims`, `verify-result` | Separate claims from evidence, run black-box checks, and leave unsupported claims unresolved. |
-
-- [ ] Assertions test semantic safety and artifact correctness separately. Citation style, heading spelling, and prose layout are non-gating diagnostics.
-- [ ] The evidence report shows branch-to-case and support-matrix coverage and fails on any missing, skipped, or only-statically-checked branch. A changed skill, helper, branch inventory, harness, Pi CLI version, model/provider/runtime row, or candidate SHA reruns the affected behavior gates. Manual stochastic samples are reported as such; they are not called durable regression proof.
-
-### 4. Excluded-skill and reviewer gates
-
-- [ ] `preflight` can enter the allowlist only after exact-candidate Pi runs with `second-opinion` absent and present/no reviewer both complete, inspect the artifact, identify a planted defect, and make no unsupported reviewer claim. Any independent-review claim additionally requires the reviewer proof below.
-- [ ] `quality-review` can enter only after every advertised Pi level has a defined implementation and inert black-box coverage. High/xhigh/max require a proven Pi-native replacement for the unavailable `Workflow` lifecycle, including child file access and returned results.
-- [ ] `drive-browser` can enter only after its Node/Playwright runtime and dependency source are declared and an isolated, non-authenticated browser fixture proves launch/attach behavior safely. The dependency-free root package may not silently supply Playwright.
-- [ ] Pi reviewer independence is **unverified by default**. A future reviewer extension must prove, from host traces: distinct context/session, peer-or-stronger model, sufficient neutral task context, direct access to each required artifact, report return before parent finalization, substantive integration, and no false independence label. `second-opinion` must first define permitted prompt framing and the high-stakes reviewer count. One seeded or self-like child does not pass.
-
-### 5. Documentation and release evidence
-
-- [ ] README and a Pi compatibility document give exact HTTPS install, targeted update, pin/rollback, remove, filtering, and enable/disable instructions. They distinguish catalog/startup notification from installed-content updates.
-- [ ] A sanitized durable artifact attached to the candidate's GitHub run records commands, exact Pi/Node/npm/OS/provider/model/runtime versions, resolved SHAs, inventories, behavior verdicts, coexistence results, and exclusions. It contains no credentials, auth symlinks, raw hidden reasoning, or live app state.
-- [ ] Codex generation/validation passes, every `plugins/*` directory passes Claude's strict plugin validator, and both marketplace inventories are unchanged. In addition, every shared skill/helper modified between baseline and candidate passes its relevant execution and fallback branches in Claude and Codex black-box tests. Loading or static validation cannot substitute for changed-resource behavior coverage, and validating one plugin cannot support a repository-wide compatibility claim.
-
-## Boundaries
-
-- Do not add Agent Plugins emulation, `pi-agent-plugins`, Pi-specific invocation prose to shared skills, package extensions, runtime dependencies, or lifecycle scripts.
-- Do not expose all repository plugins merely because they load. Metadata, manifests, validators, generated files, and CI are not behavioral compatibility.
-- Do not modify live Pi/Claude/Codex settings while testing; use isolated copies. Do not claim automatic Pi package updates—Pi startup notification and explicit update are separate behavior.
-- Do not include `preflight`, `quality-review`, or `drive-browser` by default. Their gates are independent of core package completion.
-
-## Terrain (advisory)
-
-- `package.json`, `package-lock.json`, `.gitignore`: native Pi package metadata and deterministic install state.
-- `scripts/validate.rb`, `.github/workflows/validate.yml`: existing generic validation/CI to extend without encoding skill prose.
-- `scripts/generate_codex.rb`: preserve generated Codex metadata and marketplace invariants.
-- `plugins/*/skills/*/SKILL.md`: canonical shared skill sources; do not copy them into a Pi-only tree.
-- `README.md`, `CODEX-COMPATIBILITY.md`, proposed Pi compatibility doc: host boundaries and user instructions.
-- Pi 0.84.1 package and skill rules are defined in `docs/packages.md` and `docs/skills.md`; re-check current upstream docs before implementation.
-
-## Verification
-
-Run, in order, against the final candidate SHA:
-
-```bash
-ruby scripts/generate_codex.rb --check
-ruby scripts/validate.rb
-ruby scripts/validate_pi_package.rb
-for plugin in plugins/*; do claude plugin validate "$plugin" --strict; done
-npm install --ignore-scripts
-git diff --exit-code -- package.json package-lock.json
-bash scripts/test_pi_package.sh <candidate-sha>
-bash scripts/test_pi_skills.sh <candidate-sha>
-```
-
-Then inspect the attached evidence, confirm every DoD references the same candidate SHA, and run a fresh-context review. Any source change sends package mechanics, affected behavior, coexistence, and evidence generation back through verification.
+Pi support is not done until every checked item above refers to the same candidate SHA and an independent reviewer approves the evidence.
