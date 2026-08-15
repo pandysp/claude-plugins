@@ -29,7 +29,8 @@ Audit baseline: merged main `76f244279605c73d2b3d2d782ffe71bf042ca69d` (tree `42
 ### 3. Skill behavior
 
 - [ ] `bash scripts/test_pi_skills.sh <candidate-sha>` runs real Pi CLI sessions against inert fixtures with isolated resources, extensions disabled, least-privilege tools, and sanitized logs. Loading, manifest validation, fake-model expansion, or green static CI does not satisfy this gate.
-- [ ] Every included skill has a passing semantic black-box case tied to the candidate SHA:
+- [ ] Classification enumerates every Pi-relevant execution and fallback branch in each included skill. The black-box matrix maps one or more semantic cases to every enumerated branch; no branch may be marked compatible from loading, expansion, manifests, static analysis, or another branch's pass.
+- [ ] Every included skill has passing semantic black-box coverage for all of those branches, tied to the candidate SHA:
 
   | Skill(s) | Required observable behavior |
   |---|---|
@@ -45,7 +46,7 @@ Audit baseline: merged main `76f244279605c73d2b3d2d782ffe71bf042ca69d` (tree `42
   | `verify-claims`, `verify-result` | Separate claims from evidence, run black-box checks, and leave unsupported claims unresolved. |
 
 - [ ] Assertions test semantic safety and artifact correctness separately. Citation style, heading spelling, and prose layout are non-gating diagnostics.
-- [ ] A changed skill, harness, model policy, or candidate SHA reruns its behavior gate. Manual stochastic samples are reported as such; they are not called durable regression proof.
+- [ ] The evidence report shows branch-to-case coverage and fails on any missing, skipped, or only-statically-checked branch. A changed skill, helper, branch inventory, harness, model policy, or candidate SHA reruns the affected behavior gates. Manual stochastic samples are reported as such; they are not called durable regression proof.
 
 ### 4. Excluded-skill and reviewer gates
 
