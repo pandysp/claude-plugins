@@ -30,7 +30,7 @@ Audit baseline: merged main `76f244279605c73d2b3d2d782ffe71bf042ca69d`. This is 
 ## Evidence and compatibility
 
 - [ ] Generic repository validation, Codex generation, and strict validation of every Claude plugin pass; marketplace inventories remain unchanged except for deliberate version metadata.
-- [ ] Sanitized release evidence records the candidate SHA, support matrix, lifecycle results, branch coverage, behavior verdicts, coexistence/removal results, and exclusions. Its policy-backed storage location retains it through the supported release lifetime plus the project's deprecation window, and availability is checked before release; expiring CI artifacts alone are not durable proof. It contains no credentials, auth symlinks, hidden reasoning, or live app state.
+- [ ] An approved support policy defines the supported-release lifetime and deprecation window. Sanitized release evidence records the candidate SHA, support matrix, lifecycle results, branch coverage, behavior verdicts, coexistence/removal results, and exclusions; its policy-backed storage retains it through both periods, and availability is checked before release. Expiring CI artifacts alone are not durable proof. It contains no credentials, auth symlinks, hidden reasoning, or live app state.
 - [ ] README and Pi compatibility documentation explain install, update, rollback, removal, filtering, exclusions, and the difference between startup notification and installed-content updates.
 - [ ] Manual or stochastic samples are labeled as such. Green CI, package loading, generated manifests, and validators are never presented as behavioral proof.
 
