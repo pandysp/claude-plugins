@@ -13,14 +13,7 @@ Not "are you happy" (binary, invites a polite yes). "HOW happy" (graduated, dema
 
 Review what actually exists. Read files, check the diff, examine the produced artifacts. Don't assess from memory.
 
-Self-assessment has a built-in blind spot. For high-stakes ships, follow `second-opinion` if available. A reviewer qualifies only if it meets `second-opinion`'s independence, context, and strength requirements.
-
-| Evidence | Assessment |
-|---|---|
-| No qualifying reviewer findings returned | Label self-review; state that no qualifying independent review was obtained. |
-| Qualifying reviewer findings returned | Integrate them as independent review. |
-
-Use exactly one row. Never claim independent review without qualifying returned findings.
+Self-assessment has a built-in blind spot: you're grading your own work. For high-stakes ships, follow `second-opinion` if available and fold any findings into the assessment.
 
 Then assess across these dimensions:
 
