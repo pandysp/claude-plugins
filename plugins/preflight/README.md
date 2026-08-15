@@ -15,7 +15,7 @@ The key insight: ask "**how** happy are you?" not "**are** you happy?" The forme
 
 Or just ask naturally: "How happy are you with the current state?"
 
-The agent reviews the actual artifacts (not memory) and presents concrete items, split into fix-now vs. file-for-later. For high-stakes work it requests an independent second opinion; when the skill or an independent review channel is unavailable, it labels the fallback as self-review and flags the missing independent review as a fix-now concern.
+The agent reviews the actual artifacts (not memory) and presents concrete items, split into fix-now vs. file-for-later. For high-stakes work it follows `second-opinion`; without qualifying reviewer findings, it labels the assessment as self-review and states that no qualifying independent review was obtained.
 
 ## Installation
 
