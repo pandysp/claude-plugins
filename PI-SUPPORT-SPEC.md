@@ -17,6 +17,8 @@ Audit baseline: merged main `76f244279605c73d2b3d2d782ffe71bf042ca69d` (tree `42
 
 ### 2. Package mechanics
 
+- [ ] A support matrix is approved before testing. It names exact Pi CLI version(s), OS/architecture, Node and npm versions, provider/model identifiers for semantic runs, and any reviewer/browser runtime. Evidence records the observed version of every component, not aliases such as `latest`.
+- [ ] Package mechanics and applicable behavior branches pass every supported matrix row. Changing a Pi CLI, model, provider, or runtime row invalidates the affected compatibility evidence and reruns its package, behavior, and coexistence gates.
 - [ ] Root `package.json` is private and contains Pi metadata, but no `scripts` and no dependency field of any kind (`dependencies`, `devDependencies`, `peerDependencies`, `optionalDependencies`, or bundled dependencies). It exposes no extensions, prompts, or themes.
 - [ ] A lockfile generated from that metadata is committed. With the supported npm versions documented by the implementation, two clean `npm install --ignore-scripts` runs leave both `package.json` and `package-lock.json` byte-identical. The lockfile guard runs in CI.
 - [ ] Installing the exact candidate through an HTTPS GitHub source succeeds in isolated `HOME`, `PI_CODING_AGENT_DIR`, cwd, settings, and package cache. The installed clone resolves to the candidate SHA, `git status --porcelain` stays empty after Pi's `npm install`, generated `node_modules/` is ignored, and install/update creates no persistent checkout drift.
@@ -46,7 +48,7 @@ Audit baseline: merged main `76f244279605c73d2b3d2d782ffe71bf042ca69d` (tree `42
   | `verify-claims`, `verify-result` | Separate claims from evidence, run black-box checks, and leave unsupported claims unresolved. |
 
 - [ ] Assertions test semantic safety and artifact correctness separately. Citation style, heading spelling, and prose layout are non-gating diagnostics.
-- [ ] The evidence report shows branch-to-case coverage and fails on any missing, skipped, or only-statically-checked branch. A changed skill, helper, branch inventory, harness, model policy, or candidate SHA reruns the affected behavior gates. Manual stochastic samples are reported as such; they are not called durable regression proof.
+- [ ] The evidence report shows branch-to-case and support-matrix coverage and fails on any missing, skipped, or only-statically-checked branch. A changed skill, helper, branch inventory, harness, Pi CLI version, model/provider/runtime row, or candidate SHA reruns the affected behavior gates. Manual stochastic samples are reported as such; they are not called durable regression proof.
 
 ### 4. Excluded-skill and reviewer gates
 
@@ -58,8 +60,8 @@ Audit baseline: merged main `76f244279605c73d2b3d2d782ffe71bf042ca69d` (tree `42
 ### 5. Documentation and release evidence
 
 - [ ] README and a Pi compatibility document give exact HTTPS install, targeted update, pin/rollback, remove, filtering, and enable/disable instructions. They distinguish catalog/startup notification from installed-content updates.
-- [ ] A sanitized durable artifact attached to the candidate's GitHub run records commands, tool versions, resolved SHAs, inventories, behavior verdicts, coexistence results, and exclusions. It contains no credentials, auth symlinks, raw hidden reasoning, or live app state.
-- [ ] Codex generation/validation passes, every `plugins/*` directory passes Claude's strict plugin validator, both marketplace inventories are unchanged, and representative shared skills still load on both hosts. Validating one plugin does not support a repository-wide compatibility claim.
+- [ ] A sanitized durable artifact attached to the candidate's GitHub run records commands, exact Pi/Node/npm/OS/provider/model/runtime versions, resolved SHAs, inventories, behavior verdicts, coexistence results, and exclusions. It contains no credentials, auth symlinks, raw hidden reasoning, or live app state.
+- [ ] Codex generation/validation passes, every `plugins/*` directory passes Claude's strict plugin validator, and both marketplace inventories are unchanged. In addition, every shared skill/helper modified between baseline and candidate passes its relevant execution and fallback branches in Claude and Codex black-box tests. Loading or static validation cannot substitute for changed-resource behavior coverage, and validating one plugin cannot support a repository-wide compatibility claim.
 
 ## Boundaries
 
