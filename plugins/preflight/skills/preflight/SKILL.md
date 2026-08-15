@@ -13,7 +13,7 @@ Not "are you happy" (binary, invites a polite yes). "HOW happy" (graduated, dema
 
 Review what actually exists. Read files, check the diff, examine the produced artifacts. Don't assess from memory.
 
-Self-assessment has a built-in blind spot: you're grading your own work. For high-stakes ships, don't rely on introspection alone. Invoke the second-opinion skill and fold its independent findings into the assessment below.
+Self-assessment has a built-in blind spot: you're grading your own work. For high-stakes ships, follow `second-opinion` if available and fold any findings into the assessment.
 
 Then assess across these dimensions:
 
