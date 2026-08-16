@@ -4,6 +4,7 @@
 require "fileutils"
 require "json"
 require "pathname"
+require "yaml"
 
 # Generates the Codex and Pi host packages from the Claude metadata, which stays
 # canonical. Run after changing plugins, then run scripts/validate.rb.
@@ -11,48 +12,24 @@ require "pathname"
 #   ruby scripts/generate.rb           # write
 #   ruby scripts/generate.rb --check   # fail if anything on disk is stale
 #
-# HOST_SUPPORT below is the only place host support is decided. Every plugin
-# directory must appear in it: `true` ships the plugin to that host, a string
-# withholds it and states why. validate.rb fails on a plugin that is missing
-# here, so a new plugin cannot reach Codex or Pi by accident, and cannot be
-# withheld without a reason.
+# Host support is declared in host-support.yaml, not here, so that a reader can
+# check which plugins reach which host without reading Ruby. This file only
+# consumes it.
 module HostPackages
   ROOT = Pathname.new(__dir__).parent
   CLAUDE_MARKETPLACE = ROOT.join(".claude-plugin/marketplace.json")
   CODEX_MARKETPLACE = ROOT.join(".agents/plugins/marketplace.json")
   PI_PACKAGE = ROOT.join("package.json")
   PI_LOCKFILE = ROOT.join("package-lock.json")
+  HOST_SUPPORT_FILE = ROOT.join("host-support.yaml")
 
-  HOST_SUPPORT = {
-    "align" => { codex: true, pi: true },
-    "clarify" => { codex: true, pi: true },
-    "design-options" => { codex: true, pi: true },
-    "drive-browser" => {
-      codex: true,
-      pi: "the vision loop needs a browser runtime and screenshots returned to the model; unverified on Pi"
-    },
-    "explore" => { codex: true, pi: true },
-    "handoff" => { codex: true, pi: true },
-    "pre-mortem" => { codex: true, pi: true },
-    "preflight" => { codex: true, pi: true },
-    "quality-review" => {
-      codex: "high, xhigh, and max reviews need Claude's Workflow tool",
-      pi: "high, xhigh, and max reviews need Claude's Workflow tool"
-    },
-    "reflect" => { codex: true, pi: true },
-    "second-opinion" => { codex: true, pi: true },
-    "silent-failures" => { codex: true, pi: true },
-    "spec" => { codex: true, pi: true },
-    "steel-man-own-position" => { codex: true, pi: true },
-    "transcribe" => { codex: true, pi: true },
-    "understudy" => { codex: true, pi: true },
-    "verify-claims" => { codex: true, pi: true },
-    "verify-result" => { codex: true, pi: true },
-    "worktrunk-hook" => {
-      codex: "the plugin is hooks only and needs Claude Code's WorktreeCreate and WorktreeRemove events",
-      pi: "the plugin is hooks only and needs Claude Code's WorktreeCreate and WorktreeRemove events"
-    }
-  }.freeze
+  # Host keys become symbols so callers read hosts[:codex]; a malformed file is a
+  # hard error rather than a plugin silently treated as unsupported.
+  HOST_SUPPORT = YAML.safe_load(HOST_SUPPORT_FILE.read).to_h do |plugin, hosts|
+    raise "host-support.yaml: #{plugin} must map codex and pi" unless hosts.is_a?(Hash)
+
+    [plugin, hosts.transform_keys(&:to_sym)]
+  end.freeze
 
   CATEGORY_NAMES = { "workflow" => "Productivity", "tooling" => "Developer Tools" }.freeze
 

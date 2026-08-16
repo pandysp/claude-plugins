@@ -58,40 +58,34 @@ new session to load changed skills.
 
 ## Plugin catalog
 
-| Plugin | Category | Codex | Pi | Description |
-|--------|----------|-------|----|-------------|
-| [align](./plugins/align) | Workflow | yes | yes | Surface what the agent thinks the task is before producing any artifact |
-| [explore](./plugins/explore) | Workflow | yes | yes | Map the terrain before designing — locate, trace, pattern, constrain |
-| [clarify](./plugins/clarify) | Workflow | yes | yes | Resolve underspecified decisions with targeted questions before designing |
-| [design-options](./plugins/design-options) | Workflow | yes | yes | Generate multiple strong design options with tradeoff profiles, anchored against at least two ideal targets |
-| [pre-mortem](./plugins/pre-mortem) | Workflow | yes | yes | Identify how a plan or design could fail before committing |
-| [second-opinion](./plugins/second-opinion) | Workflow | yes | yes | Get an independent review through the strongest channel the host provides |
-| [steel-man-own-position](./plugins/steel-man-own-position) | Workflow | yes | yes | Restate the strongest version of a prior position before flipping under pushback |
-| [spec](./plugins/spec) | Workflow | yes | yes | Write the implementation spec that drives execution after design is chosen |
-| [verify-claims](./plugins/verify-claims) | Workflow | yes | yes | Identify and verify unverified claims before presenting them as conclusions |
-| [verify-result](./plugins/verify-result) | Workflow | yes | yes | Black-box verification of any agent output — code, documents, presentations, configs |
-| [silent-failures](./plugins/silent-failures) | Workflow | yes | yes | Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks |
-| [quality-review](./plugins/quality-review) | Workflow | no | no | Audit docs, code, or any artifact through 13 quality lenses with a workflow-backed finder/verifier pipeline |
-| [preflight](./plugins/preflight) | Workflow | yes | yes | Honest self-assessment of completeness, correctness, quality, and loose ends before shipping |
-| [handoff](./plugins/handoff) | Workflow | yes | yes | Write a durable handoff — PR descriptions, summaries, memos, or memory notes |
-| [reflect](./plugins/reflect) | Workflow | yes | yes | Capture durable lessons from a session before they fade |
-| [understudy](./plugins/understudy) | Workflow | yes | yes | Write code, comments, tests, and commits that read as if the project's own maintainer wrote them |
-| [worktrunk-hook](./plugins/worktrunk-hook) | Tooling | no | no | Route Claude Code's auto-created git worktrees through worktrunk so sessions inherit project hooks |
-| [drive-browser](./plugins/drive-browser) | Tooling | yes | no | Drive a browser with Playwright. Resilient locators for your own app, a vision loop for opaque sites |
-| [transcribe](./plugins/transcribe) | Tooling | yes | yes | Turn recordings into speaker-labelled markdown notes with AssemblyAI, with the language detected rather than assumed |
+| Plugin | Category | Description |
+|--------|----------|-------------|
+| [align](./plugins/align) | Workflow | Surface what the agent thinks the task is before producing any artifact |
+| [explore](./plugins/explore) | Workflow | Map the terrain before designing — locate, trace, pattern, constrain |
+| [clarify](./plugins/clarify) | Workflow | Resolve underspecified decisions with targeted questions before designing |
+| [design-options](./plugins/design-options) | Workflow | Generate multiple strong design options with tradeoff profiles, anchored against at least two ideal targets |
+| [pre-mortem](./plugins/pre-mortem) | Workflow | Identify how a plan or design could fail before committing |
+| [second-opinion](./plugins/second-opinion) | Workflow | Get an independent review through the strongest channel the host provides |
+| [steel-man-own-position](./plugins/steel-man-own-position) | Workflow | Restate the strongest version of a prior position before flipping under pushback |
+| [spec](./plugins/spec) | Workflow | Write the implementation spec that drives execution after design is chosen |
+| [verify-claims](./plugins/verify-claims) | Workflow | Identify and verify unverified claims before presenting them as conclusions |
+| [verify-result](./plugins/verify-result) | Workflow | Black-box verification of any agent output — code, documents, presentations, configs |
+| [silent-failures](./plugins/silent-failures) | Workflow | Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks |
+| [quality-review](./plugins/quality-review) | Workflow | Audit docs, code, or any artifact through 13 quality lenses with a workflow-backed finder/verifier pipeline |
+| [preflight](./plugins/preflight) | Workflow | Honest self-assessment of completeness, correctness, quality, and loose ends before shipping |
+| [handoff](./plugins/handoff) | Workflow | Write a durable handoff — PR descriptions, summaries, memos, or memory notes |
+| [reflect](./plugins/reflect) | Workflow | Capture durable lessons from a session before they fade |
+| [understudy](./plugins/understudy) | Workflow | Write code, comments, tests, and commits that read as if the project's own maintainer wrote them |
+| [worktrunk-hook](./plugins/worktrunk-hook) | Tooling | Route Claude Code's auto-created git worktrees through worktrunk so sessions inherit project hooks |
+| [drive-browser](./plugins/drive-browser) | Tooling | Drive a browser with Playwright. Resilient locators for your own app, a vision loop for opaque sites |
+| [transcribe](./plugins/transcribe) | Tooling | Turn recordings into speaker-labelled markdown notes with AssemblyAI, with the language detected rather than assumed |
 
-## Withheld
+## Host support
 
-Five plugin/host combinations are deliberately not shipped. `scripts/generate.rb`
-holds the declaration; a plugin that states neither support nor a reason fails CI.
-
-- `quality-review` (Codex, Pi): high, xhigh, and max reviews invoke Claude's
-  `Workflow` tool. A main-model fallback would not preserve the finder/verifier
-  contract.
-- `worktrunk-hook` (Codex, Pi): hooks only, and it needs Claude Code's
-  `WorktreeCreate` and `WorktreeRemove` events.
-- `drive-browser` (Pi): Playwright runs over `bash`, but the vision loop also
-  needs a browser runtime and screenshots returned to the model. Unverified on Pi.
+Not every plugin reaches every host. [`host-support.yaml`](./host-support.yaml)
+lists all of them with the reason for each one that is held back, and is the only
+place that is decided — the Codex marketplace and the Pi package are generated
+from it, and a plugin missing from it fails CI.
 
 Four skills pick host mechanics by capability and work on all three hosts:
 `explore` falls back from exploration workers to search and file reads,
@@ -107,10 +101,11 @@ ruby scripts/validate.rb    # check everything, including generated-file drift
 ```
 
 [`scripts/generate.rb`](./scripts/generate.rb) derives the Codex manifests and
-marketplace and the Pi package from the Claude metadata. Its `HOST_SUPPORT`
-table is the only place host support is declared: a plugin missing from it fails
-validation, so nothing reaches Codex or Pi by accident. CI runs both scripts and
-checks that `npm install` leaves a Pi checkout clean.
+marketplace and the Pi package from the Claude metadata and
+[`host-support.yaml`](./host-support.yaml). Nothing it writes is edited by hand,
+and a plugin missing from the declaration fails validation, so nothing reaches
+Codex or Pi by accident. CI runs both scripts and checks that `npm install`
+leaves a Pi checkout clean.
 
 ## License
 
