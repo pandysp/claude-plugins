@@ -2,30 +2,5 @@
   "name": "handoff",
   "version": "1.0.3",
   "description": "Write a durable handoff for work that's about to ship: structured PR descriptions, summaries, memos, or memory notes. Tells the next reader what was built, why, what changed, and what's next, without forcing them to dig through the diff.",
-  "author": {
-    "name": "Andreas Spannagel"
-  },
-  "homepage": "https://github.com/pandysp/claude-plugins",
-  "repository": "https://github.com/pandysp/claude-plugins",
-  "license": "MIT",
-  "keywords": [
-    "handoff",
-    "pr-description",
-    "summary",
-    "documentation",
-    "wrap-up",
-    "ship"
-  ],
-  "interface": {
-    "displayName": "Handoff",
-    "shortDescription": "Write a durable handoff for work that's about to ship: structured PR descriptions, summaries, memos, or memory notes.",
-    "longDescription": "Write a durable handoff for work that's about to ship: structured PR descriptions, summaries, memos, or memory notes. Tells the next reader what was built, why, what changed, and what's next, without forcing them to dig through the diff.",
-    "developerName": "Andreas Spannagel",
-    "category": "Productivity",
-    "capabilities": [
-
-    ],
-    "defaultPrompt": "Apply the Handoff workflow to this task."
-  },
   "skills": "./skills/"
 }

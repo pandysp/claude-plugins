@@ -2,30 +2,5 @@
   "name": "clarify",
   "version": "1.1.2",
   "description": "Surface and resolve underspecified decisions before designing. Asks targeted questions about scope, edge behavior, trade-offs, integration, constraints, and audience (with defaults), so design choices aren't silently locked around hidden assumptions.",
-  "author": {
-    "name": "Andreas Spannagel"
-  },
-  "homepage": "https://github.com/pandysp/claude-plugins",
-  "repository": "https://github.com/pandysp/claude-plugins",
-  "license": "MIT",
-  "keywords": [
-    "clarify",
-    "questions",
-    "ambiguity",
-    "synthesis",
-    "pre-design",
-    "underspecified"
-  ],
-  "interface": {
-    "displayName": "Clarify",
-    "shortDescription": "Surface and resolve underspecified decisions before designing.",
-    "longDescription": "Surface and resolve underspecified decisions before designing. Asks targeted questions about scope, edge behavior, trade-offs, integration, constraints, and audience (with defaults), so design choices aren't silently locked around hidden assumptions.",
-    "developerName": "Andreas Spannagel",
-    "category": "Productivity",
-    "capabilities": [
-
-    ],
-    "defaultPrompt": "Apply the Clarify workflow to this task."
-  },
   "skills": "./skills/"
 }

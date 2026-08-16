@@ -2,29 +2,5 @@
   "name": "design-options",
   "version": "1.6.2",
   "description": "Generate multiple strong design options with explicit tradeoff profiles, anchored against at least two ideal target architectures.",
-  "author": {
-    "name": "Andreas Spannagel"
-  },
-  "homepage": "https://github.com/pandysp/claude-plugins",
-  "repository": "https://github.com/pandysp/claude-plugins",
-  "license": "MIT",
-  "keywords": [
-    "design",
-    "architecture",
-    "options",
-    "tradeoffs",
-    "targets"
-  ],
-  "interface": {
-    "displayName": "Design Options",
-    "shortDescription": "Generate multiple strong design options with explicit tradeoff profiles, anchored against at least two ideal target a...",
-    "longDescription": "Generate multiple strong design options with explicit tradeoff profiles, anchored against at least two ideal target architectures.",
-    "developerName": "Andreas Spannagel",
-    "category": "Productivity",
-    "capabilities": [
-
-    ],
-    "defaultPrompt": "Apply the Design Options workflow to this task."
-  },
   "skills": "./skills/"
 }

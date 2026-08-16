@@ -2,29 +2,5 @@
   "name": "second-opinion",
   "version": "2.2.0",
   "description": "Get an independent review through the strongest available channel before presenting non-trivial reasoning to the user.",
-  "author": {
-    "name": "Andreas Spannagel"
-  },
-  "homepage": "https://github.com/pandysp/claude-plugins",
-  "repository": "https://github.com/pandysp/claude-plugins",
-  "license": "MIT",
-  "keywords": [
-    "review",
-    "second-opinion",
-    "peer-review",
-    "validation",
-    "critique"
-  ],
-  "interface": {
-    "displayName": "Second Opinion",
-    "shortDescription": "Get an independent review through the strongest available channel before presenting non-trivial reasoning to the user.",
-    "longDescription": "Get an independent review through the strongest available channel before presenting non-trivial reasoning to the user.",
-    "developerName": "Andreas Spannagel",
-    "category": "Productivity",
-    "capabilities": [
-
-    ],
-    "defaultPrompt": "Apply the Second Opinion workflow to this task."
-  },
   "skills": "./skills/"
 }

@@ -2,30 +2,5 @@
   "name": "quality-review",
   "version": "0.1.1",
   "description": "Multi-lens quality audit for docs, code, and other artifacts. 13 quality adjectives as audit lenses with per-domain translation sheets, a workflow-backed finder/verifier pipeline, and lens-yield reporting.",
-  "author": {
-    "name": "Andreas Spannagel"
-  },
-  "homepage": "https://github.com/pandysp/claude-plugins",
-  "repository": "https://github.com/pandysp/claude-plugins",
-  "license": "MIT",
-  "keywords": [
-    "quality",
-    "review",
-    "audit",
-    "rubric",
-    "docs",
-    "lenses"
-  ],
-  "interface": {
-    "displayName": "Quality Review",
-    "shortDescription": "Multi-lens quality audit for docs, code, and other artifacts.",
-    "longDescription": "Multi-lens quality audit for docs, code, and other artifacts. 13 quality adjectives as audit lenses with per-domain translation sheets, a workflow-backed finder/verifier pipeline, and lens-yield reporting.",
-    "developerName": "Andreas Spannagel",
-    "category": "Productivity",
-    "capabilities": [
-
-    ],
-    "defaultPrompt": "Apply the Quality Review workflow to this task."
-  },
   "skills": "./skills/"
 }
