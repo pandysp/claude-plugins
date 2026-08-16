@@ -82,7 +82,7 @@ new session to load changed skills.
 
 ## Withheld
 
-Four plugin/host combinations are deliberately not shipped. `scripts/generate.rb`
+Five plugin/host combinations are deliberately not shipped. `scripts/generate.rb`
 holds the declaration; a plugin that states neither support nor a reason fails CI.
 
 - `quality-review` (Codex, Pi): high, xhigh, and max reviews invoke Claude's

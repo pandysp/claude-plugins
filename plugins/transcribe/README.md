@@ -10,7 +10,8 @@ So the script never sends a language, pins the model with no fallback, and recor
 
 ## Usage
 
-- Claude Code and Codex: `/transcribe`
+- Claude Code: `/transcribe`
+- Codex: `$transcribe`
 - Pi: `/skill:transcribe`
 
 Or just hand over audio or video and ask for the words out of it. The request can be in any language; what was recorded almost certainly is.
