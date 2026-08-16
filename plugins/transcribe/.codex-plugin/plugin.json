@@ -1,0 +1,6 @@
+{
+  "name": "transcribe",
+  "version": "0.2.0",
+  "description": "Turn recordings into readable, speaker-labelled markdown notes with AssemblyAI. The spoken language is detected rather than assumed, and the notes are filed wherever you keep them.",
+  "skills": "./skills/"
+}

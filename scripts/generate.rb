@@ -44,6 +44,10 @@ module HostPackages
     "silent-failures" => { codex: true, pi: true },
     "spec" => { codex: true, pi: true },
     "steel-man-own-position" => { codex: true, pi: true },
+    "transcribe" => {
+      codex: "the skill runs a Python script it has to locate inside its own bundle, and only Claude Code sets CLAUDE_PLUGIN_ROOT; unverified on Codex",
+      pi: "the skill runs a Python script it has to locate inside its own bundle, and only Claude Code sets CLAUDE_PLUGIN_ROOT; unverified on Pi"
+    },
     "understudy" => { codex: true, pi: true },
     "verify-claims" => { codex: true, pi: true },
     "verify-result" => { codex: true, pi: true },

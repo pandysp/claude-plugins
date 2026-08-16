@@ -78,10 +78,11 @@ new session to load changed skills.
 | [understudy](./plugins/understudy) | Workflow | yes | yes | Write code, comments, tests, and commits that read as if the project's own maintainer wrote them |
 | [worktrunk-hook](./plugins/worktrunk-hook) | Tooling | no | no | Route Claude Code's auto-created git worktrees through worktrunk so sessions inherit project hooks |
 | [drive-browser](./plugins/drive-browser) | Tooling | yes | no | Drive a browser with Playwright. Resilient locators for your own app, a vision loop for opaque sites |
+| [transcribe](./plugins/transcribe) | Tooling | no | no | Turn recordings into speaker-labelled markdown notes with AssemblyAI, with the language detected rather than assumed |
 
 ## Withheld
 
-Four plugin/host combinations are deliberately not shipped. `scripts/generate.rb`
+Six plugin/host combinations are deliberately not shipped. `scripts/generate.rb`
 holds the declaration; a plugin that states neither support nor a reason fails CI.
 
 - `quality-review` (Codex, Pi): high, xhigh, and max reviews invoke Claude's
@@ -91,6 +92,11 @@ holds the declaration; a plugin that states neither support nor a reason fails C
   `WorktreeCreate` and `WorktreeRemove` events.
 - `drive-browser` (Pi): Playwright runs over `bash`, but the vision loop also
   needs a browser runtime and screenshots returned to the model. Unverified on Pi.
+- `transcribe` (Codex, Pi): the only plugin here that runs a script it ships,
+  which means locating that script inside its own bundle. It does that through
+  `CLAUDE_PLUGIN_ROOT`, which only Claude Code sets, and neither host's
+  equivalent has been exercised. Nothing about the skill is Claude-specific
+  otherwise, so this is a verification gap rather than a capability one.
 
 Four skills pick host mechanics by capability and work on all three hosts:
 `explore` falls back from exploration workers to search and file reads,
