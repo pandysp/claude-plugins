@@ -71,15 +71,16 @@ ffmpeg -y -i "<recording>.mp4" -vn -acodec copy "<base>/audio/<recording>.m4a"
 ## 2. Transcribe
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/transcribe/scripts/transcribe.py" --base-dir <base>
+python3 "<skill-dir>/scripts/transcribe.py" --base-dir <base>
 ```
 
-- The full path matters: you are running from wherever the user's files are, not
-  from the skill's own directory, so a relative `scripts/...` finds nothing.
-  `${CLAUDE_PLUGIN_ROOT}` is set for you when this runs as an installed plugin.
-  If it is empty the command collapses to `/skills/...` and python reports a
-  missing file — that means you are reading this skill from a checkout rather
-  than an install, so use the `scripts/` directory beside this file instead.
+- `<skill-dir>` is the directory this file was loaded from; the script sits
+  beside it under `scripts/`. Claude Code expands `${CLAUDE_SKILL_DIR}` to that
+  path if you want it literally.
+- Spell the script's path out in full and stay in the user's working directory.
+  A bare `scripts/...` resolves against the current directory and finds nothing,
+  and `cd`-ing into the skill instead would break `--base-dir`, which is
+  resolved the same way.
 - Reads `<base>/audio/`, writes one finished note per recording to
   `<base>/transcripts/<name>.md`. `--out-dir` puts them somewhere else; the
   staging step is only there to keep step 3 a separate decision.

@@ -10,7 +10,8 @@ So the script never sends a language, pins the model with no fallback, and recor
 
 ## Usage
 
-- Claude Code: `/transcribe`
+- Claude Code and Codex: `/transcribe`
+- Pi: `/skill:transcribe`
 
 Or just hand over audio or video and ask for the words out of it. The request can be in any language; what was recorded almost certainly is.
 
@@ -34,7 +35,7 @@ Recordings carry names, employers, and offhand remarks nobody meant to publish. 
 
 ## Installation
 
-See the repository's [Claude Code and Codex marketplace instructions](../../README.md). This plugin ships to Claude Code only; see the repository README's **Withheld** section for why.
+See the repository's [Claude Code, Codex, and Pi instructions](../../README.md).
 
 ## License
 

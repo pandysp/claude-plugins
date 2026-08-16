@@ -28,7 +28,8 @@
       "plugins/reflect/skills/reflect",
       "plugins/handoff/skills/handoff",
       "plugins/spec/skills/spec",
-      "plugins/understudy/skills/understudy"
+      "plugins/understudy/skills/understudy",
+      "plugins/transcribe/skills/transcribe"
     ]
   }
 }
