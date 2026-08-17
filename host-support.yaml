@@ -8,8 +8,9 @@
 # cannot be withheld without a reason. scripts/generate.rb reads this file to write
 # the Codex marketplace and the Pi package; neither is edited by hand.
 #
-# A reason is a claim about another host, so check that host's own documentation
-# before writing one. "I have not tried it" is a reason; "it cannot work" needs proof.
+# A reason must name the capability the host lacks. It is a claim about that host, so
+# check the host's own documentation before writing one, and prefer running the thing.
+# "I have not tried it" is not a reason — try it, then say what happened.
 
 align:
   codex: true
@@ -25,9 +26,7 @@ design-options:
 
 drive-browser:
   codex: true
-  pi: >-
-    Playwright runs over bash, but the vision loop also needs a browser runtime
-    and screenshots returned to the model. Unverified on Pi.
+  pi: true
 
 explore:
   codex: true

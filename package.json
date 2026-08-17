@@ -29,6 +29,7 @@
       "plugins/handoff/skills/handoff",
       "plugins/spec/skills/spec",
       "plugins/understudy/skills/understudy",
+      "plugins/drive-browser/skills/drive-browser",
       "plugins/transcribe/skills/transcribe"
     ]
   }
