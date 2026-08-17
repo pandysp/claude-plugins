@@ -1,6 +1,6 @@
 # reflect
 
-A Claude Code and Codex plugin that captures durable lessons from a session before they fade. Insights are perishable. The session that produced them is the only context where they're sharp.
+A Claude Code, Codex, and Pi plugin that captures durable lessons from a session before they fade. Insights are perishable. The session that produced them is the only context where they're sharp.
 
 ## Why
 
@@ -10,12 +10,13 @@ Reflection is the most-skipped phase because it has no immediate payoff. By the 
 
 - Claude Code: `/reflect`
 - Codex: `$reflect`
+- Pi: `/skill:reflect`
 
 Or naturally: "what did we learn", "lessons learned", "what should we save".
 
 ## Installation
 
-See the repository's [Claude Code and Codex marketplace instructions](../../README.md).
+See the repository's [Claude Code, Codex, and Pi instructions](../../README.md).
 
 ## License
 

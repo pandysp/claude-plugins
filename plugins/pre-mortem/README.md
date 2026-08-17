@@ -1,6 +1,6 @@
 # pre-mortem
 
-A Claude Code and Codex plugin that forces systematic risk identification before committing to a plan or design.
+A Claude Code, Codex, and Pi plugin that forces systematic risk identification before committing to a plan or design.
 
 ## Why
 
@@ -10,12 +10,13 @@ Optimism bias is real. "Will this work?" biases toward yes. This skill flips the
 
 - Claude Code: `/pre-mortem`
 - Codex: `$pre-mortem`
+- Pi: `/skill:pre-mortem`
 
 Or: "What could go wrong with this approach?"
 
 ## Installation
 
-See the repository's [Claude Code and Codex marketplace instructions](../../README.md).
+See the repository's [Claude Code, Codex, and Pi instructions](../../README.md).
 
 ## License
 

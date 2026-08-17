@@ -1,6 +1,6 @@
 # transcribe
 
-A Claude Code plugin that turns recordings into readable, speaker-labelled markdown notes with AssemblyAI. The spoken language is detected rather than assumed, and the notes are filed wherever you keep them.
+A Claude Code, Codex, and Pi plugin that turns recordings into readable, speaker-labelled markdown notes with AssemblyAI. The spoken language is detected rather than assumed, and the notes are filed wherever you keep them.
 
 ## Why
 
