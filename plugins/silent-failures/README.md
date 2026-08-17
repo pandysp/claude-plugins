@@ -1,6 +1,6 @@
 # silent-failures
 
-A Claude Code and Codex plugin that audits local code changes for silent failures, inadequate error handling, and inappropriate fallback behavior.
+A Claude Code, Codex, and Pi plugin that audits local code changes for silent failures, inadequate error handling, and inappropriate fallback behavior.
 
 ## Why
 
@@ -14,12 +14,13 @@ The skill owns one canonical hunter methodology. Claude Code's named `silent-fai
 
 - Claude Code: `/silent-failures`
 - Codex: `$silent-failures`
+- Pi: `/skill:silent-failures`
 
 Or just describe what you want reviewed: "check error handling in my last commit", "audit fallbacks in the auth module".
 
 ## Installation
 
-See the repository's [Claude Code and Codex marketplace instructions](../../README.md).
+See the repository's [Claude Code, Codex, and Pi instructions](../../README.md).
 
 ## License
 

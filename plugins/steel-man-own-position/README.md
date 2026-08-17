@@ -1,6 +1,6 @@
 # steel-man-own-position
 
-A Claude Code and Codex plugin that forces the agent to steel-man its own prior position before flipping under pushback.
+A Claude Code, Codex, and Pi plugin that forces the agent to steel-man its own prior position before flipping under pushback.
 
 ## Why
 
@@ -10,6 +10,7 @@ When a previously-stated lean comes under pressure (user pushback, a reviewer, s
 
 - Claude Code: `/steel-man-own-position`
 - Codex: `$steel-man-own-position`
+- Pi: `/skill:steel-man-own-position`
 
 Or just say: "Steel-man your position." / "Hold the line." / "Are you sure?"
 
@@ -17,7 +18,7 @@ Also self-invokes when the agent notices itself about to flip a previously-state
 
 ## Installation
 
-See the repository's [Claude Code and Codex marketplace instructions](../../README.md).
+See the repository's [Claude Code, Codex, and Pi instructions](../../README.md).
 
 ## License
 

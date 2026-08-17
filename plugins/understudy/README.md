@@ -1,6 +1,6 @@
 # understudy
 
-A Claude Code and Codex plugin for writing into a codebase you don't own so the contribution reads as if the maintainer wrote it.
+A Claude Code, Codex, and Pi plugin for writing into a codebase you don't own so the contribution reads as if the maintainer wrote it.
 
 ## Why
 
@@ -12,12 +12,13 @@ Style only. The skill matches how the code reads. It doesn't silence your judgme
 
 - Claude Code: `/understudy`
 - Codex: `$understudy`
+- Pi: `/skill:understudy`
 
 Or naturally: "match the style", "make it look like theirs", "will this look out of place in their repo", or before opening a PR against someone else's project.
 
 ## Installation
 
-See the repository's [Claude Code and Codex marketplace instructions](../../README.md).
+See the repository's [Claude Code, Codex, and Pi instructions](../../README.md).
 
 ## License
 

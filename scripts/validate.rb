@@ -177,10 +177,10 @@ declared = HostPackages::HOST_SUPPORT
 dir_names = plugin_dirs.map { |dir| dir.basename.to_s }
 
 (dir_names - declared.keys).each do |name|
-  failures << "generate.rb: plugins/#{name} is missing from HOST_SUPPORT; state codex and pi support"
+  failures << "host-support.yaml: plugins/#{name} is missing; state codex and pi support"
 end
 (declared.keys - dir_names).each do |name|
-  failures << "generate.rb: HOST_SUPPORT declares '#{name}', which has no plugin directory"
+  failures << "host-support.yaml: declares '#{name}', which has no plugin directory"
 end
 
 declared.each do |name, hosts|
@@ -188,20 +188,16 @@ declared.each do |name, hosts|
     value = hosts[host]
     case value
     when true then next
-    when String then failures << "generate.rb: #{name}.#{host} reason must not be empty" if value.strip.empty?
-    when nil then failures << "generate.rb: #{name} does not state #{host} support"
-    else failures << "generate.rb: #{name}.#{host} must be true or a reason string"
+    when String then failures << "host-support.yaml: #{name}.#{host} reason must not be empty" if value.strip.empty?
+    when nil then failures << "host-support.yaml: #{name} does not state #{host} support"
+    else failures << "host-support.yaml: #{name}.#{host} must be true or a reason string"
     end
   end
 end
 
-# Every withheld plugin is named in the README's Withheld section, so the reason
-# reaches readers instead of living only in generate.rb.
-withheld_section = ROOT.join("README.md").read[/^## Withheld.*?(?=^## |\z)/m].to_s
-declared.each do |name, hosts|
-  next if hosts[:codex] == true && hosts[:pi] == true
-  failures << "README.md: withheld plugin #{name} is not explained under ## Withheld" unless withheld_section.include?("`#{name}`")
-end
+# The README points at host-support.yaml rather than restating it, so the link is
+# the only thing left to keep honest.
+failures << "README.md: does not link host-support.yaml" unless ROOT.join("README.md").read.include?("host-support.yaml")
 
 # --- root README index ----------------------------------------------------------
 

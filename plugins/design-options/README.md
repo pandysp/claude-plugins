@@ -1,6 +1,6 @@
 # design-options
 
-A Claude Code and Codex plugin that generates multiple strong design options with explicit tradeoff profiles.
+A Claude Code, Codex, and Pi plugin that generates multiple strong design options with explicit tradeoff profiles.
 
 ## Why
 
@@ -10,12 +10,13 @@ AI agents tend to present one option (their first idea) or include straw-man alt
 
 - Claude Code: `/design-options`
 - Codex: `$design-options`
+- Pi: `/skill:design-options`
 
 Or: "What are my options for this?"
 
 ## Installation
 
-See the repository's [Claude Code and Codex marketplace instructions](../../README.md).
+See the repository's [Claude Code, Codex, and Pi instructions](../../README.md).
 
 ## License
 

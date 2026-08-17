@@ -186,6 +186,16 @@
       "author": {
         "name": "Andreas Spannagel"
       }
+    },
+    {
+      "name": "transcribe",
+      "description": "Turn recordings into readable, speaker-labelled markdown notes with AssemblyAI. The spoken language is detected rather than assumed, and the notes are filed wherever you keep them.",
+      "source": "./plugins/transcribe",
+      "category": "tooling",
+      "keywords": ["transcription", "assemblyai", "speech-to-text", "audio", "notes"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
     }
   ]
 }

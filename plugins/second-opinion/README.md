@@ -1,6 +1,6 @@
 # second-opinion
 
-A Claude Code and Codex plugin that gets an independent review of the agent's thinking before presenting it to the user.
+A Claude Code, Codex, and Pi plugin that gets an independent review of the agent's thinking before presenting it to the user.
 
 ## How it works
 
@@ -10,12 +10,13 @@ The skill chooses the strongest independent channel the host provides: a full-tr
 
 - Claude Code: `/second-opinion`
 - Codex: `$second-opinion`
+- Pi: `/skill:second-opinion`
 
 Or naturally: "get a second opinion", "another perspective on this". The agent also uses the skill proactively during design and plan review phases.
 
 ## Installation
 
-See the repository's [Claude Code and Codex marketplace instructions](../../README.md).
+See the repository's [Claude Code, Codex, and Pi instructions](../../README.md).
 
 ## Philosophy
 

@@ -1,0 +1,97 @@
+# Which hosts each plugin ships to. This is the only place that is decided.
+#
+#   true      ships the plugin to that host
+#   a string  withholds it, and is the reason readers see
+#
+# Every plugin directory must appear here with both hosts stated. scripts/validate.rb
+# fails on one that does not, so a plugin cannot reach Codex or Pi by accident, and
+# cannot be withheld without a reason. scripts/generate.rb reads this file to write
+# the Codex marketplace and the Pi package; neither is edited by hand.
+#
+# A reason must name the capability the host lacks. It is a claim about that host, so
+# check the host's own documentation before writing one, and prefer running the thing.
+# "I have not tried it" is not a reason — try it, then say what happened.
+
+align:
+  codex: true
+  pi: true
+
+clarify:
+  codex: true
+  pi: true
+
+design-options:
+  codex: true
+  pi: true
+
+drive-browser:
+  codex: true
+  pi: true
+
+explore:
+  codex: true
+  pi: true
+
+handoff:
+  codex: true
+  pi: true
+
+pre-mortem:
+  codex: true
+  pi: true
+
+preflight:
+  codex: true
+  pi: true
+
+quality-review:
+  codex: >-
+    High, xhigh, and max reviews invoke Claude's Workflow tool. A main-model
+    fallback would not preserve the finder/verifier contract.
+  pi: >-
+    High, xhigh, and max reviews invoke Claude's Workflow tool. A main-model
+    fallback would not preserve the finder/verifier contract.
+
+reflect:
+  codex: true
+  pi: true
+
+second-opinion:
+  codex: true
+  pi: true
+
+silent-failures:
+  codex: true
+  pi: true
+
+spec:
+  codex: true
+  pi: true
+
+steel-man-own-position:
+  codex: true
+  pi: true
+
+transcribe:
+  codex: true
+  pi: true
+
+understudy:
+  codex: true
+  pi: true
+
+verify-claims:
+  codex: true
+  pi: true
+
+verify-result:
+  codex: true
+  pi: true
+
+worktrunk-hook:
+  codex: >-
+    The plugin is hooks only, and it needs Claude Code's WorktreeCreate and
+    WorktreeRemove events.
+  pi: >-
+    The plugin is hooks only, and it needs Claude Code's WorktreeCreate and
+    WorktreeRemove events.
