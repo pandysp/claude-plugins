@@ -74,7 +74,7 @@ new session to load changed skills.
 | [quality-review](./plugins/quality-review) | Workflow | no | no | Audit docs, code, or any artifact through 13 quality lenses with a workflow-backed finder/verifier pipeline |
 | [preflight](./plugins/preflight) | Workflow | yes | yes | Honest self-assessment of completeness, correctness, quality, and loose ends before shipping |
 | [handoff](./plugins/handoff) | Workflow | yes | yes | Write a durable handoff — PR descriptions, summaries, memos, or memory notes |
-| [reflect](./plugins/reflect) | Workflow | yes | yes | Capture durable lessons from a session before they fade |
+| [reflect](./plugins/reflect) | Workflow | yes | yes | Surface a session's durable lessons before they fade, each with the place it would be saved |
 | [understudy](./plugins/understudy) | Workflow | yes | yes | Write code, comments, tests, and commits that read as if the project's own maintainer wrote them |
 | [worktrunk-hook](./plugins/worktrunk-hook) | Tooling | no | no | Route Claude Code's auto-created git worktrees through worktrunk so sessions inherit project hooks |
 | [drive-browser](./plugins/drive-browser) | Tooling | yes | no | Drive a browser with Playwright. Resilient locators for your own app, a vision loop for opaque sites |
