@@ -1,6 +1,6 @@
 ---
 name: align
-description: Surface what I think we're doing before acting on it. Use when the user invokes the align skill, says "let's align first", "check in before you start", or "mirror what you're hearing". Also invoke before starting any task with real interpretive weight. An ambiguous request, a vague spec, a "build X" with the details unstated. Where drafting from the wrong premise would waste the work. Produces a structured manifest exposing every silent commitment so the user can correct course before any artifact is produced.
+description: Surface what I think we're doing before acting on it. Use when the user invokes the align skill, says "let's align first", "check in before you start", or "mirror what you're hearing". Also invoke before starting any artifact-producing task with real interpretive weight. An ambiguous request, a vague spec, a "build X" with the details unstated. Where drafting from the wrong premise would waste the work. Do not auto-invoke while the immediate task is to interview the user about their own unstated context rather than produce an artifact. Produces a structured manifest exposing every silent commitment so the user can correct course before any artifact is produced.
 ---
 
 # Align: share understanding before acting
@@ -8,6 +8,11 @@ description: Surface what I think we're doing before acting on it. Use when the 
 The most expensive failures aren't bad outputs. They're outputs built on a wrong premise. By the time the user sees prose, you've silently committed to: your reading of the request, your chosen approach, your interpretations of source, your register and format choices, and a hundred small fill-ins for things that weren't specified. Each commitment looks authoritative once written.
 
 This skill inverts that. Before producing any artifact, produce a **manifest**: a structured, scannable summary of every silent commitment. The user reacts. Drafting happens after.
+
+This is an artifact preflight, not a gate on inquiry itself. When the immediate
+request is to interview the user about their own unstated context, do not
+auto-invoke this workflow. If the user explicitly asks for an align manifest,
+produce it as usual.
 
 ## The manifest
 
