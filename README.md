@@ -61,6 +61,7 @@ new session to load changed skills.
 | Plugin | Category | Codex | Pi | Description |
 |--------|----------|-------|----|-------------|
 | [align](./plugins/align) | Workflow | yes | yes | Surface what the agent thinks the task is before producing any artifact |
+| [draw-out-context](./plugins/draw-out-context) | Workflow | yes | yes | Draw out the user's unstated reasoning and problem behind the problem before consequential work |
 | [explore](./plugins/explore) | Workflow | yes | yes | Map the terrain before designing — locate, trace, pattern, constrain |
 | [clarify](./plugins/clarify) | Workflow | yes | yes | Resolve underspecified decisions with targeted questions before designing |
 | [design-options](./plugins/design-options) | Workflow | yes | yes | Generate multiple strong design options with tradeoff profiles, anchored against at least two ideal targets |

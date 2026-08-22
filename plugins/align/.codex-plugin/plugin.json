@@ -1,6 +1,6 @@
 {
   "name": "align",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "Surface what I think we're doing before acting on it. Produces a structured manifest exposing every silent commitment so the user can correct course before any artifact is produced.",
   "skills": "./skills/"
 }
