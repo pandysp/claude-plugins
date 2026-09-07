@@ -1,7 +1,7 @@
 {
   "name": "preflight",
-  "description": "Honest self-assessment skill that surfaces incomplete work, missing verifications, bugs, and improvement ideas before shipping.",
-  "version": "1.2.3",
+  "description": "Honest self-assessment before shipping. With --fix, fix and reassess until no autofixable issues remain; keep blocked work visible.",
+  "version": "1.3.0",
   "author": {
     "name": "Andreas Spannagel"
   },

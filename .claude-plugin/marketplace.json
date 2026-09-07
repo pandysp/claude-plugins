@@ -19,7 +19,7 @@
     },
     {
       "name": "preflight",
-      "description": "Honest self-assessment skill that surfaces incomplete work, missing verifications, bugs, and improvement ideas before shipping.",
+      "description": "Honest self-assessment before shipping. With --fix, fix and reassess until no autofixable issues remain; keep blocked work visible.",
       "source": "./plugins/preflight",
       "category": "workflow",
       "keywords": ["reflect", "review", "assessment", "quality", "self-check"],
