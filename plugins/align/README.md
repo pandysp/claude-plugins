@@ -1,6 +1,6 @@
 # align
 
-A Claude Code and Codex plugin that makes the agent surface its task interpretation, approach, source coverage, rendering choices, and gap-fill defaults *before* producing any artifact.
+A Claude Code and Codex plugin that makes the agent surface its task interpretation, approach, source coverage, and rendering choices *before* producing any artifact.
 
 ## Why
 

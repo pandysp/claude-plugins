@@ -30,22 +30,13 @@ Describe the method. Include scope: what to do AND what to explicitly NOT do. Su
 
 ### Block 3: What I'm working with
 
-Two parts:
-
-1. **Source coverage**: what's in the source, tagged.
-2. **What I'd invent if not stopped**: explicit list of plausible-sounding details you'd otherwise fabricate.
-
-The "what I'd invent" callout is the anti-fabrication bell. Forcing enumeration makes invention visible; details that would have slipped uncited get surfaced as choices.
+**Source coverage**: what's in the source, tagged.
 
 Format:
 
 ```
 - Source fact `[grounded]`
 - Derivation from source `[inferred from "..."]`
-
-**What I'd invent if not stopped:**
-- A plausible detail not in source
-- A specific number or date the source doesn't mention
 ```
 
 ### Block 4: How I'd render it
@@ -61,7 +52,7 @@ Format:
 
 ### Block 5: Blocking questions
 
-Only forks where any default would be unsafe. Different from gaps you'd fill with defaults. Those go in Block 3 as "what I'd invent." If there are none, say so. Don't pad.
+Only forks where any default would be unsafe. If there are none, say so. Don't pad.
 
 ## After the manifest
 
@@ -72,7 +63,6 @@ Stop. Wait for the user to confirm, correct, or re-scope. Once confirmed, **re-r
 - **Manifest theater.** Clean manifest, then drift in the draft. Re-read before drafting; surface deviations.
 - **Padding to look thorough.** Inflating blocks to fill space. If approach is trivial, one bullet is enough.
 - **Hiding inventions in `[inferred]`.** If there's no derivation chain to point at, it's `[mine]`.
-- **Skipping the "what I'd invent" callout.** The anti-fabrication bell. Empty means either nothing's being filled in, or the looking has stopped.
 - **Treating the manifest as a contract.** It's a checkpoint. Drift is allowed *when surfaced*, not when silently absorbed.
 - **Confusing align with clarify.** Align commits to specific reads; clarify asks where you're stuck. Different modes.
 - **Summarizing from memory instead of reading source.** Block 3 requires actually reading what's there. If source is too long, say so explicitly.
