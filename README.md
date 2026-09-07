@@ -53,8 +53,9 @@ pi remove git:github.com/pandysp/claude-plugins
 
 Pi installs one package per repository rather than individual plugins. The
 package exposes its skills as `/skill:<name>` commands and adds no extensions,
-prompt templates, or themes. Pi refreshes the checkout at startup, so start a
-new session to load changed skills.
+prompt templates, or themes. On interactive startup, Pi checks for package
+updates and shows a notification; it does not install them automatically. Run
+the update command above, then restart Pi to load changed skills.
 
 ## Plugin catalog
 
