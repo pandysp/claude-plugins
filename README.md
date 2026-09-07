@@ -72,7 +72,7 @@ new session to load changed skills.
 | [verify-result](./plugins/verify-result) | Workflow | yes | yes | Black-box verification of any agent output — code, documents, presentations, configs |
 | [silent-failures](./plugins/silent-failures) | Workflow | yes | yes | Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks |
 | [quality-review](./plugins/quality-review) | Workflow | no | no | Audit docs, code, or any artifact through 13 quality lenses with a workflow-backed finder/verifier pipeline |
-| [preflight](./plugins/preflight) | Workflow | yes | yes | Honest self-assessment of completeness, correctness, quality, and loose ends before shipping |
+| [preflight](./plugins/preflight) | Workflow | yes | yes | Honest self-assessment before shipping; `--fix` fixes and reassesses until no autofixable issues remain |
 | [handoff](./plugins/handoff) | Workflow | yes | yes | Write a durable handoff — PR descriptions, summaries, memos, or memory notes |
 | [reflect](./plugins/reflect) | Workflow | yes | yes | Capture durable lessons from a session before they fade |
 | [understudy](./plugins/understudy) | Workflow | yes | yes | Write code, comments, tests, and commits that read as if the project's own maintainer wrote them |
