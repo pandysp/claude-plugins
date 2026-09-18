@@ -14,7 +14,7 @@ async function git(cwd, args, env = {}) {
   });
   return result.stdout;
 }
-const files = async cwd => [...new Set((await git(cwd, ['ls-files', '-z', '--cached', '--others', '--exclude-standard'])).split('\0').filter(Boolean))].sort();
+const files = async cwd => [...new Set((await git(cwd, ['ls-files', '-z', '--cached', '--others', '--exclude-standard'])).split('\0').filter(Boolean))];
 
 export async function snapshot(source, target) {
   const top = (await git(source, ['rev-parse', '--show-toplevel'])).trim();
