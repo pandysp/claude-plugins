@@ -30,9 +30,10 @@ The final return value must be finite, acyclic JSON: no `undefined`, `Date`,
 `BigInt`, functions or class instances. Await every worker and composition call.
 
 The runner copies the **whole program directory**, excluding `.git` and
-`node_modules`. File imports from it must stay within that copy or the pinned
-runtime's `node_modules`. Node built-ins remain available. This import rule is
-not a security sandbox: arbitrary filesystem reads, clocks, randomness and
+`node_modules`. Program symlinks must use relative targets within that directory.
+File imports from the copy must stay within it or the pinned runtime's
+`node_modules`. Node built-ins remain available. This import rule is not a
+security sandbox: arbitrary filesystem reads, clocks, randomness and
 external effects are still possible, and their state is not checkpointed.
 
 ## `await run.agent(prompt, options)`
@@ -100,8 +101,9 @@ raw tool invocation, correct facts or complete coverage.
   new attempt needs a distinct key, such as `check:item:attempt:2`.
 - Child program invocations have separate key namespaces that include their
   invocation order. Stable keys do not restore changed child-call ordering.
-- The run-wide limit counts saved jobs, including failures. Reusing an existing
-  job does not create another admission.
+- The run-wide limit reserves a job before any asynchronous preparation and
+  counts it even if preparation or execution fails. Reusing an existing job
+  does not create another admission.
 
 ## Composition
 
@@ -170,7 +172,7 @@ forced failure exit. Fatal worker/configuration errors still stop the run.
 | `run.phase(title)` | Set a nonempty phase label in this async branch and emit a progress event |
 | `run.log(value)` | Emit `String(value)` as a progress message; never include secrets |
 | `run.budget.maxJobs` | Configured run-wide worker-admission ceiling |
-| `run.budget.spent()` | Number of saved jobs, not tokens, dollars or current live workers |
+| `run.budget.spent()` | Reserved jobs, including preparation and failures; not tokens, dollars or live workers |
 | `run.budget.remaining()` | Admission slots remaining under that ceiling |
 | `run.artifacts()` | References (`id`, `key`, `cwd`, `patch`) for every collected snapshot worker so far |
 | `run.signal` | Run-level `AbortSignal`; pass it to caller-owned cancellable operations |
@@ -301,8 +303,8 @@ node /absolute/workflow-space/flue.mjs resume audit-1
   live shell process groups, errors and artifact paths. It starts nothing.
 - `cancel` sends `SIGTERM` to the live owner, waits for it to exit, then prints
   the inspection. The owner aborts every live worker through Flue and records
-  them as `aborted`. A second `SIGTERM`/`SIGINT` to the owner exits at once and
-  leaves those jobs `pending` for `resume`.
+  them as `aborted`. A second `SIGTERM`/`SIGINT` to the owner exits at once;
+  unsettled jobs remain `pending` for `resume`.
 - `resume` uses the saved configuration and the runtime that created the run.
   It re-enters the pinned program from its start and reuses any job whose key
   and inputs match a saved one: `completed` returns the saved result, `failed`

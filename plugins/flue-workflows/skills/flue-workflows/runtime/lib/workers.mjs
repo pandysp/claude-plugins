@@ -22,7 +22,7 @@ export function validator(schema) {
   const key = json(schema);
   if (!schemas.has(key)) {
     try { schemas.set(key, ajv.compile(JSON.parse(key))); }
-    catch (cause) { throw new RunError(`Invalid result schema: ${cause.message}`, { cause }); }
+    catch (cause) { throw new RunError('Invalid result schema', { cause }); }
   }
   return schemas.get(key);
 }
@@ -132,5 +132,5 @@ export function workers({ config, provider, tools = {}, hook, emit }) {
   }
   Worker.agentName = 'workflow-worker';
   Worker.durability = { maxAttempts: 3, timeoutMs: config.timeoutMs };
-  return { Worker, normalize, models, toolNames: Object.keys(factories) };
+  return { Worker, normalize };
 }

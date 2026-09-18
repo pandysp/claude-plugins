@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { openaiCodexProvider } from '@earendil-works/pi-ai/providers/openai-codex';
 import { workers, validator } from '../lib/workers.mjs';
 import { json } from '../lib/files.mjs';
+import { message } from '../lib/primitives.mjs';
 
 const config = { model: 'openai-codex/gpt-5.5', effort: 'low', cwd: '/tmp', timeoutMs: 10_000 };
 const { normalize } = workers({ config, provider: openaiCodexProvider(), emit() {} });
@@ -11,7 +12,11 @@ test('bad options/model/tool/schema fail locally rather than falling back', () =
   assert.throws(() => normalize('hello', { models: 'other' }), /Unknown.*models/);
   assert.throws(() => normalize('hello', { model: 'anthropic/anything' }), /not available under the selected/);
   assert.throws(() => normalize('hello', { tools: ['missing'] }), /tools must/);
-  assert.throws(() => normalize('hello', { schema: { type: 'object', propreties: {} } }), /Invalid result schema/);
+  assert.throws(() => normalize('hello', { schema: { type: 'object', propreties: {} } }), error => {
+    assert.match(message(error), /Invalid result schema:.*unknown keyword/);
+    assert.equal(message(error).match(/propreties/g)?.length, 1, 'the cause is printed once');
+    return true;
+  });
   assert.throws(() => normalize('hello', { isolation: 'container' }), /isolation must be/);
 });
 
@@ -19,7 +24,6 @@ test('custom tool maps accept plain and null-prototype objects', () => {
   for (const prototype of [Object.prototype, null]) {
     const extra = Object.assign(Object.create(prototype), { custom: () => ({ name: 'custom', parameters: { type: 'object' }, execute() {} }) });
     const worker = workers({ config, provider: openaiCodexProvider(), tools: extra, emit() {} });
-    assert.ok(worker.toolNames.includes('custom'));
     assert.throws(() => workers({ config, provider: openaiCodexProvider(), hook: async () => {}, emit() {} }), /synchronous/);
     assert.deepEqual(worker.normalize('work', { tools: ['custom'] }).tools, ['custom']);
   }

@@ -75,8 +75,10 @@ described in the [API reference](skills/flue-workflows/references/api.md#operate
 
 2026-09-18, macOS, Node 26.5, `openai-codex/gpt-5.5` via `--auth pi`, on this
 runtime: the example above ran from a fresh `setup.mjs` install. Four workers
-(two repairs in separate Git copies, two independent verifiers) completed in
-32 s; `verify.mjs` reported `complete` for `identity`, `slug` and `sum` with the
+(two repairs in separate Git copies, two independent verifiers) completed;
+`verify.mjs` reported `complete` for `identity`, `slug` and `sum` with the
 original source, HEAD and index unchanged. `resume` with `fetch` disabled
-reused all four results with zero model calls. Hard-kill, `SIGTERM` and lost
-receipt recovery are covered by the automated real-Flue suite, not this trial.
+reused all four results with zero new dispatches or fetch attempts. Hard-kill,
+`SIGTERM` and receipt-free keyed recovery are covered by the automated
+real-Flue suite, not this trial. The hard-kill test checks that resume reuses
+the original submission ID, rather than merely finishing another submission.

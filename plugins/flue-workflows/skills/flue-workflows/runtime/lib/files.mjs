@@ -41,7 +41,7 @@ export function lease(path) {
   } catch (cause) {
     db.close();
     if (cause.errcode === 5 || cause.errcode === 6) throw new RunError(`Another process owns ${path}; inspect or cancel it first.`, { cause });
-    throw new RunError(`Cannot acquire ownership at ${path}: ${cause.message}`, { cause });
+    throw new RunError(`Cannot acquire ownership at ${path}`, { cause });
   }
   return () => { try { db.exec('ROLLBACK'); } finally { db.close(); } };
 }
@@ -54,7 +54,7 @@ export function ownerActive(path) {
 export async function entries(root, { exclude = [] } = {}) {
   const result = [];
   async function walk(relative) {
-    for (const entry of (await readdir(join(root, relative), { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name, 'en'))) {
+    for (const entry of await readdir(join(root, relative), { withFileTypes: true })) {
       if (exclude.includes(entry.name)) continue;
       const path = join(relative, entry.name);
       if (entry.isDirectory()) await walk(path);

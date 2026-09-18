@@ -1,12 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile, symlink, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { primitives, RunError, message } from '../lib/primitives.mjs';
 import { lease, save, load, hashTree } from '../lib/files.mjs';
 import { snapshot, collect } from '../lib/workspace.mjs';
+import { copyProgram } from '../lib/program.mjs';
 
 const deferred = () => Promise.withResolvers();
 async function fixture(t) {
@@ -91,6 +92,19 @@ test('atomic JSON and tree identity include executable modes and symlink targets
   assert.notEqual(await hashTree(dir), first);
 });
 
+test('pinned program symlinks must remain inside the copy, not point back into the source', async t => {
+  const dir = await fixture(t), source = join(dir, 'source'), target = join(dir, 'pinned');
+  await mkdir(source);
+  await writeFile(join(source, 'input.txt'), 'original');
+  await symlink(join(source, 'input.txt'), join(source, 'alias.txt'));
+  await assert.rejects(copyProgram(source, target), /Program symlink/);
+  await rm(join(source, 'alias.txt'));
+  await symlink('input.txt', join(source, 'alias.txt'));
+  await copyProgram(source, target);
+  await writeFile(join(source, 'input.txt'), 'changed');
+  assert.equal(await readFile(join(target, 'alias.txt'), 'utf8'), 'original');
+});
+
 test('isolated snapshots preserve dirty/untracked inputs and collect committed edits without touching source', async t => {
   const dir = await fixture(t);
   const source = join(dir, 'source');
@@ -106,7 +120,7 @@ test('isolated snapshots preserve dirty/untracked inputs and collect committed e
   const before = await hashTree(source, { exclude: ['.git'] });
   const status = git('status', '--porcelain=v1');
   const target = join(dir, 'worker');
-  const base = await snapshot(source, target);
+  const commit = await snapshot(source, target);
   assert.equal(await readFile(join(target, 'tracked.txt'), 'utf8'), 'dirty\n');
   assert.equal(await readFile(join(target, 'new.txt'), 'utf8'), 'untracked\n');
   await assert.rejects(readFile(join(target, 'ignored.txt')), /ENOENT/);
@@ -114,7 +128,7 @@ test('isolated snapshots preserve dirty/untracked inputs and collect committed e
   execFileSync('git', ['-C', target, 'add', '.']);
   execFileSync('git', ['-C', target, 'commit', '-qm', 'worker commit']);
   await writeFile(join(target, 'output.txt'), 'untracked output\n');
-  const artifact = await collect(target, base.commit, join(dir, 'changes.patch'));
+  const artifact = await collect(target, commit, join(dir, 'changes.patch'));
   assert(artifact.changed.includes('tracked.txt'));
   assert(artifact.changed.includes('output.txt'));
   const patch = await readFile(join(dir, 'changes.patch'), 'utf8');

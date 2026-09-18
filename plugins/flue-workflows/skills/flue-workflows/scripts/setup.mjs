@@ -16,28 +16,27 @@ const workspace = resolve(target);
 if (workspace === homedir() || workspace === '/') throw new Error('Choose a dedicated workflow workspace, not your home or filesystem root.');
 process.umask(0o077);
 await mkdir(join(workspace, '.runtime'), { recursive: true });
-{
-  const version = hash(json({ lib: await hashTree(join(source, 'lib')), package: hash(await readFile(join(source, 'package.json'))), lock: hash(await readFile(join(source, 'package-lock.json'))) }));
-  const installed = join(workspace, '.runtime', version);
-  let exists = false;
-  try { await access(installed); exists = true; }
-  catch (error) { if (error.code !== 'ENOENT') throw error; }
-  if (!exists) {
-    const stage = join(workspace, '.runtime', `${version}.installing-${randomUUID()}`);
-    await mkdir(stage);
-    for (const name of ['lib', 'package.json', 'package-lock.json']) await cp(join(source, name), join(stage, name), { recursive: true });
-    console.error('Installing pinned Flue dependencies in the workflow workspace (no global installation, no lifecycle scripts)…');
-    try {
-      const result = await exec('npm', ['ci', '--ignore-scripts', '--omit=dev'], { cwd: stage, maxBuffer: 8 * 1024 * 1024, timeout: 300_000 });
-      await writeFile(join(stage, 'install.log'), result.stdout + result.stderr, { mode: 0o600 });
-      await exec(process.execPath, ['--input-type=module', '-e', "await import('./lib/cli.mjs'); await import('./lib/workers.mjs');"], { cwd: stage, timeout: 30_000 });
-    } catch (cause) {
-      throw new Error(`Dependency setup failed; incomplete installation retained at ${stage}. ${cause.stderr ?? cause.message}`, { cause });
-    }
-    await rename(stage, installed);
+const version = hash(json({ lib: await hashTree(join(source, 'lib')), package: hash(await readFile(join(source, 'package.json'))), lock: hash(await readFile(join(source, 'package-lock.json'))) }));
+const installed = join(workspace, '.runtime', version);
+let exists = false;
+try { await access(installed); exists = true; }
+catch (error) { if (error.code !== 'ENOENT') throw error; }
+if (!exists) {
+  const stage = join(workspace, '.runtime', `${version}.installing-${randomUUID()}`);
+  await mkdir(stage);
+  for (const name of ['lib', 'package.json', 'package-lock.json']) await cp(join(source, name), join(stage, name), { recursive: true });
+  console.error('Installing pinned Flue dependencies in the workflow workspace (no global installation, no lifecycle scripts)…');
+  try {
+    const result = await exec('npm', ['ci', '--ignore-scripts', '--omit=dev'], { cwd: stage, maxBuffer: 8 * 1024 * 1024, timeout: 300_000 });
+    await writeFile(join(stage, 'install.log'), result.stdout + result.stderr, { mode: 0o600 });
+    await exec(process.execPath, ['--input-type=module', '-e', "await import('./lib/cli.mjs'); await import('./lib/workers.mjs');"], { cwd: stage, timeout: 30_000 });
+  } catch (cause) {
+    throw new Error(`Dependency setup failed; incomplete installation retained at ${stage}.`, { cause });
   }
-  await save(join(workspace, '.runtime.json'), { version });
-  await writeFile(join(workspace, 'flue.mjs'), `#!/usr/bin/env node
+  await rename(stage, installed);
+}
+await save(join(workspace, '.runtime.json'), { version });
+await writeFile(join(workspace, 'flue.mjs'), `#!/usr/bin/env node
 import { readFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -54,5 +53,4 @@ if (['inspect', 'resume', 'cancel'].includes(args[0]) && /^[a-z0-9][a-z0-9-]{0,4
 }
 await (await import(pathToFileURL(join(runtime, 'lib/cli.mjs')).href)).cli(root, args);
 `, { mode: 0o700 });
-  console.log(json({ ready: true, workspace, runtime: installed, command: `node ${join(workspace, 'flue.mjs')} --help` }));
-}
+console.log(json({ ready: true, workspace, runtime: installed, command: `node ${join(workspace, 'flue.mjs')} --help` }));

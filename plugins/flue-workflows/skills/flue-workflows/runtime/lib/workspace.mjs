@@ -1,7 +1,7 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { mkdir, copyFile, lstat, readlink, symlink, chmod, writeFile, mkdtemp, rm, realpath } from 'node:fs/promises';
-import { join, dirname, resolve } from 'node:path';
+import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fingerprint } from './files.mjs';
 import { RunError } from './primitives.mjs';
@@ -46,8 +46,8 @@ export async function snapshot(source, target) {
   await git(target, ['config', 'user.name', 'Flue workflow']);
   await git(target, ['config', 'user.email', 'flue-workflow@example.invalid']);
   await git(target, ['add', '--all', '--force']);
-  await git(target, ['-c', 'commit.gpgSign=false', 'commit', '--allow-empty', '-qm', 'Workflow input snapshot']);
-  return { source: resolve(source), sourceHead: head, sourceHash: identity, commit: (await git(target, ['rev-parse', 'HEAD'])).trim() };
+  await git(target, ['commit', '--allow-empty', '-qm', 'Workflow input snapshot']);
+  return (await git(target, ['rev-parse', 'HEAD'])).trim();
 }
 
 export async function collect(cwd, base, patchPath) {

@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { execFile, spawn } from 'node:child_process';
 import { promisify } from 'node:util';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { load, save, hash, json } from '../lib/files.mjs';
+import { load, save, hash, json, lease } from '../lib/files.mjs';
 
 const exec = promisify(execFile);
 const child = fileURLToPath(new URL('./fixtures/native-worker-child.mjs', import.meta.url));
@@ -17,7 +17,7 @@ const baseEnv = Object.fromEntries(['PATH', 'HOME', 'USER', 'LOGNAME', 'SHELL', 
 const schema = { type: 'object', properties: { answer: { type: 'integer' } }, required: ['answer'], additionalProperties: false };
 const call = (key, extra = '') => `run.agent('Return the checked answer.', { key: ${JSON.stringify(key)}, tools: [], schema: ${JSON.stringify(schema)}${extra} })`;
 
-async function fixture(t, { body = `return ${call('answer')};`, files = {}, env = {}, timeout = 30_000 } = {}) {
+async function fixture(t, { body = `return ${call('answer')};`, files = {}, env = {}, git = false, timeout = 30_000 } = {}) {
   const root = await mkdtemp(join(tmpdir(), 'flue-runtime-'));
   const workspace = join(root, 'workspace');
   const dir = join(workspace, 'runs', 'fixture');
@@ -32,10 +32,15 @@ async function fixture(t, { body = `return ${call('answer')};`, files = {}, env 
   await mkdir(dirname(program));
   await writeFile(program, `export default async run => { run.phase('entered'); ${body} };\n`);
   for (const [name, text] of Object.entries(files)) await writeFile(join(dirname(program), name), text);
+  if (git) {
+    for (const args of [['init', '-q'], ['add', '.'], ['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', '-c', 'commit.gpgSign=false', 'commit', '-qm', 'Fixture']]) {
+      await exec('git', ['-C', dirname(program), ...args], { env: baseEnv });
+    }
+  }
   f.invoke = async (mode, extraEnv = {}) => {
     await writeFile(trace, '');
     let result;
-    try { result = { ...await exec(process.execPath, [child, workspace, mode, program, trace], { env: { ...baseEnv, ...env, ...extraEnv }, timeout }), code: 0 }; }
+    try { result = { ...await exec(process.execPath, [child, workspace, mode, program, trace], { env: { ...baseEnv, ...env, ...extraEnv }, timeout, killSignal: 'SIGKILL' }), code: 0 }; }
     catch (error) {
       if (typeof error.code !== 'number') throw error;
       result = { code: error.code, stdout: error.stdout, stderr: error.stderr };
@@ -66,10 +71,12 @@ test('a structured worker result is validated, saved and returned', async t => {
   const first = await f.invoke('run');
   assert.equal(first.code, 0, first.stderr);
   assert.equal(first.modelCalls, 1);
+  assert.equal(first.events.at(-1).syntaxChecks, 1, 'syntax is checked once, not again after copying or starting');
   assert.deepEqual(await load(join(f.dir, 'result.json')), { answer: 42 });
   const [job] = Object.values(first.state.jobs);
   assert.equal(job.status, 'completed');
-  assert.ok(job.receipt.submissionId);
+  assert.ok(first.stderrEvents.find(event => event.type === 'worker-started').submissionId);
+  assert.equal('receipt' in job, false);
   assert.equal(first.state.status, 'finished');
   assert.equal(first.state.owner, null);
 });
@@ -93,6 +100,26 @@ test('worker inputs are captured at the call, even while queued; results are cop
   assert.deepEqual(Object.values(result.state.jobs).find(job => job.key === 'first').result, { answer: 42 });
   assert.deepEqual(await load(join(f.dir, 'result.json')), [{ answer: 43 }, { answer: 42 }]);
 });
+
+for (const isolation of ['none', 'snapshot']) {
+  test(`parallel ${isolation} workers cannot exceed the run-wide admission limit`, async t => {
+    const f = await fixture(t, { git: isolation === 'snapshot', env: { FLUE_FIXTURE_CONCURRENCY: '6', FLUE_FIXTURE_RESPONSE: 'text' }, body: `
+      return run.parallel(Array.from({ length: 6 }, (_, i) => () => run.agent('Check.', { key: String(i), tools: [], isolation: '${isolation}' })));` });
+    const result = await f.invoke('run');
+    assert.equal(result.code, 1, result.stderr);
+    assert.match(result.stderr, /Run-wide worker limit 5 reached/);
+    assert.equal(Object.keys(result.state.jobs).length, 5);
+    assert.equal(result.state.status, 'failed');
+  });
+
+  test(`duplicate keys are refused while a ${isolation} worker is being prepared`, async t => {
+    const f = await fixture(t, { git: isolation === 'snapshot', body: `return run.parallel([() => ${call('same', `, isolation: '${isolation}'`)}, () => ${call('same', `, isolation: '${isolation}'`)}]);` });
+    const result = await f.invoke('run');
+    assert.equal(result.code, 1, result.stderr);
+    assert.match(result.stderr, /Key same is already running/);
+    assert.equal(Object.keys(result.state.jobs).length, 1);
+  });
+}
 
 test('a worker.mjs hook cannot rewrite the recorded task', async t => {
   const f = await fixture(t, { files: { 'worker.mjs': "export default task => { task.data.stamp = 'hook'; };\n" }, body: `return ${call('answer', ", data: { stamp: 'original' }")};` });
@@ -148,25 +175,25 @@ test('resume reuses a completed worker without a model call', async t => {
   const resumed = await f.invoke('resume');
   assert.equal(resumed.code, 0, resumed.stderr);
   assert.equal(resumed.modelCalls, 0);
+  assert.equal(resumed.events.at(-1).syntaxChecks, 0, 'resume checks the pinned hash without repeating syntax checks');
   assert.equal(resumed.state.reused, 1);
   assert.deepEqual(resumed.state.jobs, first.state.jobs);
   assert.ok(resumed.stderrEvents.some(event => event.type === 'worker-reused'));
 });
 
-for (const receipt of ['saved', 'lost']) test(`resume reattaches a pending worker (receipt ${receipt}) through Flue's keyed admission`, async t => {
+test('resume reattaches a pending worker through Flue without a saved receipt', async t => {
   const f = await fixture(t);
   const first = await f.invoke('run');
   const [job] = Object.values(first.state.jobs);
-  const { submissionId } = job.receipt;
+  const { submissionId } = first.stderrEvents.find(event => event.type === 'worker-started');
   job.status = 'pending';
-  if (receipt === 'lost') job.receipt = null;
   await save(join(f.dir, 'state.json'), first.state);
   const resumed = await f.invoke('resume');
   assert.equal(resumed.code, 0, resumed.stderr);
   assert.equal(resumed.modelCalls, 0, 'the settled submission is read, not rerun');
   const started = resumed.stderrEvents.find(event => event.type === 'worker-started');
   assert.equal(started.deduplicated, true);
-  assert.equal(resumed.state.jobs[job.id].receipt.submissionId, submissionId);
+  assert.equal(started.submissionId, submissionId);
   assert.deepEqual(await load(join(f.dir, 'result.json')), { answer: 42 });
 });
 
@@ -176,9 +203,14 @@ test('a hard-killed run resumes: Flue finishes the admitted worker and the progr
   assert.equal(killed.sig, 'SIGKILL');
   assert.equal(killed.state.status, 'running');
   assert.equal(Object.values(killed.state.jobs)[0].status, 'pending');
+  const original = (await readFile(join(f.dir, 'events.jsonl'), 'utf8')).trim().split('\n').map(JSON.parse).find(event => event.type === 'worker-started');
+  assert.ok(original?.submissionId, 'the killed attempt admitted a submission');
   const resumed = await f.invoke('resume');
   assert.equal(resumed.code, 0, resumed.stderr);
   assert.equal(resumed.modelCalls, 1, 'Flue re-attempts the interrupted submission once');
+  const started = resumed.stderrEvents.find(event => event.type === 'worker-started');
+  assert.equal(started.deduplicated, true);
+  assert.equal(started.submissionId, original.submissionId, 'resume must not create a fresh submission');
   assert.equal(resumed.state.status, 'finished');
   assert.deepEqual(await load(join(f.dir, 'result.json')), { answer: 42 });
 });
@@ -215,11 +247,21 @@ test('resume is refused while a shell command from the previous attempt is still
 test('a changed pinned program is refused before any worker starts', async t => {
   const f = await fixture(t);
   const first = await f.invoke('run');
-  await appendFile(join((await load(join(f.dir, 'manifest.json'))).program, 'program.mjs'), '// edited\n');
+  await appendFile(join((await load(join(f.dir, 'manifest.json'))).program, 'program.mjs'), '\ninvalid syntax {\n');
   const refused = await f.invoke('resume');
   assert.equal(refused.code, 1);
   assert.match(refused.stderr, /Pinned program changed/);
+  assert.equal(refused.events.at(-1).syntaxChecks, 0, 'changed code is refused by its hash, not rechecked or loaded');
   assert.deepEqual(refused.state, first.state, 'a refusal leaves the saved run untouched');
+});
+
+test('unreadable run files release the owner lock before rejecting', async t => {
+  const f = await fixture(t);
+  await mkdir(f.dir, { recursive: true });
+  await writeFile(join(f.dir, 'manifest.json'), '{');
+  const { execute } = await import('../lib/run.mjs');
+  await assert.rejects(execute({ dir: f.dir, runtimeRoot }), SyntaxError);
+  lease(join(f.dir, 'owner.sqlite'))();
 });
 
 test('cancel signals the live owner and reports the settled run', async t => {

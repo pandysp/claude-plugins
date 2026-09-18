@@ -11,7 +11,7 @@ import { snapshot, collect } from './workspace.mjs';
 import { credentials } from './provider.mjs';
 import { workers, validator } from './workers.mjs';
 import { recordCommands, liveCommandGroups } from './commands.mjs';
-import { loader, checkProgram } from './program.mjs';
+import { loader, hashProgram } from './program.mjs';
 
 export const FORMAT = 3;
 const QUIET = new Set(['tool-start', 'tool-completed', 'result-written', 'command']);
@@ -28,7 +28,7 @@ async function optionalModule(root, code, name) {
 async function preflight({ dir, manifest, state }) {
   if (manifest.format !== FORMAT) throw new RunError('Unknown run format; use the runtime that created this run.');
   if (state.manifestHash !== hash(json(manifest))) throw new RunError('Saved run configuration changed; restore it or create a new run.');
-  if (await checkProgram(manifest.program) !== manifest.programHash) throw new RunError('Pinned program changed; restore it or create a new run.');
+  if (await hashProgram(manifest.program) !== manifest.programHash) throw new RunError('Pinned program changed; restore it or create a new run.');
   const live = await liveCommandGroups(dir);
   if (live.length) throw new RunError(`Shell commands from a previous attempt are still running (process groups ${live.join(', ')}); stop them, then resume.`);
   for (const job of Object.values(state.jobs)) {
@@ -44,6 +44,11 @@ async function preflight({ dir, manifest, state }) {
 export async function execute({ dir, runtimeRoot }) {
   [dir, runtimeRoot] = await Promise.all([realpath(dir), realpath(runtimeRoot)]);
   const release = lease(join(dir, 'owner.sqlite'));
+  try { return await executeOwned({ dir, runtimeRoot }); }
+  finally { release(); }
+}
+
+async function executeOwned({ dir, runtimeRoot }) {
   const manifest = await load(join(dir, 'manifest.json'));
   const state = await load(join(dir, 'state.json'));
   const { config } = manifest;
@@ -58,7 +63,7 @@ export async function execute({ dir, runtimeRoot }) {
   const attempt = async fn => { try { return await fn(); } catch (error) { errors.push(error); } };
   let journal, runtime, code, stopRecording, writing = Promise.resolve();
 
-  const persist = () => (writing = writing.then(() => save(join(dir, 'state.json'), JSON.parse(json(state)))));
+  const persist = () => (writing = writing.then(() => save(join(dir, 'state.json'), state)));
   const emit = event => {
     const row = { at: new Date().toISOString(), attempt: state.attempt, ...event };
     appendFileSync(journal, json(row) + '\n'); fsyncSync(journal);
@@ -94,7 +99,6 @@ export async function execute({ dir, runtimeRoot }) {
     const occurrences = new Map();
 
     async function invoke(namespace, descriptor, key) {
-      signal.throwIfAborted();
       descriptor.cwd = await realpath(resolve(config.cwd, descriptor.cwd));
       if (!(await stat(descriptor.cwd)).isDirectory()) throw new RunError(`Working directory is not a directory: ${descriptor.cwd}`);
       if (runtimeRoot.startsWith(descriptor.cwd + sep) || dir.startsWith(descriptor.cwd + sep)) throw new RunError('Working directories must not contain the workflow workspace.');
@@ -111,32 +115,28 @@ export async function execute({ dir, runtimeRoot }) {
       if (job && job.status !== 'pending') {
         state.reused++;
         emit({ type: 'worker-reused', id, label, phase, status: job.status });
-        await persist();
         return job.status === 'completed' ? structuredClone(job.result) : null;
       }
       if (!job) {
         if (Object.keys(state.jobs).length >= config.maxJobs) throw new RunError(`Run-wide worker limit ${config.maxJobs} reached; no new worker was admitted.`);
-        job = { id, key: key ?? null, namespace, identity, descriptor, status: 'pending', receipt: null, result: null, error: null, artifact: null, workspace: null };
-        if (descriptor.isolation === 'snapshot') {
+        job = state.jobs[id] = { id, key: key ?? null, identity, descriptor, status: 'pending', result: null, error: null, artifact: null, workspace: null };
+      }
+      const handle = init(Worker, { id });
+      handles.set(id, handle);
+      try {
+        if (descriptor.isolation === 'snapshot' && !job.workspace) {
           const cwd = join(dir, 'workspaces', id);
           await mkdir(join(dir, 'workspaces'), { recursive: true });
           await rm(cwd, { recursive: true, force: true });
-          job.workspace = { cwd, ...await snapshot(descriptor.cwd, cwd) };
+          job.workspace = { cwd, commit: await snapshot(descriptor.cwd, cwd) };
         }
-        state.jobs[id] = job;
         await persist();
-      }
-      signal.throwIfAborted();
-      const task = { ...descriptor, cwd: job.workspace?.cwd ?? descriptor.cwd };
-      const handle = init(Worker, { id });
-      handles.set(id, handle);
-      dispatched.add(id);
-      try {
-        const receipt = await handle.dispatch({ message: task.prompt, initialData: JSON.parse(json(task)), idempotencyKey: 'workflow-job-v1' });
+        signal.throwIfAborted();
+        const task = { ...descriptor, cwd: job.workspace?.cwd ?? descriptor.cwd };
+        dispatched.add(id);
+        const receipt = await handle.dispatch({ message: task.prompt, initialData: structuredClone(task), idempotencyKey: 'workflow-job-v1' });
         if (signal.aborted) await handle.abort();
-        job.receipt = receipt;
-        await persist();
-        emit({ type: 'worker-started', id, label, phase, workspace: task.cwd, deduplicated: receipt.deduplicated === true });
+        emit({ type: 'worker-started', id, label, phase, workspace: task.cwd, submissionId: receipt.submissionId, deduplicated: receipt.deduplicated === true });
         const reply = await handle.read(receipt);
         let result = reply.text;
         if (descriptor.schema !== null) {
@@ -177,7 +177,7 @@ export async function execute({ dir, runtimeRoot }) {
             return gate(() => invoke(namespace, descriptor, options.key));
           })().catch(error => {
             // Infrastructure failures (Git, Flue admission) stop the run; they are not item results.
-            throw fatal(error) ? error : new RunError(`Worker operation failed: ${message(error)}`, { cause: error });
+            throw fatal(error) ? error : new RunError('Worker operation failed', { cause: error });
           });
           pending.add(promise);
           promise.finally(() => pending.delete(promise)).catch(() => {});
@@ -224,7 +224,6 @@ export async function execute({ dir, runtimeRoot }) {
       state.owner = null;
       await attempt(() => save(join(dir, 'state.json'), state));
     }
-    release();
   }
   if (errors.length) throw errors.length === 1 ? errors[0] : new AggregateError(errors, 'Workflow execution or cleanup failed');
   return state;

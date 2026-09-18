@@ -6,13 +6,21 @@
 // FLUE_FIXTURE_RESPONSE   structured (default) | text
 // FLUE_FIXTURE_BLOCK      hold the first model call open until the process is
 //                         signalled or killed (cancel/crash tests)
-import { registerHooks } from 'node:module';
+import { registerHooks, syncBuiltinESMExports } from 'node:module';
+import childProcess from 'node:child_process';
 import { appendFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { fauxProvider, fauxAssistantMessage, fauxToolCall } from '@earendil-works/pi-ai/providers/faux';
 
 const [workspace, mode, program, trace] = process.argv.slice(2);
 const record = value => appendFileSync(trace, JSON.stringify(value) + '\n');
+let syntaxChecks = 0;
+const { execFileSync } = childProcess;
+childProcess.execFileSync = (file, args, options) => {
+  if (file === process.execPath && args[0] === '--check') syntaxChecks++;
+  return execFileSync(file, args, options);
+};
+syncBuiltinESMExports();
 const faux = fauxProvider({ provider: 'openai', api: 'flue-fixture', models: [{ id: 'flue-fixture' }] });
 const reply = () => process.env.FLUE_FIXTURE_RESPONSE === 'text'
   ? fauxAssistantMessage('checked text')
@@ -51,4 +59,4 @@ await cli(workspace, mode === 'run'
   ? ['run', program, '--id', 'fixture', '--cwd', dirname(program), '--model', 'openai/flue-fixture', '--auth', 'env:FLUE_FIXTURE_KEY',
     '--access', 'unrestricted', '--effort', 'off', '--concurrency', process.env.FLUE_FIXTURE_CONCURRENCY ?? '2', '--max-jobs', '5']
   : ['resume', 'fixture']);
-record({ event: 'finished', exitCode: process.exitCode ?? 0, modelCalls: faux.state.callCount, fetchCalls });
+record({ event: 'finished', exitCode: process.exitCode ?? 0, modelCalls: faux.state.callCount, fetchCalls, syntaxChecks });

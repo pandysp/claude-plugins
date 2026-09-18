@@ -1,33 +1,34 @@
 import { registerHooks } from 'node:module';
-import { cp, mkdir, lstat, readlink, realpath } from 'node:fs/promises';
+import { cp, lstat, readlink, realpath } from 'node:fs/promises';
 import { pathToFileURL, fileURLToPath } from 'node:url';
-import { join, relative, resolve, sep } from 'node:path';
+import { join, relative, resolve, sep, isAbsolute } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { entries, hashTree } from './files.mjs';
 import { RunError } from './primitives.mjs';
 
 const inside = (root, path) => path === root || path.startsWith(root + sep);
+const exclude = ['node_modules', '.git'];
+export const hashProgram = root => hashTree(root, { exclude });
 export async function checkProgram(root) {
-  for (const name of await entries(root, { exclude: ['node_modules', '.git'] })) {
+  for (const name of await entries(root, { exclude })) {
     const path = join(root, name);
     if ((await lstat(path)).isSymbolicLink()) {
-      const target = resolve(root, name, '..', await readlink(path));
-      if (!inside(root, target)) throw new RunError(`Program symlink escapes its pinned directory: ${name}`);
+      const link = await readlink(path);
+      if (isAbsolute(link) || !inside(root, resolve(root, name, '..', link))) throw new RunError(`Program symlink must be relative and stay inside its pinned directory: ${name}`);
     }
     if (/\.(mjs|js|cjs)$/.test(name)) {
       try { execFileSync(process.execPath, ['--check', path], { stdio: 'pipe' }); }
-      catch (cause) { throw new RunError(`Syntax check failed for ${name}: ${cause.stderr?.toString() ?? cause.message}`, { cause }); }
+      catch (cause) { throw new RunError(`Syntax check failed for ${name}`, { cause }); }
     }
   }
-  return hashTree(root, { exclude: ['node_modules', '.git'] });
+  return hashProgram(root);
 }
 
 export async function copyProgram(source, target) {
   const before = await checkProgram(source);
-  await mkdir(target, { recursive: true });
   await cp(source, target, { recursive: true, verbatimSymlinks: true,
-    filter: path => !relative(source, path).split(sep).some(part => part === '.git' || part === 'node_modules') });
-  if (before !== await checkProgram(source) || before !== await checkProgram(target)) throw new RunError('Program changed while being copied; stop its writers and create a fresh run.');
+    filter: path => !relative(source, path).split(sep).some(part => exclude.includes(part)) });
+  if (before !== await hashProgram(target)) throw new RunError('Program changed while being copied; stop its writers and create a fresh run.');
   return before;
 }
 
