@@ -72,6 +72,24 @@ test('reentrant completion cannot start another extension after failure', async 
   assert.equal(scope.failures.length, 1);
 });
 
+test('unobservable Promise subtype retains the synchronous contract error and observation cause', async () => {
+  class WrappedPromise extends Promise {
+    constructor(source) {
+      if (!source || typeof source.then !== 'function') throw new TypeError('WrappedPromise requires a source promise');
+      super((resolve, reject) => source.then(resolve, reject));
+      this.source = source;
+    }
+    then(resolve, reject) { return this.source.then(resolve, reject); }
+  }
+  const { scope } = fixture();
+  const pending = Promise.withResolvers();
+  assert.throws(() => scope.invoke('wrapped', () => new WrappedPromise(pending.promise), []), /must return synchronously/);
+  await scope.drain();
+  assert.equal(scope.failures.length, 2);
+  assert.match(scope.failures[1].cause.message, /WrappedPromise requires a source promise/);
+  pending.resolve();
+});
+
 test('throwing completion method retains its original cause', async () => {
   const { scope } = fixture();
   const cause = new Error('broken completion method');

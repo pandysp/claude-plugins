@@ -10,15 +10,30 @@ import { traceAdmissions } from './fixtures/admission-store.mjs';
 async function fixture(t, method) {
   const root = await mkdtemp(join(tmpdir(), 'flue-admission-store-'));
   const controller = new AbortController(), reason = new Error('fixture-closed-admission');
-  const database = admissionDatabase(join(root, 'native.sqlite'), controller.signal);
+  const replaying = new Set();
+  const database = admissionDatabase(join(root, 'native.sqlite'), controller.signal, undefined, undefined, replaying);
   t.after(async () => { await database.close(); await rm(root, { recursive: true }); });
   await database.migrate();
   const { submissionStore: store } = await database.connect();
   const input = { submissionId: randomUUID(), agent: 'fixture', id: 'one', message: { kind: 'user', body: 'before' }, acceptedAt: new Date().toISOString(), ...(method === 'admitDirect' ? { kind: 'direct' } : {}) };
-  return { store, input, close: () => controller.abort(reason), reason };
+  return { store, input, replaying, close: () => controller.abort(reason), reason };
 }
 
 for (const method of ['admitDispatch', 'admitDirect']) {
+  test(`${method}: recovery reuses saved work and refuses ambiguous fresh admission`, async t => {
+    const { store, input, replaying } = await fixture(t, method);
+    await store[method](input);
+    replaying.add(input.id);
+    const replay = await store[method](input);
+    assert.equal((method === 'admitDispatch' ? replay.submission : replay).submissionId, input.submissionId);
+    const missing = { ...input, submissionId: randomUUID() };
+    await assert.rejects(store[method](missing), /Cannot confirm saved work.*new run/);
+    assert.equal(await store.getSubmission(missing.submissionId), null);
+    replaying.clear();
+    await store[method](missing);
+    assert.ok(await store.getSubmission(missing.submissionId), 'New work remains possible after recovery');
+  });
+
   test(`${method}: closure denies fresh acceptance but preserves native replay and conflict validation`, async t => {
     const { store, input, close, reason } = await fixture(t, method);
     await store[method](input);

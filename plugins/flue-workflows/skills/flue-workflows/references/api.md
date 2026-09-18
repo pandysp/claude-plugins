@@ -56,6 +56,9 @@ run-cancellation failures reject rather than returning a pretend answer.
 | `instructions` | Empty | Additional worker instructions; not inherited host instructions |
 | `data` | `null` | JSON configuration available to native hooks/tool factories as `task.data` |
 
+Inputs are copied when `run.agent()` is called, before waiting for a worker
+slot. Later changes to `data`, `tools` or `schema` do not change queued work.
+
 Unknown options, unknown models/tools and invalid schemas are refused. The
 schema validator uses Ajv's default JSON Schema dialect (draft-07), with formats
 and strict keyword checking. This is not a generic proof that a schema is
@@ -155,6 +158,10 @@ collection. Nested calls are ordinary program composition, not a new worker or
 supervisor. There is no built-in one-level nesting rule; do not create recursive
 cycles or assume arbitrary caller execution is durable.
 
+Child failures are printed and saved as `workflow-failed` events before being
+re-thrown. The parent may catch an ordinary child error and continue without a
+forced failure exit. Fatal worker/configuration errors still stop the run.
+
 ## Progress, limits and outputs
 
 | API | Meaning |
@@ -198,7 +205,7 @@ contain shell commands, absolute paths, symlinks, network access or native hooks
 All workers remain unrestricted local processes. A tool list containing `bash`
 is not read-only merely because it omits `write` and `edit`.
 
-After a snapshot worker settles, its artifact includes:
+After a snapshot worker settles, its artifact in `state.json` includes:
 
 | Field | Meaning |
 |---|---|
@@ -269,13 +276,14 @@ export default function (task) {
 ```
 
 Recognizable async/generator exports are rejected before native startup. If a
-synchronous-looking hook or factory returns a promise or conforming thenable,
-the run fails and retains ownership until that exposed work settles. A promise
-that never settles therefore prevents shutdown and lease release; cancellation
-cannot make arbitrary JavaScript stop safely. This is failure cleanup, not
-permission to write async hooks. Native `AgentTool.execute()` may remain async.
-Unreturned background work and malformed/dishonest completion protocols are not
-contained or made recoverable. Aborted workers may already have lost their
+synchronous-looking hook or factory returns a promise or thenable, the run
+fails and attempts to wait for the exposed work. Observable work retains the
+owner until settlement; a never-settling promise prevents shutdown. Some custom
+Promise subclasses cannot be observed. In that case the run reports the cause
+and fails, but its background effects are not contained. Inspect and stop them
+before retrying. This is failure cleanup, not permission to write async hooks.
+Native `AgentTool.execute()` may remain async. Unreturned background work is
+not contained or made recoverable. Aborted workers may already have lost their
 SDK-internal resources; retaining the run owner does not keep those usable.
 
 Prefer `agent.instructions` for a simple extra instruction; the hook entry is
@@ -319,6 +327,17 @@ node /absolute/workflow-space/flue.mjs resume audit-1
   workers from a program containing `tools.mjs` or `worker.mjs` are refused
   before startup because their custom effects are not tracked. Do not remove
   those modules to bypass the refusal.
+- Saved receipts are checked against Flue's public store before startup. An
+  interrupted job without a receipt replays its original keyed request, but
+  cannot create a fresh submission. Missing saved work causes a refusal with
+  instructions to restore the database or create a new run. This also refuses
+  an ambiguous crash just before the original submission was saved.
+- If receipt delivery keeps failing, the job stays pending and the run reports
+  `Worker receipt is unknown`; it never borrows another submission's outcome.
+  Resume can recover the reference once delivery works again.
+- These checks are not full database backup validation. Older contents that
+  retain the same submission records can still lose later progress. Keep the
+  whole run directory intact; do not restore database files independently.
 - This is not exact JavaScript continuation or exactly-once external effects.
   Native command tracking does not establish safety for arbitrary custom
   tools, hooks, detached descendants or caller-owned effects. Treat those cases

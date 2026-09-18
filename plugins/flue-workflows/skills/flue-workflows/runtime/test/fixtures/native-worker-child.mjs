@@ -49,7 +49,24 @@ const failController = () => {
   record({ event: 'controller-failed' });
 };
 globalThis.__flueNativeFixture = {
-  provider: faux.provider, sqlite, local, AgentRunError, checkProgram,
+  provider: faux.provider, local, AgentRunError, checkProgram,
+  sqlite: path => {
+    const database = sqlite(path);
+    if (!['resume-store-cancel', 'resume-store-fatal'].includes(mode)) return database;
+    return { ...database, async connect() {
+      const stores = await database.connect();
+      return { ...stores, submissionStore: new Proxy(stores.submissionStore, { get(target, key) {
+        if (key === 'getSubmission') return async id => {
+          const row = await target.getSubmission(id);
+          record({ event: 'stop-at-store-lookup', mode });
+          if (mode === 'resume-store-cancel') process.emit('SIGTERM'); else failController();
+          return row;
+        };
+        const value = Reflect.get(target, key, target);
+        return typeof value === 'function' ? value.bind(target) : value;
+      } }) };
+    } };
+  },
   createServer: (...args) => { server = createServer(...args); return server; },
   loader: async (...args) => {
     const code = await loader(...args);
@@ -203,5 +220,5 @@ registerHooks({
 const { cli } = await import('../../lib/cli.mjs');
 await cli(workspace, mode === 'run' ? ['run', program, '--id', 'fixture', '--cwd', dirname(program),
   '--model', 'openai/flue-fixture', '--auth', 'env:FLUE_NATIVE_FIXTURE_KEY', '--access', 'unrestricted',
-  '--effort', 'off', '--concurrency', String(jobCount), '--max-jobs', '5'] : ['resume', 'fixture']);
+  '--effort', 'off', '--concurrency', process.env.FLUE_NATIVE_FIXTURE_CONCURRENCY ?? String(jobCount), '--max-jobs', '5'] : ['resume', 'fixture']);
 record({ event: 'finished', exitCode: process.exitCode ?? 0, modelCalls: faux.state.callCount, fetchCalls });

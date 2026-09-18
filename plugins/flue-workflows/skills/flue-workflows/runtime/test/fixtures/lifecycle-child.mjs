@@ -46,7 +46,6 @@ globalThis.__flueTestBoundary = { local, sqlite, AgentRunError,
   const state = JSON.parse(await readFile(join(workspace, 'runs', 'fixture', 'state.json')));
   active = Object.values(state.jobs).filter(job => job.status === 'pending').length;
   await record({ event: 'native-start', active });
-  await options.db.migrate(); // real start() creates the native store file
   if (failures.has('start')) throw new Error('fixture-runtime-start-error');
   if (failures.has('extension-start')) {
     // Exercise the real ownership scope while the native start boundary is pending.

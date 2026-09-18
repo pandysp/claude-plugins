@@ -32,7 +32,7 @@ export function extensionScope(signal, onFailure) {
       }
       if (typeof then !== 'function') return value;
       open = false;
-      const error = new RunError(`${label} must return synchronously. Its asynchronous work remains owned until settlement; remove the asynchronous return.`);
+      const error = new RunError(`${label} must return synchronously. Shutdown will try to observe its asynchronous work; if observation fails, inspect background effects before retrying.`);
       const settled = Promise.resolve({ then(resolve, reject) {
         // Own completion, not its value: do not assimilate a second result.
         Reflect.apply(then, value, [() => resolve(), reject]);

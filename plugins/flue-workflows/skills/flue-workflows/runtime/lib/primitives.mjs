@@ -61,7 +61,14 @@ export function primitives({ invoke, emit, child, budget }) {
       emit({ type: 'phase', title });
     },
     log(text) { emit({ type: 'log', message: String(text) }); },
-    workflow(name, args) { return context.run({ ...current() }, () => child(name, args)); },
+    async workflow(name, args) {
+      try { return await context.run({ ...current() }, () => child(name, args)); }
+      catch (error) {
+        try { emit({ type: 'workflow-failed', name, message: message(error) }); }
+        catch (reporting) { throw new AggregateError([error, reporting], 'Child workflow and failure reporting failed', { cause: error }); }
+        throw error;
+      }
+    },
     budget,
   };
 }

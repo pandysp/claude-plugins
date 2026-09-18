@@ -1,12 +1,16 @@
 import { sqlite } from '@flue/runtime/node';
+import { RunError } from './primitives.mjs';
 
-export function admissionDatabase(path, signal, observed = () => {}, refused = () => {}) {
+export function admissionDatabase(path, signal, observed = () => {}, refused = () => {}, replaying = new Set()) {
   const database = sqlite(path);
   return { ...database, async connect() {
     const stores = await database.connect(), store = stores.submissionStore;
     const capture = row => { if (row) observed(row); return row; };
     const getSubmission = async id => capture(await store.getSubmission(id));
     const admission = method => async input => {
+      if (replaying.has(input.id) && !await getSubmission(input.submissionId)) {
+        throw new RunError(`Cannot confirm saved work for ${input.id}. Restore the native store or create a new run; recovery will not admit it again.`);
+      }
       // The pinned built-in SQLite store commits synchronously. Do not yield
       // between this check and admission, or generalize this to async backends.
       if (signal.aborted && !await getSubmission(input.submissionId)) { refused(input); signal.throwIfAborted(); }

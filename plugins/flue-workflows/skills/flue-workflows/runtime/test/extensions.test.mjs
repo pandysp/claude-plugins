@@ -24,6 +24,14 @@ import { readFileSync, writeFileSync, appendFileSync, existsSync } from 'node:fs
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 const record = value => appendFileSync(process.env.FLUE_EXTENSION_TRACE, JSON.stringify(value)+'\\n');
+class WrappedPromise extends Promise {
+  constructor(source) {
+    if (!source || typeof source.then !== 'function') throw new TypeError('WrappedPromise requires a source promise');
+    super((resolve, reject) => source.then(resolve, reject));
+    this.source = source;
+  }
+  then(resolve, reject) { return this.source.then(resolve, reject); }
+}
 function effect(task) {
   const dir = process.env.FLUE_EXTENSION_RUN;
   const db = new DatabaseSync(join(dir, 'owner.sqlite'));
@@ -51,6 +59,7 @@ async function delayed(task) {
   else {
     body = `const pending = delayed(task).then(()=>(${result}));`;
     if (mode === 'thenable') body += `const completion = {get then(){record({event:'then-get'});return function(resolve,reject){record({event:'then-call',receiverCorrect:this===completion});return pending.then(resolve,reject);};}}; return completion;`;
+    else if (mode === 'wrapped') body += 'return new WrappedPromise(pending);';
     else if (mode === 'native-overridden') body += `Object.defineProperty(pending,'then',{get(){record({event:'native-then-get'});throw new Error('fixture-native-then-override');}});return pending;`;
     else body += 'return pending;';
   }
@@ -168,6 +177,20 @@ for (const factory of [false, true]) {
       assert.match(result.state.error, mode === 'unreadable' ? /fixture-unreadable-completion/ : /must.*return/i);
     });
   }
+  test(`unobservable Promise subtype reports failure, not successful cleanup (factory: ${factory})`, { timeout: 30_000 }, async t => {
+    const f = await fixture(t, { factory, mode: 'wrapped' });
+    const result = await f.finished();
+    assert.equal(result.code, 1, JSON.stringify(result));
+    assert.equal(result.state.status, 'failed');
+    assert.equal(result.state.cleanShutdown, false);
+    assert.equal(result.end.modelCalls, 0);
+    for (const diagnostic of [result.stderr, result.state.error]) {
+      assert.match(diagnostic, /must return synchronously/);
+      assert.match(diagnostic, /WrappedPromise requires a source promise/);
+    }
+    // The unsupported hook's background writes are not contained. No claim
+    // that the lease remains held when completion observation itself failed.
+  });
   for (const cleanupFailure of ['abort', 'read']) {
     test(`native ${cleanupFailure} failure cannot skip extension drain (factory: ${factory})`, { timeout: 30_000 }, async t => {
       const f = await fixture(t, { factory, cleanupFailure });

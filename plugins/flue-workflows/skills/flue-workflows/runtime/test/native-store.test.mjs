@@ -16,7 +16,7 @@ const env = Object.fromEntries(['PATH', 'HOME', 'USER', 'LOGNAME', 'SHELL', 'TMP
 
 const resultSchema = { type: 'object', properties: { answer: { type: 'integer' } }, required: ['answer'], additionalProperties: false };
 
-async function fixture(t, jobCount = 1, { body, hook, response = 'structured', expectedResult = jobCount === 1 ? { answer: 42 } : [{ answer: 42 }, { answer: 42 }] } = {}) {
+async function fixture(t, jobCount = 1, { body, hook, childProgram, concurrency = jobCount, response = 'structured', expectedResult = jobCount === 1 ? { answer: 42 } : [{ answer: 42 }, { answer: 42 }] } = {}) {
   const root = await mkdtemp(join(tmpdir(), 'flue-native-store-'));
   const workspace = join(root, 'workspace');
   const dir = join(workspace, 'runs', 'fixture');
@@ -33,6 +33,7 @@ async function fixture(t, jobCount = 1, { body, hook, response = 'structured', e
   });
   await mkdir(dirname(program));
   if (hook) await writeFile(join(dirname(program), 'worker.mjs'), hook);
+  if (childProgram) await writeFile(join(dirname(program), 'child.mjs'), childProgram);
   const call = key => `run.agent('Return the checked answer.', {
     key: ${JSON.stringify(key)}, tools: [],
     schema: ${JSON.stringify(resultSchema)},
@@ -44,7 +45,7 @@ async function fixture(t, jobCount = 1, { body, hook, response = 'structured', e
   async function invoke(mode) {
     await writeFile(trace, '');
     let result;
-    try { result = { ...await exec(process.execPath, [child, workspace, mode, program, trace], { env: { ...env, FLUE_NATIVE_FIXTURE_JOBS: String(jobCount), FLUE_NATIVE_FIXTURE_RESPONSE: response }, timeout: 20_000, killSignal: 'SIGKILL' }), code: 0 }; }
+    try { result = { ...await exec(process.execPath, [child, workspace, mode, program, trace], { env: { ...env, FLUE_NATIVE_FIXTURE_JOBS: String(jobCount), FLUE_NATIVE_FIXTURE_CONCURRENCY: String(concurrency), FLUE_NATIVE_FIXTURE_RESPONSE: response }, timeout: 20_000, killSignal: 'SIGKILL' }), code: 0 }; }
     catch (error) {
       if (typeof error.code !== 'number' || error.killed) throw error;
       result = { code: error.code, stdout: error.stdout, stderr: error.stderr };
@@ -92,6 +93,22 @@ test('native worker records own their inputs after caller mutation', async t => 
   assert.deepEqual(sent.data, { stamp: 'original' });
   assert.deepEqual(f.job.descriptor, sent, 'caller mutation must not rewrite the recorded native task');
   assert.equal(f.job.identity, hash(json(f.job.descriptor)));
+});
+
+for (const concurrency of [1, 2]) test(`worker inputs are captured at the call, even while queued (concurrency: ${concurrency})`, async t => {
+  const f = await fixture(t, 2, { concurrency, body: `
+    const first = run.agent('First answer.', { key: 'first', tools: [], schema: ${JSON.stringify(resultSchema)} });
+    const data = { stamp: 'original' }, tools = [], schema = ${JSON.stringify(resultSchema)};
+    const second = run.agent('Second answer.', { key: 'second', data, tools, schema });
+    data.stamp = 'changed'; tools.push('write'); schema.description = 'changed';
+    return Promise.all([first, second]);
+  ` });
+  const job = Object.values(f.state.jobs).find(job => job.key === 'second');
+  assert.deepEqual(job.descriptor.data, { stamp: 'original' });
+  assert.deepEqual(job.descriptor.tools, []);
+  assert.deepEqual(job.descriptor.schema, resultSchema);
+  const sent = f.first.events.find(event => event.event === 'native-dispatch' && event.input.message === 'Second answer.');
+  assert.deepEqual(sent.input.initialData, job.descriptor);
 });
 
 test('native worker records own their results after caller transformation', async t => {
@@ -145,6 +162,24 @@ test('native reply mutations after capture do not change cached or returned data
   assert.deepEqual(await load(join(f.dir, 'result.json')), { answer: 42 });
 });
 
+test('a caught child failure is visible without forcing the parent to fail', async t => {
+  const f = await fixture(t, 1, {
+    childProgram: "export default () => { throw new Error('fixture-caught-child-failure'); };",
+    body: `try { await run.workflow('child.mjs'); }
+      catch (error) { if (error.message !== 'fixture-caught-child-failure') throw error; }
+      return run.agent('Continue with the checked answer.', { key: 'answer', tools: [], schema: ${JSON.stringify(resultSchema)} });`,
+  });
+  assert.equal(f.first.code, 0);
+  assert.equal(f.state.status, 'finished');
+  assert.equal(f.state.cleanShutdown, true);
+  assert.equal(f.state.compositionErrors, 0);
+  const logged = f.first.stderr.split('\n').filter(line => line.startsWith('{')).map(JSON.parse);
+  const failure = logged.find(event => event.type === 'workflow-failed');
+  assert.equal(failure?.name, 'child.mjs');
+  assert.match(failure?.message ?? '', /fixture-caught-child-failure/);
+  assert.match(await readFile(join(f.dir, 'events.jsonl'), 'utf8'), /fixture-caught-child-failure/);
+});
+
 test('native text worker results remain reusable strings', async t => {
   const f = await fixture(t, 1, { response: 'text', expectedResult: 'checked text', body: "return run.agent('Return checked text.', { key: 'text', tools: [] });" });
   assert.equal(f.job.result, 'checked text');
@@ -192,6 +227,16 @@ for (const [mode, status, clean] of [['resume-cancel', 'cancelled', true], ['res
   assert.doesNotMatch(result.stderr, /fixture-program-entered/, 'cancellation must not enter the authored program after the recovery barrier');
 });
 
+for (const mode of ['resume-store-cancel', 'resume-store-fatal']) test(`native startup stays stopped after ${mode}`, async t => {
+  const f = await fixture(t);
+  const result = await f.invoke(mode);
+  assert.equal(result.code, 1, result.stderr);
+  assert.ok(result.events.some(event => event.event === 'stop-at-store-lookup'));
+  assert.equal(result.events.some(event => event.event === 'native-start'), false, 'Store inspection must not reopen startup after a stop');
+  assert.equal(result.modelCalls, 0);
+  assert.match(result.stderr, mode === 'resume-store-cancel' ? /Cancellation requested/ : /fixture-native-admission-controller-error/);
+});
+
 test('native recovery keeps mixed cancellation and observation failures unclean', async t => {
   const f = await fixture(t, 2);
   for (const job of Object.values(f.state.jobs)) job.status = 'pending';
@@ -207,14 +252,30 @@ test('native recovery keeps mixed cancellation and observation failures unclean'
   assert.doesNotMatch(result.stderr, /fixture-program-entered/);
 });
 
-for (const mode of ['missing', 'replaced', 'replaced-without-receipt']) test(`resume refuses ${mode} native storage before start or repeat work`, async t => {
+for (const mode of ['missing', 'replaced']) test(`resume refuses ${mode} native storage before start or repeat work`, async t => {
   const f = await fixture(t);
   if (mode === 'missing') await f.removeDatabase();
   else await f.replaceDatabase();
-  if (mode === 'replaced-without-receipt') await f.forgetReceipt();
   const result = await f.invoke('resume');
   assert.equal(result.code, 1, JSON.stringify(result));
   assert.equal(result.modelCalls, 0, JSON.stringify(result.events));
   assert.equal(result.events.some(event => event.event === 'native-start'), false);
   assert.match(result.stderr, /native|storage|database|submission/i);
+});
+
+for (const mode of ['missing', 'replaced']) test(`receiptless recovery refuses ${mode} storage instead of repeating work`, async t => {
+  const f = await fixture(t);
+  await f.forgetReceipt();
+  if (mode === 'missing') await f.removeDatabase();
+  else await f.replaceDatabase();
+  const result = await f.invoke('resume');
+  assert.equal(result.code, 1, result.stderr);
+  assert.equal(result.modelCalls, 0, JSON.stringify(result.events));
+  assert.equal(result.events.filter(event => event.event === 'store-observed' && event.fresh).length, 0);
+  assert.match(result.stderr, /Cannot confirm saved work|Native store is missing/);
+  assert.match(result.stderr, /new run/);
+  const state = await load(join(f.dir, 'state.json'));
+  assert.equal(state.status, 'failed');
+  assert.equal(state.cleanShutdown, false);
+  assert.equal(state.jobs[f.job.id].status, 'pending', 'Unknown admission is not a terminal outcome');
 });

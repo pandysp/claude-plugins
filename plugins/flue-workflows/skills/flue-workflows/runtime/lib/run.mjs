@@ -4,7 +4,7 @@ import { resolve, join, sep } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { createServer } from 'node:net';
 import { init, AgentRunError } from '@flue/runtime';
-import { start, local } from '@flue/runtime/node';
+import { start, local, sqlite } from '@flue/runtime/node';
 import { cleanupSessionResources } from '@earendil-works/pi-ai';
 import { primitives, concurrency, RunError, message, fatal } from './primitives.mjs';
 import { hash, json, load, save, lease, hashTree } from './files.mjs';
@@ -221,18 +221,27 @@ export async function execute({ dir, runtimeRoot }) {
       return entry;
     }
     for (const job of recovering) own(job, true);
-    // The native store must be the file this run created. A missing or
-    // replaced file is refused before Flue starts; use a new run instead.
-    const storePath = join(dir, 'flue.sqlite');
-    const storeIdentity = async () => { const { dev, ino } = await stat(storePath); return { dev, ino }; };
+    // Every saved receipt must still be in the native store, or startup is
+    // refused: a missing or replaced store cannot recover this run's work.
     async function requireOwnStore() {
-      if (!state.store) return;
-      const identity = await storeIdentity().catch(error => {
+      const jobs = Object.values(state.jobs);
+      if (!jobs.length) return;
+      const receipts = jobs.filter(job => job.receipt);
+      const storePath = join(dir, 'flue.sqlite');
+      await access(storePath).catch(error => {
         if (error.code !== 'ENOENT') throw error;
         throw new RunError('Native store is missing. Restore the original flue.sqlite or create a new run; no workers were started.');
       });
-      if (identity.dev !== state.store.dev || identity.ino !== state.store.ino) throw new RunError('Native store was replaced. Restore the original flue.sqlite or create a new run; no workers were started.');
+      if (!receipts.length) return;
+      const store = sqlite(storePath);
+      try {
+        const { submissionStore } = await store.connect();
+        for (const job of receipts) {
+          if (!await submissionStore.getSubmission(job.receipt.submissionId)) throw new RunError(`Native store no longer holds submission ${job.receipt.submissionId} for ${job.id}. Restore the original flue.sqlite or create a new run; no workers were started.`);
+        }
+      } finally { await store.close(); }
     }
+    const replaying = new Set(recovering.map(job => job.id));
     const database = admissionDatabase(join(dir, 'flue.sqlite'), controller.signal, row => {
       if (row.input.agent !== Worker.agentName) {
         const error = new RunError(`Native submission ${row.submissionId} targets an unregistered workflow agent: ${row.input.agent}. Retain the native store for inspection.`);
@@ -241,13 +250,13 @@ export async function execute({ dir, runtimeRoot }) {
       const entry = address(row.input.id);
       if (remember(entry, row.submissionId, row.submissionId)) emit({ type: 'native-submission-observed', id: row.input.id, submission: row.submissionId });
       entry.denied = false;
-    }, input => { address(input.id).denied = true; });
+    }, input => { address(input.id).denied = true; }, replaying);
     controller.signal.throwIfAborted();
     await requireOwnStore();
+    controller.signal.throwIfAborted();
     runtimeAttempted = true;
     runtime = await start({ agents: [Worker], db: database, providers: [provider] });
     controller.signal.throwIfAborted();
-    if (!state.store) { state.store = await storeIdentity(); await persist(); }
     // start() recovers accepted submissions before the caller's admission gate exists.
     // Settle that bounded, already-admitted set before allowing any new work.
     if (recovering.length) {
@@ -275,10 +284,10 @@ export async function execute({ dir, runtimeRoot }) {
       controller.signal.throwIfAborted();
       emit({ type: 'recovery-settled', workers: recovering.length });
     }
+    replaying.clear();
     const gate = concurrency(manifest.config.concurrency, controller.signal);
-    async function invoke(namespace, prompt, options) {
+    async function invoke(namespace, descriptor, key) {
       controller.signal.throwIfAborted();
-      const descriptor = normalize(prompt, options);
       descriptor.cwd = await realpath(resolve(manifest.config.cwd, descriptor.cwd));
       if (!(await stat(descriptor.cwd)).isDirectory()) throw new RunError(`Working directory is not a directory: ${descriptor.cwd}`);
       if (runtimeRoot.startsWith(descriptor.cwd + sep) || dir.startsWith(descriptor.cwd + sep)) throw new RunError('Working directories must not contain the workflow workspace. Keep source, programs and run state in separate directories.');
@@ -286,18 +295,18 @@ export async function execute({ dir, runtimeRoot }) {
       const occurrenceKey = `${namespace}:${identity}`;
       const occurrence = occurrences.get(occurrenceKey) ?? 0;
       occurrences.set(occurrenceKey, occurrence + 1);
-      const id = 'worker-' + hash(options.key === undefined ? `${occurrenceKey}:${occurrence}` : `${namespace}:key:${options.key}`);
+      const id = 'worker-' + hash(key === undefined ? `${occurrenceKey}:${occurrence}` : `${namespace}:key:${key}`);
       let job = state.jobs[id];
-      if (job?.status === 'pending' && seen.has(id)) throw new RunError(`Concurrent calls reused key ${options.key}. Share/await the first promise instead of starting the same job twice.`);
+      if (job?.status === 'pending' && seen.has(id)) throw new RunError(`Concurrent calls reused key ${key}. Share/await the first promise instead of starting the same job twice.`);
       seen.add(id);
       const existing = !!job;
       const wasTerminal = job && ['completed', 'failed', 'aborted'].includes(job.status);
       if (job && descriptor.isolation === 'snapshot' && !job.workspace) throw new RunError(`Job ${id} has no complete input snapshot. Retain its files and create a new run; original-source execution is not a fallback.`);
-      if (job && job.identity !== identity) throw new RunError(`Job key ${options.key} was reused with different inputs. Use a distinct key, not a cached answer to a different question.`);
+      if (job && job.identity !== identity) throw new RunError(`Job key ${key} was reused with different inputs. Use a distinct key, not a cached answer to a different question.`);
       state.calls++;
       if (!job && Object.keys(state.jobs).length >= manifest.config.maxJobs) throw new RunError(`Run-wide worker limit ${manifest.config.maxJobs} reached. No new worker was admitted. Report omitted work; raise the limit only in a new explicitly configured run.`);
       if (!job) {
-        job = { id, key: options.key ?? null, namespace, identity, descriptor, status: 'pending', receipt: null, result: null, error: null, artifact: null, workspace: null };
+        job = { id, key: key ?? null, namespace, identity, descriptor, status: 'pending', receipt: null, result: null, error: null, artifact: null, workspace: null };
         state.jobs[id] = job;
         own(job);
         await persist();
@@ -359,7 +368,12 @@ export async function execute({ dir, runtimeRoot }) {
         emit,
         budget: Object.freeze({ maxJobs: manifest.config.maxJobs, spent: () => Object.keys(state.jobs).length, remaining: () => manifest.config.maxJobs - Object.keys(state.jobs).length }),
         invoke: (prompt, options) => {
-          const promise = gate(() => invoke(namespace, prompt, options)).catch(error => {
+          const promise = (async () => {
+            // Capture caller-owned values before waiting for a worker slot.
+            controller.signal.throwIfAborted();
+            const descriptor = normalize(prompt, options), key = options.key;
+            return gate(() => invoke(namespace, descriptor, key));
+          })().catch(error => {
             if (fatal(error)) throw error;
             throw new RunError(`Worker operation failed: ${message(error)}`, { cause: error });
           });

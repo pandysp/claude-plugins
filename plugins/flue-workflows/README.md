@@ -37,9 +37,9 @@ one host's plugin-cache path into authored programs. The dedicated workflow
 workspace keeps run state and each run's pinned runtime outside that cache.
 
 Declared prerequisites are Node 22.19+, npm, Git and POSIX process groups
-(macOS/Linux). Local tests have run on Node 22.19.0 and 26.5.0 on macOS, including
-scripted-transport native probes; known failures remain. Final installed-build
-verification and Linux CI are still open.
+(macOS/Linux). CI runs the runtime and examples on both platforms with Node
+22.19.0 and 26.5.0, using real Flue/SQLite/Git and scripted model replies.
+Final installed-build and live authoring verification remain open.
 
 ## A disposable coding example
 
@@ -114,6 +114,14 @@ the retained files and stop surviving writers explicitly.
 `resume` uses the saved configuration and runtime, reenters the pinned program
 from the beginning, and can reuse recorded matching jobs. Failed/aborted keys
 are not silently retried. Changed work needs new keys or a new run.
+
+If the database no longer contains a saved job, recovery stops rather than
+quietly starting that job again. If a job's saved reference was lost, the same
+request can recover it only from existing Flue records. Ambiguous crashes just
+before a job was saved require restoring the database or creating a new run.
+Repeated reference-delivery failures report `Worker receipt is unknown` and
+leave the job pending. Keep the whole run directory intact: these checks do not
+verify every past database write or make external effects exactly-once.
 
 An owner process dying does not prove its commands died. Live recorded groups,
 unknown command ownership and damaged inputs/outputs block reentry. `resume`

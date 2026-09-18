@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { sqlite } from '@flue/runtime/node';
 import { hash, hashTree, json } from '../lib/files.mjs';
 
 const exec = promisify(execFile);
@@ -48,8 +49,16 @@ async function fixture(t, { extra, body = "return run.agent('new work', { key: '
 }
 async function pending(f, isolation = 'none') {
   const descriptor = { prompt: 'old work', model: f.manifest.config.model, effort: 'low', tools: [], schema: null, isolation, cwd: f.manifest.config.cwd, label: '', phase: '', instructions: '', data: null };
-  f.state.jobs['old-worker'] = { id: 'old-worker', key: 'old', namespace: 'main', descriptor, identity: hash(json(descriptor)), status: 'pending', receipt: { submissionId: 'old-worker', uid: 'old-worker', acceptedAt: '2026-01-01T00:00:00.000Z' }, result: null, error: null, workspace: null, artifact: null };
+  const receipt = { submissionId: 'old-worker', uid: 'old-worker', acceptedAt: '2026-01-01T00:00:00.000Z' };
+  f.state.jobs['old-worker'] = { id: 'old-worker', key: 'old', namespace: 'main', descriptor, identity: hash(json(descriptor)), status: 'pending', receipt, result: null, error: null, workspace: null, artifact: null };
   await writeFile(join(f.dir, 'state.json'), json(f.state));
+  // A saved receipt implies its row in the native store.
+  const store = sqlite(join(f.dir, 'flue.sqlite'));
+  try {
+    await store.migrate();
+    const { submissionStore } = await store.connect();
+    await submissionStore.admitDispatch({ submissionId: receipt.submissionId, agent: 'Worker', id: 'old-worker', message: { kind: 'user', body: descriptor.prompt }, acceptedAt: receipt.acceptedAt });
+  } finally { await store.close(); }
 }
 async function refusedBeforeStartup(f, expected) {
   const result = await run(f, 'resume', false);

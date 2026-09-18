@@ -112,7 +112,7 @@ export async function main(workspace, argv = process.argv.slice(2)) {
       libraryHash: await hashTree(join(runtimeRoot, 'lib')), lockHash: hash(await readFile(join(runtimeRoot, 'package-lock.json'))),
     };
     await save(join(dir, 'manifest.json'), manifest);
-    await save(join(dir, 'state.json'), { manifestHash: hash(json(manifest)), status: 'created', cleanShutdown: true, attempt: null, owner: null, store: null, jobs: {}, directories: {}, calls: 0, reused: 0, reattached: 0, compositionErrors: 0, toolErrors: 0, error: null });
+    await save(join(dir, 'state.json'), { manifestHash: hash(json(manifest)), status: 'created', cleanShutdown: true, attempt: null, owner: null, jobs: {}, directories: {}, calls: 0, reused: 0, reattached: 0, compositionErrors: 0, toolErrors: 0, error: null });
     await executeAndInspect(dir);
     return;
   }

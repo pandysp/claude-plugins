@@ -160,7 +160,10 @@ recorded jobs. It does not restore a JavaScript stack, timing, completion order
 or arbitrary external effects. It verifies pinned code, declared working
 directories and retained artifacts before Flue startup. Changes need a new run;
 terminal failed/aborted jobs stay failed/aborted rather than being silently
-retried. Explicit retries in a program use distinct job keys.
+retried. Explicit retries in a program use distinct job keys. Missing saved
+submissions cause a loud refusal, including interrupted jobs whose receipt was
+never saved. Recovery may reuse an existing submission, not create a new one
+for that pending job. Restore the database or explicitly start a new run.
 
 After a hard kill, shell commands may outlive the controller. Resume refuses
 while recorded command groups remain or their ownership is unknown. Inspect
