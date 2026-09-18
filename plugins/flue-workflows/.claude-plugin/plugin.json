@@ -1,0 +1,10 @@
+{
+  "name": "flue-workflows",
+  "description": "Author JavaScript workflows with native Flue workers, structured results, composition, retained edits, and saved-result reentry. Development draft.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT"
+}

@@ -32,6 +32,7 @@ module HostPackages
       pi: "the vision loop needs a browser runtime and screenshots returned to the model; unverified on Pi"
     },
     "explore" => { codex: true, pi: true },
+    "flue-workflows" => { codex: true, pi: true },
     "handoff" => { codex: true, pi: true },
     "pre-mortem" => { codex: true, pi: true },
     "preflight" => { codex: true, pi: true },
