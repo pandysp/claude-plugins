@@ -5,9 +5,9 @@ assistant owns the task, program and conversation; [Flue](https://flueframework.
 runs the workers. No supervisor model, fixed workflow catalog or prescribed
 roles, phases, votes or stopping rules.
 
-**Development draft:** runtime review, final installed-build verification and
-fresh cross-host authoring trials are still open. Earlier live receipts do not
-certify the final build. This is not a completed release or parity claim.
+**Verification scope:** a Pi-authored coding workflow has passed on the current
+installed runtime with real Luna workers, file/shell tools and OpenAI subscription
+authentication. This is not a complete Claude feature-parity or release claim.
 
 ## What it provides
 
@@ -39,7 +39,14 @@ workspace keeps run state and each run's pinned runtime outside that cache.
 Declared prerequisites are Node 22.19+, npm, Git and POSIX process groups
 (macOS/Linux). CI runs the runtime and examples on both platforms with Node
 22.19.0 and 26.5.0, using real Flue/SQLite/Git and scripted model replies.
-Final installed-build and live authoring verification remain open.
+### Live verification
+
+A live macOS trial on 2026-09-18 used `openai-codex/gpt-5.6-luna`: one worker
+identified two broken functions; two workers repaired them concurrently in
+separate copies. Six supplied checks and 25 additional checks passed, with the
+original source/index unchanged. `resume` reused all three results with fetch
+blocked and zero fetch attempts. This verifies completed-work reuse, not abrupt
+crash recovery or another host's automatic skill discovery.
 
 ## A disposable coding example
 
@@ -79,7 +86,9 @@ arguments or copy an auth file into the example.
 verifier checks final candidate files with the original fixture's checks, checks
 patch bytes and task boundaries, reconciles coverage, and checks the original
 files/HEAD/index. Passing finite fixture cases is not proof for arbitrary inputs.
-The example has not yet passed the final live authoring/verification gate.
+The live trial reused this fixture and checker with a smaller, separately
+authored discovery/repair program; it did not exercise every branch of the full
+example below.
 
 ### Exercise different outcomes
 

@@ -343,11 +343,10 @@ node /absolute/workflow-space/flue.mjs resume audit-1
   tools, hooks, detached descendants or caller-owned effects. Treat those cases
   as requiring explicit investigation, not automatic retry.
 
-**Verification boundary:** current offline lifecycle regressions pass for the
-recovery barrier and pre-start refusals. Same-run interrupted
-recovery was demonstrated on an earlier installed build. The final installed
-runtime still needs its live recovery proof; earlier receipts do not certify
-later code.
+**Verification boundary:** automated tests cover the recovery barrier and
+pre-start refusals. The [live trial](../../../README.md#live-verification) covers
+completed-work reuse, not abrupt-crash recovery. Historical interruption tests
+do not certify later code.
 
 ## CLI and authentication
 
