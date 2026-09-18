@@ -75,7 +75,7 @@ export async function fingerprint(root, paths) {
     else if (stat.isFile()) result.push([path, stat.mode & 0o111, hash(await readFile(file))]);
     else throw new RunError(`Cannot snapshot ${file}: only files and symlinks are supported.`);
   }
-  return hash(json(result));
+  return hash(JSON.stringify(result));
 }
 
 export async function hashTree(root, options) { return fingerprint(root, await entries(root, options)); }

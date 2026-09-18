@@ -72,9 +72,8 @@ async function executeOwned({ dir, runtimeRoot }) {
   };
   // One abort path: whoever aborts the controller also aborts every live worker.
   signal.addEventListener('abort', () => { for (const handle of handles.values()) aborts.push(attempt(() => handle.abort())); });
-  let signals = 0;
   const onSignal = () => {
-    if (signals++) process.exit(1);
+    if (signal.aborted) process.exit(1);
     emit({ type: 'cancel-requested' });
     controller.abort(new DOMException('Cancellation requested', 'AbortError'));
   };
