@@ -171,7 +171,7 @@ forced failure exit. Fatal worker/configuration errors still stop the run.
 | `run.budget.maxJobs` | Configured run-wide worker-admission ceiling |
 | `run.budget.spent()` | Number of saved jobs, not tokens, dollars or current live workers |
 | `run.budget.remaining()` | Admission slots remaining under that ceiling |
-| `run.artifacts()` | References (`id`, `key`, `cwd`, `patch`) into the final workspace; shutdown recollects every patch, so read them after the run. `state.json` holds the final hashes |
+| `run.artifacts()` | References (`id`, `key`, `cwd`, `patch`) for every collected snapshot worker so far |
 | `run.signal` | Run-level `AbortSignal`; pass it to caller-owned cancellable operations |
 
 Parallel branches copy their current phase context rather than mutating one
@@ -213,8 +213,7 @@ After a snapshot worker settles, its artifact in `state.json` includes:
 | `base` | Input-snapshot commit |
 | `head` | Worker HEAD when collected |
 | `changed` | Paths changed relative to the input snapshot |
-| `patch` / `patchHash` | Binary-capable patch path and its SHA-256 |
-| `hash` | Retained file-tree identity, excluding `.git` |
+| `patch` | Binary-capable patch path |
 
 Collection includes worker commits, dirty changes and non-ignored untracked
 files without changing its index. Ignored outputs stay on disk but are not in
@@ -225,8 +224,9 @@ Use distinct keys to map candidates back to artifacts. Check the actual files
 and run independent tests before delivery. A verifier can use
 `cwd: candidate.cwd, isolation: 'snapshot'` to check a separate copy of the
 candidate without modifying its retained output. Never automatically merge or
-delete any successful, failed or cancelled workspace. Inspect again after
-shutdown: final collection may include late failed/cancelled-worker edits.
+delete any successful, failed or cancelled workspace. Workers stopped by a
+cancel or failure are collected again at shutdown, so their patch may include
+late edits.
 
 ## Custom tools and native hooks
 
@@ -275,16 +275,8 @@ export default function (task) {
 }
 ```
 
-Recognizable async/generator exports are rejected before native startup. If a
-synchronous-looking hook or factory returns a promise or thenable, the run
-fails and attempts to wait for the exposed work. Observable work retains the
-owner until settlement; a never-settling promise prevents shutdown. Some custom
-Promise subclasses cannot be observed. In that case the run reports the cause
-and fails, but its background effects are not contained. Inspect and stop them
-before retrying. This is failure cleanup, not permission to write async hooks.
-Native `AgentTool.execute()` may remain async. Unreturned background work is
-not contained or made recoverable. Aborted workers may already have lost their
-SDK-internal resources; retaining the run owner does not keep those usable.
+Async/generator exports are rejected before startup. A hook or factory that
+returns a promise fails its worker. Native `AgentTool.execute()` may be async.
 
 Prefer `agent.instructions` for a simple extra instruction; the hook entry is
 for capabilities such as native durable tools or deliberately declared MCP/
@@ -304,49 +296,25 @@ node /absolute/workflow-space/flue.mjs cancel audit-1
 node /absolute/workflow-space/flue.mjs resume audit-1
 ```
 
-- `inspect` reads saved status, actual ownership, receipts, errors, command
-  tracking and artifacts. It does not start recovery.
-- `cancel` contacts the existing owner, then confirms lock release, clean
-  `cancelled`/`finished` execution, terminal workers and quiescent recorded
-  command groups. Missing ownership records, cleanup failures or unresolved
-  commands are errors, not confirmation. A run that finishes before cancellation
-  is reported as `finished`. Cancel does not start recovery or kill surviving
-  command groups; inspect retained files and stop old writers explicitly.
-- `resume` uses the saved configuration and original installed runtime. It
-  re-enters the pinned program from its start and reuses matching submissions.
-  Failed/aborted keyed jobs remain terminal. Do not edit executing launchers or
-  pinned code, or remove runtime versions still referenced by runs.
-- Before recovery, ownership, saved configuration integrity, pinned code/dependency
-  lock, retained artifacts, recorded direct working directories and tracked
-  native command ownership are checked. Missing/unknown command records or surviving old process groups
-  refuse startup. Inspect and stop only positively identified owned processes;
-  never delete tracking files to bypass a refusal.
-- A supported interrupted native-worker run can reattach after old foreground
-  commands stop. The current runner settles its bounded, already-admitted
-  worker set before reentering the program and admitting new work. Pending
-  workers from a program containing `tools.mjs` or `worker.mjs` are refused
-  before startup because their custom effects are not tracked. Do not remove
-  those modules to bypass the refusal.
-- Saved receipts are checked against Flue's public store before startup. An
-  interrupted job without a receipt replays its original keyed request, but
-  cannot create a fresh submission. Missing saved work causes a refusal with
-  instructions to restore the database or create a new run. This also refuses
-  an ambiguous crash just before the original submission was saved.
-- If receipt delivery keeps failing, the job stays pending and the run reports
-  `Worker receipt is unknown`; it never borrows another submission's outcome.
-  Resume can recover the reference once delivery works again.
-- These checks are not full database backup validation. Older contents that
-  retain the same submission records can still lose later progress. Keep the
-  whole run directory intact; do not restore database files independently.
-- This is not exact JavaScript continuation or exactly-once external effects.
-  Native command tracking does not establish safety for arbitrary custom
-  tools, hooks, detached descendants or caller-owned effects. Treat those cases
-  as requiring explicit investigation, not automatic retry.
-
-**Verification boundary:** automated tests cover the recovery barrier and
-pre-start refusals. The [live trial](../../../README.md#live-verification) covers
-completed-work reuse, not abrupt-crash recovery. Historical interruption tests
-do not certify later code.
+- `inspect` prints saved status, whether the owner is alive, worker counts,
+  live shell process groups, errors and artifact paths. It starts nothing.
+- `cancel` sends `SIGTERM` to the live owner, waits for it to exit, then prints
+  the inspection. The owner aborts every live worker through Flue and records
+  them as `aborted`. A second `SIGTERM`/`SIGINT` to the owner exits at once and
+  leaves those jobs `pending` for `resume`.
+- `resume` uses the saved configuration and the runtime that created the run.
+  It re-enters the pinned program from its start and reuses any job whose key
+  and inputs match a saved one: `completed` returns the saved result, `failed`
+  and `aborted` return `null`, `pending` dispatches the same keyed request and
+  Flue returns the existing submission (or runs it if it was never admitted).
+  Work Flue restarts on its own at startup may briefly exceed `--concurrency`.
+- `resume` refuses to start when the saved configuration or pinned program
+  changed, a retained snapshot workspace is missing, or a shell command from
+  the previous attempt is still running (its process group is journaled at
+  spawn). Stop such commands yourself; do not edit the journal.
+- Keep the whole run directory intact; a deleted `flue.sqlite` makes pending
+  work run again. What survives inside a worker is Flue's contract, see its
+  [durability guide](https://flueframework.com/docs/guide/durability/).
 
 ## CLI and authentication
 

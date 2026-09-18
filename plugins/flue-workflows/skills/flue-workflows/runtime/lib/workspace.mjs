@@ -1,9 +1,9 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { mkdir, copyFile, lstat, readlink, symlink, chmod, writeFile, mkdtemp, rm, realpath, readFile } from 'node:fs/promises';
+import { mkdir, copyFile, lstat, readlink, symlink, chmod, writeFile, mkdtemp, rm, realpath } from 'node:fs/promises';
 import { join, dirname, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
-import { fingerprint, hashTree, hash } from './files.mjs';
+import { fingerprint } from './files.mjs';
 import { RunError } from './primitives.mjs';
 
 const exec = promisify(execFile);
@@ -38,22 +38,16 @@ export async function snapshot(source, target) {
     else if (stat.isFile()) {
       await copyFile(input, output);
       await chmod(output, 0o600 | (stat.mode & 0o111));
-    } else throw new RunError(`Unsupported input ${input}; no submodule/special-file snapshot was made.`);
+    } else throw new RunError(`Cannot snapshot ${input}: only files and symlinks are supported.`);
   }
-  if (identity !== await fingerprint(target, paths) || identity !== await fingerprint(source, await files(source)) || head !== (await git(source, ['rev-parse', 'HEAD'])).trim()) {
-    throw new RunError(`Source changed while copying ${source}. Stop its writers and start a fresh run.`);
+  if (identity !== await fingerprint(target, paths)) {
+    throw new RunError(`Source changed while copying ${source}; stop its writers and start a fresh run.`);
   }
   await git(target, ['config', 'user.name', 'Flue workflow']);
   await git(target, ['config', 'user.email', 'flue-workflow@example.invalid']);
   await git(target, ['add', '--all', '--force']);
   await git(target, ['-c', 'commit.gpgSign=false', 'commit', '--allow-empty', '-qm', 'Workflow input snapshot']);
   return { source: resolve(source), sourceHead: head, sourceHash: identity, commit: (await git(target, ['rev-parse', 'HEAD'])).trim() };
-}
-
-export async function verifyArtifact(artifact) {
-  return await hashTree(artifact.cwd, { exclude: ['.git'] }) === artifact.hash
-    && (await git(artifact.cwd, ['rev-parse', 'HEAD'])).trim() === artifact.head
-    && hash(await readFile(artifact.patch)) === artifact.patchHash;
 }
 
 export async function collect(cwd, base, patchPath) {
@@ -65,6 +59,6 @@ export async function collect(cwd, base, patchPath) {
     const patch = await git(cwd, ['diff', '--cached', '--binary', '--no-ext-diff', '--no-textconv', base, '--'], env);
     const changed = (await git(cwd, ['diff', '--cached', '--name-only', '-z', base, '--'], env)).split('\0').filter(Boolean);
     await writeFile(patchPath, patch, { mode: 0o600 });
-    return { cwd, base, head: (await git(cwd, ['rev-parse', 'HEAD'])).trim(), changed, patch: patchPath, patchHash: hash(patch), hash: await hashTree(cwd, { exclude: ['.git'] }) };
+    return { cwd, base, head: (await git(cwd, ['rev-parse', 'HEAD'])).trim(), changed, patch: patchPath };
   } finally { await rm(temp, { recursive: true }); }
 }

@@ -40,7 +40,7 @@ export function lease(path) {
     db.exec('PRAGMA busy_timeout=0; BEGIN EXCLUSIVE;');
   } catch (cause) {
     db.close();
-    if (cause.errcode === 5 || cause.errcode === 6) throw new RunError(`Another owner holds ${path}. Inspect or cancel that owner; do not start a second runtime.`, { cause });
+    if (cause.errcode === 5 || cause.errcode === 6) throw new RunError(`Another process owns ${path}; inspect or cancel it first.`, { cause });
     throw new RunError(`Cannot acquire ownership at ${path}: ${cause.message}`, { cause });
   }
   return () => { try { db.exec('ROLLBACK'); } finally { db.close(); } };
@@ -74,7 +74,7 @@ export async function fingerprint(root, paths) {
     catch (error) { if (error.code === 'ENOENT') { result.push([path, 'deleted']); continue; } throw error; }
     if (stat.isSymbolicLink()) result.push([path, 'link', await readlink(file)]);
     else if (stat.isFile()) result.push([path, stat.mode & 0o111, hash(await readFile(file))]);
-    else throw new RunError(`Cannot snapshot non-file ${file}. Submodules, sockets and special files need an explicit external-input plan.`);
+    else throw new RunError(`Cannot snapshot ${file}: only files and symlinks are supported.`);
   }
   return hash(json(result));
 }

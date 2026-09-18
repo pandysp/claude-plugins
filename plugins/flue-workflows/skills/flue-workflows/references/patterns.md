@@ -130,11 +130,9 @@ external inputs deliberately and avoid making required later calls depend on
 which model happens to finish first. A child workflow's invocation order also
 participates in its key namespace.
 
-On resume the ordinary program starts again; saved worker results do not restore
-its call stack or external side effects. An unknown command outcome means
-inspect what happened before repeating it. A live old writer means **stop and
-investigate**, not “try a new key.” Do not overwrite or remove retained artifacts
-to make a cached result pass validation.
+On resume the program starts again and reuses jobs by key; see
+[Operate and re-enter](api.md#operate-and-re-enter). A live old writer means
+**stop and investigate**, not “try a new key.”
 
 The [coding example](../../../README.md#a-disposable-coding-example) shows discovery, a per-item
 branch, separate candidate/check copies and an explicit coverage ledger. The

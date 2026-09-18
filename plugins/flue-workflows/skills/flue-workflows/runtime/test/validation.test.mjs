@@ -9,17 +9,18 @@ const { normalize } = workers({ config, provider: openaiCodexProvider(), emit() 
 
 test('bad options/model/tool/schema fail locally rather than falling back', () => {
   assert.throws(() => normalize('hello', { models: 'other' }), /Unknown.*models/);
-  assert.throws(() => normalize('hello', { model: 'anthropic/anything' }), /explicitly selected/);
+  assert.throws(() => normalize('hello', { model: 'anthropic/anything' }), /not available under the selected/);
   assert.throws(() => normalize('hello', { tools: ['missing'] }), /tools must/);
   assert.throws(() => normalize('hello', { schema: { type: 'object', propreties: {} } }), /Invalid result schema/);
-  assert.throws(() => normalize('hello', { isolation: 'container' }), /Neither is security containment/);
+  assert.throws(() => normalize('hello', { isolation: 'container' }), /isolation must be/);
 });
 
 test('custom tool maps accept plain and null-prototype objects', () => {
   for (const prototype of [Object.prototype, null]) {
     const extra = Object.assign(Object.create(prototype), { custom: () => ({ name: 'custom', parameters: { type: 'object' }, execute() {} }) });
-    const worker = workers({ config, provider: openaiCodexProvider(), extra, emit() {} });
+    const worker = workers({ config, provider: openaiCodexProvider(), tools: extra, emit() {} });
     assert.ok(worker.toolNames.includes('custom'));
+    assert.throws(() => workers({ config, provider: openaiCodexProvider(), hook: async () => {}, emit() {} }), /synchronous/);
     assert.deepEqual(worker.normalize('work', { tools: ['custom'] }).tools, ['custom']);
   }
 });

@@ -137,7 +137,7 @@ retained workspace. Check the actual files and run relevant tests yourself;
 workers saying “tests passed” is not consumer-side verification. Never silently
 apply/merge patches or delete successful, failed or cancelled workspaces.
 
-## Operate and recover honestly
+## Operate and resume
 
 ```sh
 node /absolute/workflow-space/flue.mjs inspect audit-1
@@ -149,41 +149,16 @@ Progress is structured stderr; stdout ends with an inspection summary. Read its
 `result` file and retained artifacts. `execution: finished` means JavaScript
 returned, not that every requested input was covered. Worker/composition errors
 produce exit 2 even if the program returns a useful partial result; fatal errors
-or cancellation produce exit 1.
+or cancellation produce exit 1. Keep a live run in a terminal or host session
+you can inspect and cancel.
 
-Do not assume a particular host has background-task UI. Keep a live run in a
-host-supported session or a terminal you can inspect/cancel. The CLI has its own
-single-owner lock; `inspect` and `cancel` never boot another Flue owner.
-
-Resume **re-enters the pinned program from the beginning** and reuses identical
-recorded jobs. It does not restore a JavaScript stack, timing, completion order
-or arbitrary external effects. It verifies pinned code, declared working
-directories and retained artifacts before Flue startup. Changes need a new run;
-terminal failed/aborted jobs stay failed/aborted rather than being silently
-retried. Explicit retries in a program use distinct job keys. Missing saved
-submissions cause a loud refusal, including interrupted jobs whose receipt was
-never saved. Recovery may reuse an existing submission, not create a new one
-for that pending job. Restore the database or explicitly start a new run.
-
-After a hard kill, shell commands may outlive the controller. Resume refuses
-while recorded command groups remain or their ownership is unknown. Inspect
-and stop old writers; do not edit or bypass ownership records. Once those groups
-are gone, the built-in-worker path can settle already-admitted Flue work and
-reenter the **same run**, reusing matching completed jobs. This restart-only
-barrier prevents new admissions from overlapping the recovered set outside the
-configured concurrency limit.
-
-Pending workers from a program containing `tools.mjs` or `worker.mjs` are refused:
-custom effects are not covered by native command tracking. Missing snapshots or
-drift also block reentry; original-source execution is never a snapshot fallback.
-Retain and inspect these outputs before explicitly moving recovery to a new run.
-There is no “trust me” bypass. Final-build live verification remains tracked in
-the plugin README; older receipts do not certify later lifecycle changes.
+`resume` re-enters the pinned program from the beginning and reuses saved jobs
+by key: completed results are returned, failed/aborted jobs stay `null`, and
+interrupted jobs re-attach to their Flue submission. It is not a JavaScript
+stack checkpoint, and it refuses to start while the program changed or a shell
+command from the previous attempt is still running. The exact rules are in the
+[API reference](references/api.md#operate-and-re-enter).
 
 See the [coding example and consumer checks](../../README.md#a-disposable-coding-example)
-and the [bounded Claude comparison](references/claude-parity.md). Stronger
-recovery is separate work, not something idempotency keys already provide.
-
-For custom tools or native Flue hooks, see the API reference. Keep the extension
-in the pinned program directory and available before recovery. Do not duplicate
-Flue packages or rebuild its worker loop to add one capability.
+and the [Claude comparison](references/claude-parity.md). For custom tools or
+native Flue hooks, see the API reference; keep them in the program directory.

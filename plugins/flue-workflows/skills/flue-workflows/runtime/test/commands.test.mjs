@@ -1,30 +1,35 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { local } from '@flue/runtime/node';
-import { commandTracker, requireQuiescence } from '../lib/commands.mjs';
-import { save } from '../lib/files.mjs';
+import { recordCommands, liveCommandGroups } from '../lib/commands.mjs';
 
-test('track the native process without rewriting shell semantics; detect quiescence', async t => {
+test('shell commands run by Flue are recorded; git and other helpers are not', async t => {
   const dir = await mkdtemp(join(tmpdir(), 'flue-commands-'));
   t.after(() => rm(dir, { recursive: true, force: true }));
-  const tracker = commandTracker(join(dir, 'commands'));
-  t.after(() => tracker.close());
+  const pids = [];
+  const stop = recordCommands(pid => pids.push(pid));
+  t.after(stop);
   const sandbox = await local({ cwd: dir }).createSandbox({ id: 'test' });
-  const tracked = tracker.wrap(sandbox, 'worker');
-  const command = `printf '%s:%s' "$BASH_VERSION" "$SHLVL"`;
-  assert.deepEqual(await tracked.exec(command), await sandbox.exec(command));
-  const status = await requireQuiescence(join(dir, 'commands'));
-  assert.equal(status.tracked, 1);
-  assert.deepEqual(status.active, []);
-  assert.deepEqual(status.unknown, []);
+  const result = await sandbox.exec('echo $$');
+  assert.equal(result.exitCode, 0);
+  await new Promise((resolve, reject) => spawn('git', ['--version']).on('exit', resolve).on('error', reject));
+  assert.deepEqual(pids, [Number(result.stdout.trim())]);
 });
 
-test('missing process identity fails closed, not a manual trust flag', async t => {
+test('a recorded process group that is still alive is reported until it exits', async t => {
   const dir = await mkdtemp(join(tmpdir(), 'flue-commands-'));
   t.after(() => rm(dir, { recursive: true, force: true }));
-  await save(join(dir, 'unknown.json'), { id: 'unknown', worker: 'worker', pid: null, status: 'starting' });
-  await assert.rejects(requireQuiescence(dir), /identity.*unknown|unknown.*identity/);
+  const child = spawn('sleep', ['30'], { detached: true, stdio: 'ignore' });
+  t.after(() => { try { process.kill(-child.pid, 'SIGKILL'); } catch {} });
+  await new Promise(resolve => child.once('spawn', resolve));
+  await writeFile(join(dir, 'events.jsonl'), JSON.stringify({ type: 'command', pid: child.pid }) + '\n' + JSON.stringify({ type: 'log' }) + '\n');
+  assert.deepEqual(await liveCommandGroups(dir), [child.pid]);
+  process.kill(-child.pid, 'SIGKILL');
+  await new Promise(resolve => child.once('exit', resolve));
+  assert.deepEqual(await liveCommandGroups(dir), []);
+  assert.deepEqual(await liveCommandGroups(join(dir, 'missing')), []);
 });

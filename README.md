@@ -68,7 +68,7 @@ new session to load changed skills.
 | [second-opinion](./plugins/second-opinion) | Workflow | yes | yes | Get an independent review through the strongest channel the host provides |
 | [steel-man-own-position](./plugins/steel-man-own-position) | Workflow | yes | yes | Restate the strongest version of a prior position before flipping under pushback |
 | [spec](./plugins/spec) | Workflow | yes | yes | Write the implementation spec that drives execution after design is chosen |
-| [flue-workflows](./plugins/flue-workflows) | Workflow | draft | draft | Compose native Flue workers in JavaScript; release verification and fresh host trials remain open |
+| [flue-workflows](./plugins/flue-workflows) | Workflow | draft | draft | Compose native Flue workers in JavaScript with parallel, pipeline and child programs |
 | [verify-claims](./plugins/verify-claims) | Workflow | yes | yes | Identify and verify unverified claims before presenting them as conclusions |
 | [verify-result](./plugins/verify-result) | Workflow | yes | yes | Black-box verification of any agent output — code, documents, presentations, configs |
 | [silent-failures](./plugins/silent-failures) | Workflow | yes | yes | Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks |
@@ -120,9 +120,8 @@ npm ci --ignore-scripts --omit=dev
 npm test -- ../../../test/*.test.mjs
 ```
 
-The Flue CI job runs these offline model fixtures on Node 22.19.0 and 26.5.0,
-on macOS and Linux. It does not replace installed-build recovery checks or
-fresh host-author trials. The development draft is not release-certified.
+The Flue CI job runs these on Node 22.19.0 and 26.5.0, on macOS and Linux,
+with real Flue, SQLite and Git and scripted model replies.
 
 ## License
 

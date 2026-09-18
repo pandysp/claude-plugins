@@ -27,7 +27,7 @@ export async function copyProgram(source, target) {
   await mkdir(target, { recursive: true });
   await cp(source, target, { recursive: true, verbatimSymlinks: true,
     filter: path => !relative(source, path).split(sep).some(part => part === '.git' || part === 'node_modules') });
-  if (before !== await checkProgram(source) || before !== await checkProgram(target)) throw new RunError('Program changed while being snapshotted. Stop its writers and create a fresh run.');
+  if (before !== await checkProgram(source) || before !== await checkProgram(target)) throw new RunError('Program changed while being copied; stop its writers and create a fresh run.');
   return before;
 }
 
@@ -40,7 +40,7 @@ export async function loader(root, runtime) {
       if (context.parentURL?.startsWith(pathToFileURL(root + sep).href) && result.url.startsWith('file:')) {
         const path = fileURLToPath(result.url);
         if (!inside(root, path) && !inside(join(runtime, 'node_modules'), path)) {
-          throw new RunError(`Import escapes the pinned program/dependency graph: ${specifier}. Put application modules in the program directory; pass external data through args.`);
+          throw new RunError(`Import escapes the program directory: ${specifier}. Keep modules in the program directory; pass data through args.`);
         }
       }
       return result;

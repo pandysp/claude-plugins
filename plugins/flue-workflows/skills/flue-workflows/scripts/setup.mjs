@@ -6,7 +6,7 @@ import { homedir } from 'node:os';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { randomUUID } from 'node:crypto';
-import { hashTree, hash, json, save, lease } from '../runtime/lib/files.mjs';
+import { hashTree, hash, json, save } from '../runtime/lib/files.mjs';
 
 const source = resolve(dirname(fileURLToPath(import.meta.url)), '../runtime');
 const exec = promisify(execFile);
@@ -16,8 +16,7 @@ const workspace = resolve(target);
 if (workspace === homedir() || workspace === '/') throw new Error('Choose a dedicated workflow workspace, not your home or filesystem root.');
 process.umask(0o077);
 await mkdir(join(workspace, '.runtime'), { recursive: true });
-const release = lease(join(workspace, '.setup.sqlite'));
-try {
+{
   const version = hash(json({ lib: await hashTree(join(source, 'lib')), package: hash(await readFile(join(source, 'package.json'))), lock: hash(await readFile(join(source, 'package-lock.json'))) }));
   const installed = join(workspace, '.runtime', version);
   let exists = false;
@@ -31,13 +30,12 @@ try {
     try {
       const result = await exec('npm', ['ci', '--ignore-scripts', '--omit=dev'], { cwd: stage, maxBuffer: 8 * 1024 * 1024, timeout: 300_000 });
       await writeFile(join(stage, 'install.log'), result.stdout + result.stderr, { mode: 0o600 });
-      await exec(process.execPath, ['--input-type=module', '-e', "await import('@flue/runtime'); await import('@flue/runtime/node'); await import('@earendil-works/pi-ai'); await import('./lib/cli.mjs');"], { cwd: stage, timeout: 30_000 });
+      await exec(process.execPath, ['--input-type=module', '-e', "await import('./lib/cli.mjs'); await import('./lib/workers.mjs');"], { cwd: stage, timeout: 30_000 });
     } catch (cause) {
       throw new Error(`Dependency setup failed; incomplete installation retained at ${stage}. ${cause.stderr ?? cause.message}`, { cause });
     }
     await rename(stage, installed);
   }
-  await exec(process.execPath, ['--input-type=module', '-e', "await import('./lib/cli.mjs'); await import('./lib/workers.mjs');"], { cwd: installed, timeout: 30_000 });
   await save(join(workspace, '.runtime.json'), { version });
   await writeFile(join(workspace, 'flue.mjs'), `#!/usr/bin/env node
 import { readFile } from 'node:fs/promises';
@@ -56,5 +54,5 @@ if (['inspect', 'resume', 'cancel'].includes(args[0]) && /^[a-z0-9][a-z0-9-]{0,4
 }
 await (await import(pathToFileURL(join(runtime, 'lib/cli.mjs')).href)).cli(root, args);
 `, { mode: 0o700 });
-  console.log(json({ ready: true, workspace, runtime: installed, command: `node ${join(workspace, 'flue.mjs')} --help`, authConfigured: false }));
-} finally { release(); }
+  console.log(json({ ready: true, workspace, runtime: installed, command: `node ${join(workspace, 'flue.mjs')} --help` }));
+}
