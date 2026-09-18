@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
-import { open, readFile, readdir, lstat, readlink, rename, mkdir } from 'node:fs/promises';
+import { open, readFile, readdir, lstat, readlink, rename } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { RunError } from './primitives.mjs';
 
@@ -22,7 +22,6 @@ export function json(value) {
 
 export async function save(path, value) {
   const text = json(value) + '\n';
-  await mkdir(dirname(path), { recursive: true });
   const temp = `${path}.${randomUUID()}.tmp`;
   const file = await open(temp, 'wx', 0o600);
   try { await file.writeFile(text); await file.sync(); }

@@ -83,10 +83,11 @@ test('owner lock is exclusive across processes and released by the kernel', asyn
   execFileSync(process.execPath, ['--input-type=module', '-e', `import {lease} from ${JSON.stringify(module)}; lease(${JSON.stringify(path)})();`]);
 });
 
-test('atomic JSON and tree identity include executable modes and symlink targets', async t => {
+test('atomic JSON saves require an existing parent; tree identity includes added files', async t => {
   const dir = await fixture(t);
   await save(join(dir, 'value.json'), { answer: 42 });
   assert.deepEqual(await load(join(dir, 'value.json')), { answer: 42 });
+  await assert.rejects(save(join(dir, 'missing', 'value.json'), {}), { code: 'ENOENT' });
   const first = await hashTree(dir);
   await writeFile(join(dir, 'extra'), 'new');
   assert.notEqual(await hashTree(dir), first);
