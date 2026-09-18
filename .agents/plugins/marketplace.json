@@ -260,6 +260,21 @@
       "category": "Developer Tools"
     },
     {
+      "name": "flue-workflows",
+      "interface": {
+        "displayName": "Flue Workflows"
+      },
+      "source": {
+        "source": "local",
+        "path": "./plugins/flue-workflows"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
       "name": "quality-review",
       "interface": {
         "displayName": "Quality Review"
