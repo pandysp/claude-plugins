@@ -54,7 +54,6 @@ async function executeOwned({ dir, runtimeRoot }) {
   const { config } = manifest;
   const controller = new AbortController();
   const { signal } = controller;
-  const cancellation = new DOMException('Cancellation requested', 'AbortError');
   const handles = new Map();
   const dispatched = new Set();
   const pending = new Set();
@@ -77,7 +76,7 @@ async function executeOwned({ dir, runtimeRoot }) {
   const onSignal = () => {
     if (signals++) process.exit(1);
     emit({ type: 'cancel-requested' });
-    controller.abort(cancellation);
+    controller.abort(new DOMException('Cancellation requested', 'AbortError'));
   };
 
   try {
