@@ -84,8 +84,9 @@ if (result === null) {
 
 Structured workers receive a `submit_result` tool in addition to their selected
 tools. It validates the object, writes Flue's named result data and terminates
-the task. Invalid submissions are tool errors; there is no fallback that parses
-chat text as JSON. One returned validated value does **not** imply exactly one
+the task. Invalid submissions are tool errors; a worker that finishes without a
+valid submission is recorded as `failed` and returns `null`. Chat text is never
+parsed as JSON. One returned validated value does **not** imply exactly one
 raw tool invocation, correct facts or complete coverage.
 
 ### Identity and retries

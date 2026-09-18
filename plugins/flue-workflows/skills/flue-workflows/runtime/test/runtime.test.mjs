@@ -124,6 +124,17 @@ test('a caught child failure is visible without failing the parent', async t => 
   assert.match(await readFile(join(f.dir, 'events.jsonl'), 'utf8'), /fixture-caught-child-failure/);
 });
 
+test('a structured worker that answers in text instead of submit_result is a failed worker, not a fatal run', async t => {
+  const f = await fixture(t, { env: { FLUE_FIXTURE_RESPONSE: 'text' }, body: `return run.parallel([() => ${call('a')}, () => run.agent('Return checked text.', { key: 'b', tools: [] })]);` });
+  const result = await f.invoke('run');
+  assert.equal(result.code, 2, result.stderr);
+  assert.equal(result.state.status, 'finished');
+  assert.deepEqual(await load(join(f.dir, 'result.json')), [null, 'checked text']);
+  const failed = Object.values(result.state.jobs).find(job => job.key === 'a');
+  assert.equal(failed.status, 'failed');
+  assert.match(failed.error, /without calling submit_result/);
+});
+
 test('text results are plain strings', async t => {
   const f = await fixture(t, { env: { FLUE_FIXTURE_RESPONSE: 'text' }, body: "return run.agent('Return checked text.', { key: 'text', tools: [] });" });
   const result = await f.invoke('run');

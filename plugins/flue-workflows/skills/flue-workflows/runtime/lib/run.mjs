@@ -141,7 +141,9 @@ export async function execute({ dir, runtimeRoot }) {
         let result = reply.text;
         if (descriptor.schema !== null) {
           const values = reply.data.result;
-          if (!Array.isArray(values) || values.length !== 1 || !validator(descriptor.schema)(values[0])) throw new RunError(`Worker ${id} finished without one valid final result.`);
+          if (!Array.isArray(values) || values.length !== 1 || !validator(descriptor.schema)(values[0])) {
+            throw new AgentRunError({ outcome: 'failed', submissionId: receipt.submissionId, cause: new RunError('Worker finished without calling submit_result with a valid result.') });
+          }
           result = values[0];
         }
         job.result = JSON.parse(json(result));
