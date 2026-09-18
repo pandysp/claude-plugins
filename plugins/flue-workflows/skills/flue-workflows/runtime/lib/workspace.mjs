@@ -22,7 +22,7 @@ export async function snapshot(source, target) {
   const head = (await git(source, ['rev-parse', 'HEAD'])).trim();
   const paths = await files(source);
   const identity = await fingerprint(source, paths);
-  await git(source, ['-c', 'core.hooksPath=/dev/null', 'clone', '--no-local', '--no-hardlinks', '--no-checkout', source, target]);
+  await git(source, ['-c', 'core.hooksPath=/dev/null', 'clone', '--no-local', '--no-checkout', source, target]);
   await git(target, ['remote', 'remove', 'origin']);
   await git(target, ['config', 'core.hooksPath', '/dev/null']);
   await git(target, ['config', 'commit.gpgSign', 'false']);
