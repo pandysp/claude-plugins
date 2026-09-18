@@ -94,7 +94,6 @@ async function executeOwned({ dir, runtimeRoot }) {
     const hook = await optionalModule(manifest.program, code, 'worker.mjs');
     const { Worker, normalize } = workers({ config, provider, tools, hook, emit });
     runtime = await start({ agents: [Worker], db: sqlite(join(dir, 'flue.sqlite')), providers: [provider] });
-    signal.throwIfAborted();
     const gate = concurrency(config.concurrency, signal);
     const occurrences = new Map();
 

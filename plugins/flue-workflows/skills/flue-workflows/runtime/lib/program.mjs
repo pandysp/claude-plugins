@@ -34,7 +34,6 @@ export async function copyProgram(source, target) {
 
 export async function loader(root, runtime) {
   root = await realpath(root);
-  runtime = await realpath(runtime);
   const hooks = registerHooks({
     resolve(specifier, context, next) {
       const result = next(specifier, context);
