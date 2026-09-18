@@ -1,10 +1,6 @@
 # drive-browser
 
-A Claude Code and Codex plugin for driving a browser with Playwright as a dual-mode superset. It uses resilient locators for debugging your own web app and a vision/coordinate loop for genuinely opaque UI on unknown or messy real sites, in a fresh isolated browser or the user's real logged-in session attached over CDP.
-
-## Why
-
-Two browser jobs that look alike pull in opposite directions. Debugging your own app wants precision. Exact DOM reads, sub-second timing, `prefers-reduced-motion` emulation, which locators and `page.evaluate` give you. Surfing an unknown site wants a human-like loop (look, click where you see the control, type) for when no selector reaches the widget. Most tools make you pick one. Playwright does both, so one skill covers both, and the trap it heads off is following the API's grain: reaching for brittle CSS, or jumping straight to vision, when the right tool sits in between.
+A Claude Code and Codex plugin for driving a browser with Playwright. It uses resilient locators for debugging your own web app and a vision/coordinate loop for genuinely opaque UI on unknown or messy real sites, in a fresh isolated browser or the user's real logged-in session attached over CDP.
 
 ## Usage
 
@@ -16,18 +12,18 @@ Or just describe the task. Reproduce a UI bug in a running app, walk a checkout,
 Two independent choices, picked by the target rather than by habit:
 
 - **How you find elements**: resilient locators by default (`getByRole`/`getByLabel`), vision (screenshot → click x,y → type) only when the structure is genuinely opaque.
-- **Where the page runs**: a fresh launch (isolated, deterministic) or the user's real browser attached over CDP (their cookies and login).
+- **Where the page runs**: a new context for clean-state tests or another login; the existing context only when the task needs the user's login. Either mode supports locators and vision.
 
 Copy-paste scaffolds for both modes live in [`references/recipes.md`](./skills/drive-browser/references/recipes.md).
 
 ## Requirements
 
-- Node, with `playwright-core` to attach to a real browser (no download) or `playwright` for a fresh launch (`npx playwright install chromium`).
-- To attach, the browser must have been launched with a remote debug port. The skill carries the macOS/Helium recipe.
+- Node, with `playwright-core` for attachment (no browser download) or `playwright` and its browser for a fresh launch.
+- For attachment, a confirmed local CDP endpoint supplied by the host's instructions or the user. Setup and cleanup are in the [recipes](./skills/drive-browser/references/recipes.md).
 
 ## Safety
 
-Attaching over CDP hands you the user's live logged-in session with no consent prompt and no per-action gating. The skill's Safety section is binding when you do: no irreversible, outward, or financial action without explicit confirmation, a hard stop before payment or credential entry, and the debug port treated as an unauthenticated door to close when done.
+Attaching over CDP gives access to the user's live login without per-action prompts. Never wipe or reset that profile: use a new context for clean-state work. Close only task-owned pages, contexts, browsers, and tunnels; leave the user's browser and managed debug service running. The skill's Safety section also requires explicit confirmation for irreversible, outward, or financial actions, and a hard stop before payment or entering the user's credentials.
 
 ## Installation
 
