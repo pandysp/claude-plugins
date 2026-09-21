@@ -119,7 +119,7 @@
     },
     {
       "name": "reflect",
-      "description": "Capture durable lessons from a session before they fade, routing each insight to the applicable instructions, memory, project notes, or tooling ticket.",
+      "description": "Surfaces a session's durable lessons before they fade, each with the instructions, memory, project note, or ticket it would be saved to, and writes only what the user approves.",
       "source": "./plugins/reflect",
       "category": "workflow",
       "keywords": ["reflect", "lessons", "retro", "memory", "session-end", "post-mortem"],
