@@ -1,0 +1,6 @@
+{
+  "name": "draw-out-context",
+  "version": "1.0.0",
+  "description": "Draw out the user's unstated rationale, assumptions, causal model, stakes, and problem behind the stated problem before consequential downstream work.",
+  "skills": "./skills/"
+}

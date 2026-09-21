@@ -27,6 +27,7 @@ module HostPackages
     "align" => { codex: true, pi: true },
     "clarify" => { codex: true, pi: true },
     "design-options" => { codex: true, pi: true },
+    "draw-out-context" => { codex: true, pi: true },
     "drive-browser" => {
       codex: true,
       pi: "the vision loop needs a browser runtime and screenshots returned to the model; unverified on Pi"

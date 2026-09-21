@@ -88,6 +88,16 @@
       }
     },
     {
+      "name": "draw-out-context",
+      "description": "Draw out the user's unstated rationale, assumptions, causal model, stakes, and problem behind the stated problem before consequential downstream work.",
+      "source": "./plugins/draw-out-context",
+      "category": "workflow",
+      "keywords": ["context", "elicitation", "assumptions", "rationale", "mental-model", "problem-framing"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
+    },
+    {
       "name": "silent-failures",
       "description": "Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks using one canonical methodology and the strongest isolated reviewer available.",
       "source": "./plugins/silent-failures",

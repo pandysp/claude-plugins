@@ -22,6 +22,7 @@
       "plugins/design-options/skills/design-options",
       "plugins/steel-man-own-position/skills/steel-man-own-position",
       "plugins/align/skills/align",
+      "plugins/draw-out-context/skills/draw-out-context",
       "plugins/silent-failures/skills/silent-failures",
       "plugins/explore/skills/explore",
       "plugins/clarify/skills/clarify",
