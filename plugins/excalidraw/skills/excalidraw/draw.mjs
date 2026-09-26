@@ -7,7 +7,7 @@
 // What a drawing file looks like: see "The drawing file" in SKILL.md.
 
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync } from "node:fs";
 import path from "node:path";
 
 const [drawingFile, shotArg] = process.argv.slice(2);
@@ -58,7 +58,10 @@ try {
   }
   if (state !== "ok") throw new Error(`the drawing did not open in Obsidian: ${drawingPath}`);
   await sleep(1000);
+  // Remove last run's screenshot first, so an old image can never pass as new.
+  rmSync(screenshot, { force: true });
   obsidian("dev:screenshot", `path=${screenshot}`);
+  if (!existsSync(screenshot)) throw new Error(`no screenshot was saved to ${screenshot}`);
 
   console.log(`drawing:    ${drawingPath}`);
   console.log(`screenshot: ${screenshot}`);
