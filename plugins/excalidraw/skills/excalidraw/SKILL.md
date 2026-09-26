@@ -17,8 +17,8 @@ You write a short JavaScript file that uses the Excalidraw plugin's drawing comm
 
 1. Write the drawing file (for example `drawing.js`) in a scratch folder, not in the vault.
 2. Run `node <this skill's folder>/draw.mjs drawing.js`. It prints the path of the new drawing and of the screenshot.
-3. Look at the screenshot. Check that nothing overlaps, no text sits on a line, nothing is cut off and all text is readable.
-4. To fix something, edit `drawing.js`. Before running again, delete the old drawing: `obsidian delete path="<drawing path>"`.
+3. Look at the screenshot. Check for overlaps you did not intend, text sitting on lines, anything cut off, and text that is hard to read.
+4. To fix something, edit `drawing.js`. Before running again, delete the drawing your last run made (only that one, never a drawing you did not create): `obsidian delete path="<drawing path>"`.
 5. Tell the user where the drawing is and show the screenshot path.
 
 ## The drawing file
@@ -58,6 +58,6 @@ return ea.create({ filename: "my-drawing", silent: true });   // add foldername:
 
 - With `box`, `width` is the width of the text. The box grows by the padding on each side, so leave room between boxes.
 - A filled shape made from a line: close it (last point equals first) and set `ea.getElement(id).polygon = true`.
-- `ea.create` never replaces a file. It adds a number to the name instead. The helper warns when that happens.
-- Keep text at font size 16 or bigger, and leave at least 40 pixels between shapes.
+- `ea.create` never replaces a file. If the name is taken, it adds a number (`my-drawing_0`). Check the path the helper prints: if it has a number you did not choose, the name belongs to another drawing. Pick a new name; do not delete that drawing.
+- Good starting points: text at font size 16 or bigger, and about 40 pixels between shapes.
 - Full list of commands, by the plugin's author: https://github.com/zsviczian/obsidian-excalidraw-plugin/tree/master/docs/AITrainingData/excalidraw-automate

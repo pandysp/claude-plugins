@@ -40,7 +40,7 @@ try {
   const drawingPath = evalInObsidian(
     `(async () => { const ea = window.ExcalidrawAutomate; ea.reset();\n${body}\n})()`,
   );
-  if (!/\.excalidraw(\.md)?$/.test(drawingPath)) {
+  if (!/\.(md|excalidraw)$/.test(drawingPath)) {
     throw new Error(`the drawing file must end with "return ea.create(...)". It returned: ${drawingPath}`);
   }
 
@@ -49,6 +49,7 @@ try {
   const fit = `(() => { const ea = window.ExcalidrawAutomate;
     ea.setView("active");
     if (ea.targetView?.file?.path !== ${JSON.stringify(drawingPath)}) return "wait";
+    if (ea.getViewElements().length === 0) return "wait";  // scene not loaded yet
     ea.viewZoomToElements(false, ea.getViewElements(), 0.15); return "ok"; })()`;
   let state = "wait";
   for (let i = 0; i < 20 && state === "wait"; i++) {
@@ -61,10 +62,6 @@ try {
 
   console.log(`drawing:    ${drawingPath}`);
   console.log(`screenshot: ${screenshot}`);
-  if (/_\d+\.excalidraw(\.md)?$/.test(drawingPath)) {
-    console.log("warning: a drawing with this name already existed, so this one got a number added.");
-    console.log("         Delete the old one (obsidian delete path=...) and the numbered copy, then run again.");
-  }
 } catch (err) {
   console.error(`error: ${err.message}`);
   process.exit(1);
