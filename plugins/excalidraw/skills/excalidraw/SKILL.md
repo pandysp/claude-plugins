@@ -16,9 +16,9 @@ You write a short JavaScript file that uses the Excalidraw plugin's drawing comm
 ## Steps
 
 1. Write the drawing file (for example `drawing.js`) in a scratch folder, not in the vault.
-2. Run `node <this skill's folder>/draw.mjs drawing.js`. It prints the path of the new drawing and of the screenshot.
+2. Run `node <this skill's folder>/draw.mjs drawing.js`. It uses the vault that is open in front and prints its name, the path of the new drawing and the path of the screenshot. If that is the wrong vault, ask the user to bring the right one to the front.
 3. Look at the screenshot. Check for overlaps you did not intend, text sitting on lines, anything cut off, and text that is hard to read.
-4. To fix something, edit `drawing.js`. Before running again, delete the drawing your last run made (only that one, never a drawing you did not create): `obsidian delete path="<drawing path>"`.
+4. To fix something, edit `drawing.js`. Before running again, delete the drawing your last run made (only that one, never a drawing you did not create): `obsidian vault="<vault>" delete path="<drawing path>"`.
 5. Tell the user where the drawing is and show the screenshot path.
 
 ## The drawing file

@@ -17,25 +17,31 @@ if (!drawingFile) {
 }
 const screenshot = path.resolve(shotArg ?? drawingFile.replace(/\.m?js$/, "") + ".png");
 
-// `obsidian eval` prints "=> value" on success and "Error: ..." on failure,
+// The vault that is in front when the helper starts. Every later command is
+// pinned to it, so switching vaults mid-run cannot send a step elsewhere.
+let vault;
+
+// The obsidian command prints "Error: ..." or "Vault not found." on failure,
 // but exits with 0 either way. Turn failures into real errors.
-function obsidian(...args) {
+function obsidian(command, ...args) {
+  const pin = vault ? [`vault=${vault}`] : [];
   let out;
   try {
-    out = execFileSync("obsidian", args, { encoding: "utf8" }).trim();
+    out = execFileSync("obsidian", [...pin, command, ...args], { encoding: "utf8" }).trim();
   } catch (err) {
     if (err.code === "ENOENT") {
       throw new Error("the obsidian command was not found. Turn it on in Obsidian: Settings → General → Command line interface.");
     }
     throw err;
   }
-  if (out.startsWith("Error")) throw new Error(`obsidian ${args[0]} failed: ${out}`);
+  if (/^(Error|Vault not found)/.test(out)) throw new Error(`obsidian ${command} failed: ${out}`);
   return out;
 }
 const evalInObsidian = (code) => obsidian("eval", `code=${code}`).replace(/^=> /, "");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 try {
+  vault = evalInObsidian("app.vault.getName()");
   const body = readFileSync(drawingFile, "utf8");
   const drawingPath = evalInObsidian(
     `(async () => { const ea = window.ExcalidrawAutomate; ea.reset();\n${body}\n})()`,
@@ -63,6 +69,7 @@ try {
   obsidian("dev:screenshot", `path=${screenshot}`);
   if (!existsSync(screenshot)) throw new Error(`no screenshot was saved to ${screenshot}`);
 
+  console.log(`vault:      ${vault}`);
   console.log(`drawing:    ${drawingPath}`);
   console.log(`screenshot: ${screenshot}`);
 } catch (err) {
