@@ -4,9 +4,7 @@
 //
 //   node draw.mjs <drawing.js> [screenshot.png]
 //
-// The drawing file is plain lines of JavaScript. `ea` (the Excalidraw plugin's
-// drawing commands) is ready to use and `await` works. It must end with
-// `return ea.create({ filename, silent: true });`
+// What a drawing file looks like: see "The drawing file" in SKILL.md.
 
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
