@@ -14,7 +14,7 @@ Or just ask: "Draw a process diagram of our release steps." / "Sketch a tetrahed
 
 - Obsidian running, with the vault open
 - The Excalidraw plugin installed
-- The Obsidian command line tool (`obsidian`) turned on: Settings → General → Command line interface (Obsidian 1.12.7 or newer)
+- The Obsidian command line tool (`obsidian`) turned on: Settings → General → Command line interface
 - Node
 
 ## Installation
