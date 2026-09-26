@@ -6,7 +6,7 @@
 //
 // The drawing file is plain lines of JavaScript. `ea` (the Excalidraw plugin's
 // drawing commands) is ready to use and `await` works. It must end with
-// `return ea.create({ filename, foldername, silent: true });`
+// `return ea.create({ filename, silent: true });`
 
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -42,7 +42,7 @@ try {
   const drawingPath = evalInObsidian(
     `(async () => { const ea = window.ExcalidrawAutomate; ea.reset();\n${body}\n})()`,
   );
-  if (!drawingPath.endsWith(".excalidraw.md")) {
+  if (!/\.excalidraw(\.md)?$/.test(drawingPath)) {
     throw new Error(`the drawing file must end with "return ea.create(...)". It returned: ${drawingPath}`);
   }
 
@@ -63,7 +63,7 @@ try {
 
   console.log(`drawing:    ${drawingPath}`);
   console.log(`screenshot: ${screenshot}`);
-  if (/_\d+\.excalidraw\.md$/.test(drawingPath)) {
+  if (/_\d+\.excalidraw(\.md)?$/.test(drawingPath)) {
     console.log("warning: a drawing with this name already existed, so this one got a number added.");
     console.log("         Delete the old one (obsidian delete path=...) and the numbered copy, then run again.");
   }

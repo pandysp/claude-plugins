@@ -11,7 +11,7 @@ You write a short JavaScript file that uses the Excalidraw plugin's drawing comm
 
 - Obsidian (1.12.7 or newer) must be running with the vault open and the Excalidraw plugin installed. The Obsidian command line tool (`obsidian`) must be turned on: Settings → General → Command line interface.
 - Quick check: `obsidian eval code="typeof ExcalidrawAutomate"` must print `=> object`.
-- If the user did not say what to draw, ask. If they did not say where to save it, use the Excalidraw folder of the vault.
+- If the user did not say what to draw, ask. If they did not say where to save it, leave out `foldername`: the plugin then uses the user's own drawing folder.
 
 ## Steps
 
@@ -38,7 +38,7 @@ const b = ea.addText(250, 0, "Done", { box: "box", textAlign: "center", textVert
 ea.style.backgroundColor = "transparent";
 ea.connectObjects(a, "right", b, "left", { endArrowHead: "arrow" });
 
-return ea.create({ filename: "my-drawing", foldername: "Excalidraw", silent: true });
+return ea.create({ filename: "my-drawing", silent: true });   // add foldername: "..." to pick a folder
 ```
 
 ## Useful calls
