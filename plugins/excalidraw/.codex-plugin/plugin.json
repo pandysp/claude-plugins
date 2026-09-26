@@ -1,0 +1,6 @@
+{
+  "name": "excalidraw",
+  "version": "0.1.0",
+  "description": "Draw diagrams and sketches with Excalidraw in an Obsidian vault, and check each one with a screenshot.",
+  "skills": "./skills/"
+}

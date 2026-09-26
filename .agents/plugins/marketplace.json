@@ -260,6 +260,21 @@
       "category": "Developer Tools"
     },
     {
+      "name": "excalidraw",
+      "interface": {
+        "displayName": "Excalidraw"
+      },
+      "source": {
+        "source": "local",
+        "path": "./plugins/excalidraw"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
       "name": "quality-review",
       "interface": {
         "displayName": "Quality Review"

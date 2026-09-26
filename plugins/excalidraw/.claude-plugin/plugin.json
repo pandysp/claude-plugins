@@ -1,0 +1,10 @@
+{
+  "name": "excalidraw",
+  "description": "Draw diagrams and sketches with Excalidraw in an Obsidian vault, and check each one with a screenshot.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT"
+}
