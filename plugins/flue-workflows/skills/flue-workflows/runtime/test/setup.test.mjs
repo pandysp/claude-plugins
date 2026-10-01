@@ -68,6 +68,18 @@ test('the launcher refuses a run whose runtime points outside the workspace', as
   await assert.rejects(f.flue('inspect', 'escape'), /outside this workspace installation/);
 });
 
+test('prune removes leftovers of setups that failed or crashed', async t => {
+  const f = await fixture(t);
+  const current = await realpath((await f.setup()).runtime);
+  const installs = await realpath(join(f.workspace, '.runtime'));
+  const leftovers = [join(installs, `${'c'.repeat(64)}.installing-x`), join(current, '..', `${'d'.repeat(64)}.installing-y`), join(installs, 'e'.repeat(64))];
+  for (const path of leftovers) await mkdir(path, { recursive: true });
+  await mkdir(join(installs, 'e'.repeat(64), 'node_modules')); // dependencies whose library never installed
+  const { removed } = JSON.parse(await f.flue('prune'));
+  assert.deepEqual(removed.sort(), leftovers.sort());
+  await readdir(join(current, 'lib')); // the current runtime stays
+});
+
 test('prune refuses an installation layout it does not recognize', async t => {
   const f = await fixture(t);
   await f.setup();

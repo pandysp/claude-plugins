@@ -307,10 +307,18 @@ node /absolute/workflow-space/flue.mjs resume audit-1
 
 - `inspect` prints saved status, whether the owner is alive, worker counts,
   live shell process groups, errors and artifact paths. It starts nothing.
-- `cancel` sends `SIGTERM` to the live owner, waits for it to exit, then prints
-  the inspection. The owner aborts every live worker through Flue and records
-  them as `aborted`. A second `SIGTERM`/`SIGINT` to the owner exits at once;
-  unsettled jobs remain `pending` for `resume`.
+- `cancel` discards the run's in-flight work: it sends `SIGUSR2` to the live
+  owner, waits for it to exit, then prints the inspection. The owner aborts every
+  live worker through Flue, records them as `aborted`, and kills any command
+  they left running before it collects their patches. `cancel` fails if a
+  recorded command is still alive afterwards.
+- `SIGINT`/`SIGTERM` (Ctrl-C, a host timeout) only stop the owner: it kills the
+  attempt's commands and exits, in-flight jobs stay `pending`, `inspect` shows
+  `execution: interrupted`, and `resume` re-attaches them. A second signal exits
+  at once.
+- Flue counts `--timeout` from a worker's first start, across crashes and
+  interruptions. Resume an interrupted run within that budget, or give runs that
+  may sit unattended a larger `--timeout`; a worker past it fails on resume.
 - `resume` uses the saved configuration and the runtime that created the run.
   It re-enters the pinned program from its start and reuses any job whose key
   and inputs match a saved one: `completed` returns the saved result, `failed`
@@ -329,7 +337,8 @@ node /absolute/workflow-space/flue.mjs resume audit-1
   saved run uses. `setup.mjs`, `prune` and the creation step of `run` take turns
   through a workspace lock (waiting up to two minutes), so prune never removes a
   runtime a new run is pinning. A run directory without a manifest is an
-  interrupted creation; prune refuses until it is removed. After installing a
+  interrupted creation; prune refuses until it is removed. Prune also removes
+  leftovers of setups that failed or crashed. After installing a
   new version of this plugin, set up a fresh workspace rather than reusing one
   an earlier draft created.
 - Keep the whole run directory intact; a deleted `flue.sqlite` makes pending
@@ -370,7 +379,7 @@ Do not put keys in arguments, programs, `args`, reports, tool results or logs.
 |---|---|
 | `0` | Command succeeded; `run`/`resume` had no counted worker/composition failures. Inspect the **domain result** separately |
 | `2` | Counted terminal worker/composition failures, possibly with a useful result file |
-| `1` | Fatal failure or refusal; a cancelled `run`/`resume` also exits `1` |
+| `1` | Fatal failure or refusal; a cancelled or interrupted `run`/`resume` also exits `1` |
 
 A successful `cancel` command exits `0` to confirm shutdown, not task success;
 its owner process may exit `1` for cancellation. Inspect worker outcomes separately.

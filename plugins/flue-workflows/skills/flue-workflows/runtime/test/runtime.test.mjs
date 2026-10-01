@@ -292,20 +292,23 @@ test('a hard-killed run resumes: Flue finishes the admitted worker and the progr
   assert.deepEqual(tools, [['resumed', 'tool-start'], ['resumed', 'tool-completed']], 'the killed attempt saw no tool call; the resumed one journals it once');
 });
 
-test('SIGTERM cancels: live workers settle aborted, the run is cancelled, resume keeps them aborted', async t => {
-  const f = await fixture(t);
-  const cancelled = await f.interrupt('run', 'SIGTERM');
-  assert.equal(cancelled.code, 1, cancelled.stderr);
-  assert.equal(cancelled.state.status, 'cancelled', cancelled.stderr);
-  assert.equal(cancelled.state.owner, null);
-  const [job] = Object.values(cancelled.state.jobs);
-  assert.equal(job.status, 'aborted');
-  assert.match(cancelled.stderr, /cancel-requested/);
+test('SIGTERM only stops the owner: in-flight work stays pending and resume finishes it', async t => {
+  const f = await fixture(t, { timeout: 90_000 }); // Flue reclaims the stopped attempt's lease after ~30 s
+  const interrupted = await f.interrupt('run', 'SIGTERM');
+  assert.equal(interrupted.code, 1, interrupted.stderr);
+  assert.match(interrupted.stderr, /run-interrupted/);
+  const { stdout } = await exec(process.execPath, ['--input-type=module', '-e', `const { cli } = await import(${JSON.stringify(new URL('../lib/cli.mjs', import.meta.url).href)}); await cli(process.argv[1], ['inspect', 'fixture']);`, '--', join(f.root, 'workspace')], { env: baseEnv });
+  assert.equal(JSON.parse(stdout).execution, 'interrupted');
+  const [job] = Object.values(interrupted.state.jobs);
+  assert.equal(job.status, 'pending');
+  assert.doesNotMatch(interrupted.stderr, /cancel-requested/);
+  const original = (await readFile(join(f.dir, 'events.jsonl'), 'utf8')).trim().split('\n').map(JSON.parse).find(event => event.type === 'worker-started');
   const resumed = await f.invoke('resume');
-  assert.equal(resumed.code, 2, resumed.stderr);
-  assert.equal(resumed.modelCalls, 0);
-  assert.equal(resumed.state.jobs[job.id].status, 'aborted');
-  assert.equal(await load(join(f.dir, 'result.json')), null);
+  assert.equal(resumed.code, 0, resumed.stderr);
+  const started = resumed.stderrEvents.find(event => event.type === 'worker-started');
+  assert.equal(started.submissionId, original.submissionId, 'resume re-attaches to the same submission');
+  assert.equal(resumed.state.jobs[job.id].status, 'completed');
+  assert.deepEqual(await load(join(f.dir, 'result.json')), { answer: 42 });
 });
 
 test('resume is refused while a shell command from the previous attempt is still running', async t => {
@@ -381,4 +384,38 @@ test('a failure writing the final journal event fails the run instead of saving 
   assert.equal(result.state.status, 'failed');
   assert.match(result.state.error, /journal disk full/);
   assert.equal(result.state.owner, null);
+});
+
+test('cancel stops worker commands that ignore SIGTERM before it reports the run cancelled', async t => {
+  const marker = join(tmpdir(), `flue-cancel-ready-${process.pid}-${Date.now()}`);
+  t.after(() => rm(marker, { force: true }));
+  // A foreground child that ignores SIGTERM and would write after cancellation.
+  const command = `sh -c 'trap "" TERM; echo ready > "${marker}"; sleep 2; echo late > late.txt; sleep 30' >/dev/null 2>&1; echo done`;
+  const f = await fixture(t, {
+    git: true,
+    env: { FLUE_FIXTURE_RESPONSE: 'tool-error-first' },
+    files: { 'tools.mjs': `export default { broken: sandbox => ({ name: 'broken', label: 'Probe', description: 'Runs a stubborn command.', parameters: { type: 'object', properties: {} }, async execute(_id, _args, signal) { const result = await sandbox.exec(${JSON.stringify(command)}, { signal }); return { content: [{ type: 'text', text: result.stdout }] }; } }) };\n` },
+    body: `return ${call('answer', ", isolation: 'snapshot'").replace('tools: []', "tools: ['broken']")};`,
+  });
+  await writeFile(f.trace, '');
+  const proc = spawn(process.execPath, [child, join(f.root, 'workspace'), 'run', f.program, f.trace], { env: { ...baseEnv, FLUE_FIXTURE_RESPONSE: 'tool-error-first' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  const exited = new Promise(resolve => proc.on('exit', resolve));
+  for (let i = 0; i < 100 && !(await readFile(marker, 'utf8').catch(() => '')); i++) await sleep(100);
+  assert.equal((await readFile(marker, 'utf8')).trim(), 'ready');
+  const cliUrl = new URL('../lib/cli.mjs', import.meta.url).href;
+  const { stdout } = await exec(process.execPath, ['--input-type=module', '-e', `const { cli } = await import(${JSON.stringify(cliUrl)}); await cli(process.argv[1], ['cancel', 'fixture']); process.exit(process.exitCode ?? 0);`, '--', join(f.root, 'workspace')], { env: baseEnv });
+  await exited;
+  const summary = JSON.parse(stdout);
+  assert.equal(summary.execution, 'cancelled');
+  assert.deepEqual(summary.liveCommandGroups, []);
+  const [job] = summary.jobs;
+  await sleep(3000);
+  await assert.rejects(readFile(join(job.artifact.cwd, 'late.txt')), { code: 'ENOENT' }, 'the stubborn command was stopped before it could write');
+});
+
+test('a second live call with the same key is refused at any concurrency', async t => {
+  const f = await fixture(t, { env: { FLUE_FIXTURE_CONCURRENCY: '1' }, body: `return run.parallel([() => ${call('same')}, () => ${call('same')}]);` });
+  const result = await f.invoke('run');
+  assert.equal(result.code, 1, result.stderr);
+  assert.match(result.stderr, /Key same is already running/);
 });

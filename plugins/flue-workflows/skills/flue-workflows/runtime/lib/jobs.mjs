@@ -61,7 +61,6 @@ function claim(run, { namespace, descriptor, key }) {
   const { state, config } = run;
   const { id, identity } = jobId(namespace, descriptor, key, run.occurrences);
   let job = state.jobs[id];
-  if (run.handles.has(id)) throw new RunError(`Key ${key} is already running; await its promise instead of calling it twice.`);
   if (job && job.identity !== identity) throw new RunError(`Key ${key} was reused with different inputs; use a distinct key.`);
   state.calls++;
   if (job && job.status !== 'pending') {

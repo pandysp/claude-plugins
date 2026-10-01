@@ -14,7 +14,8 @@ model or replace it with a predefined workflow catalog.
 
 Use it when the user asks for Flue workflows, or when the work needs something
 the host's own subagents or workflow tool cannot give: workers on another
-provider or subscription, a long fan-out that must survive a crash and resume,
+provider or subscription, a long fan-out that must survive a crash and resume
+(within its `--timeout`),
 or parallel coding workers in independent Git copies with retained patches.
 Otherwise prefer the host's mechanism: it needs no setup and no unrestricted
 local workers.
@@ -164,8 +165,10 @@ or cancellation produce exit 1.
 
 Start `run` and `resume` in the background (the host's background task, or
 `tmux`) and poll with `inspect`: a foreground command can be stopped by the
-host's tool timeout long before the workers finish. If that kills the owner,
-`inspect` shows `execution: interrupted`; continue with `resume`.
+host's tool timeout long before the workers finish. A signal (Ctrl-C, a host
+timeout) only stops the owner: `inspect` shows `execution: interrupted` and
+`resume` continues, within the worker `--timeout`, which counts from each
+worker's first start. Only `cancel` discards in-flight work.
 
 `resume` re-enters the pinned program from the beginning and reuses saved jobs
 by key: completed results are returned, failed/aborted jobs stay `null`, and

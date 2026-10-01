@@ -24,8 +24,9 @@ if (workspace === homedir() || workspace === '/') throw new Error('Choose a dedi
 process.umask(0o077);
 
 const exists = path => access(path).then(() => true, error => { if (error.code === 'ENOENT') return false; throw error; });
-// Build in a staging directory next to the target and rename it into place, so a
-// failed or concurrent setup never leaves a half-built installation under its final name.
+// Build in a staging directory next to the target and rename it into place, so a setup
+// that fails or crashes never leaves a half-built installation under its final name
+// (prune removes the staging leftovers).
 async function install(path, build) {
   if (await exists(path)) return false;
   const stage = `${path}.installing-${randomUUID()}`;

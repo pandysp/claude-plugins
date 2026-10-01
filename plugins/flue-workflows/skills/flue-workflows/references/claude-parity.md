@@ -18,7 +18,7 @@ between them.
 | Coding workspaces | Independent Git copies with history, dirty and untracked inputs; retained patches. | Nothing is merged or deleted automatically. A Git copy is not a sandbox. |
 | Progress | Structured stderr, a journal, and `inspect`/`cancel`/`resume`. | No workflow panel or host notifications; poll `inspect`. |
 | Budget | A worker-admission ceiling, concurrency and per-worker timeouts. | Not token or cost accounting. |
-| Recovery | Flue keeps accepted submissions and retries interrupted ones (up to 3 attempts); `resume` re-enters the program from the start and reuses saved jobs by key. | No JavaScript stack checkpoint and no exactly-once external effects. Write prompts and tools that are safe to repeat. |
+| Recovery | Flue keeps accepted submissions and retries interrupted ones (up to 3 attempts); a signal only stops the owner and `resume` re-enters the program from the start, reusing saved jobs by key, within each worker's `--timeout`. | No JavaScript stack checkpoint and no exactly-once external effects. Write prompts and tools that are safe to repeat. |
 | Coverage | Authored policy: report discovered, attempted, failed and omitted work. | A finished run, a valid schema or a vote count does not prove truth or completeness. |
 
 Deliberate boundaries:

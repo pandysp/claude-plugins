@@ -17,7 +17,7 @@ node flue.mjs check PATH/TO/program.mjs
 node flue.mjs run PATH/TO/program.mjs --id NAME --cwd REPO --model PROVIDER/MODEL --auth pi|env:VARIABLE --access unrestricted [--args-file FILE]
 node flue.mjs inspect NAME
 node flue.mjs resume NAME
-node flue.mjs cancel NAME
+node flue.mjs cancel NAME     (discards in-flight work; Ctrl-C/SIGTERM only stop the owner)
 node flue.mjs prune
 
 Run options: --effort low (default), --concurrency 6, --max-jobs 1000,
@@ -68,16 +68,19 @@ async function pruneLocked(workspace) {
   }
   // Run creation holds the workspace lock, so a run without a manifest was interrupted while being created.
   if (incomplete.length) throw new RunError(`Runs without a manifest: ${incomplete.join(', ')}. Their creation was interrupted; remove those directories, then prune again. Nothing was removed.`);
+  // Holding the workspace lock, no setup is running: a `*.installing-*` directory, or
+  // dependencies without any library, are leftovers of a setup that failed or crashed.
   const removed = [];
-  for (const lock of await listing(installs, name => !name.includes('.installing-'))) {
+  const remove = async path => { await rm(path, { recursive: true }); removed.push(path); };
+  for (const lock of await listing(installs)) {
+    if (lock.includes('.installing-')) { await remove(join(installs, lock)); continue; }
     const entries = await listing(join(installs, lock), name => name !== 'node_modules');
-    if (!entries.length) continue; // dependencies whose first library is still being set up
     const unknown = entries.filter(name => !/^[a-f0-9]{64}(\.installing-|$)/.test(name));
     if (unknown.length) throw new RunError(`Unrecognized installation layout in ${join(installs, lock)} (${unknown.join(', ')}); prune only handles installations from this setup version. Nothing was removed there.`);
-    const unused = entries.filter(name => !name.includes('.installing-') && !used.has(join(installs, lock, name)));
-    // Dependencies go with their last library, unless a setup is still building one.
-    const paths = unused.length === entries.length ? [join(installs, lock)] : unused.map(name => join(installs, lock, name));
-    for (const path of paths) { await rm(path, { recursive: true }); removed.push(path); }
+    const unused = entries.filter(name => !used.has(join(installs, lock, name)));
+    // Dependencies go with their last library.
+    if (unused.length === entries.length) await remove(join(installs, lock));
+    else for (const name of unused) await remove(join(installs, lock, name));
   }
   return { removed, kept: [...used].filter(Boolean) };
 }
@@ -115,16 +118,19 @@ async function executeAndInspect(dir) {
   if (summary.workers.failed || summary.workers.aborted || summary.compositionErrors) process.exitCode = 2;
 }
 
+// Discard the run's in-flight work. A bare signal would only stop the owner (resumable).
 async function cancel(dir) {
   const state = await load(join(dir, 'state.json'));
   if (state.status !== 'running' || !state.owner || !ownerActive(join(dir, 'owner.sqlite'))) throw new RunError(`Run is ${state.status} and has no live owner; nothing to cancel.`);
-  process.kill(state.owner.pid, 'SIGTERM');
+  process.kill(state.owner.pid, 'SIGUSR2');
   const deadline = Date.now() + 90_000;
   while (ownerActive(join(dir, 'owner.sqlite'))) {
     if (Date.now() > deadline) throw new RunError('Cancellation requested but the owner has not exited after 90 seconds; inspect it.');
     await sleep(200);
   }
-  console.log(json(await inspect(dir)));
+  const summary = await inspect(dir);
+  console.log(json(summary));
+  if (summary.liveCommandGroups.length) throw new RunError(`The owner exited but worker commands are still running (process groups ${summary.liveCommandGroups.join(', ')}); stop them before using the retained patches.`);
 }
 
 export async function main(workspace, argv = process.argv.slice(2)) {

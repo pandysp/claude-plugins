@@ -10,7 +10,7 @@ import { collect } from './workspace.mjs';
 import { credentials } from './provider.mjs';
 import { workers } from './workers.mjs';
 import { job } from './jobs.mjs';
-import { recordCommands, liveCommandGroups } from './commands.mjs';
+import { recordCommands, liveCommandGroups, stopCommandGroups } from './commands.mjs';
 import { loader, hashProgram } from './program.mjs';
 
 const QUIET = new Set(['tool-start', 'tool-completed', 'result-written', 'command']);
@@ -67,10 +67,15 @@ async function runProgram(run, { manifest, code, normalize }) {
       emit: run.emit,
       budget: Object.freeze({ maxJobs: config.maxJobs, spent: () => Object.keys(state.jobs).length, remaining: () => config.maxJobs - Object.keys(state.jobs).length }),
       invoke: (prompt, options) => {
+        const live = options.key === undefined ? null : `${namespace}:key:${options.key}`;
         const promise = (async () => {
           signal.throwIfAborted();
           const descriptor = normalize(prompt, options);
-          return gate(() => job(run, { namespace, descriptor, key: options.key }));
+          // Checked before the queue, so the outcome does not depend on --concurrency.
+          if (live !== null && run.liveKeys.has(live)) throw new RunError(`Key ${options.key} is already running; await its promise instead of calling it twice.`);
+          if (live !== null) run.liveKeys.add(live);
+          try { return await gate(() => job(run, { namespace, descriptor, key: options.key })); }
+          finally { if (live !== null) run.liveKeys.delete(live); }
         })().catch(error => {
           // Infrastructure, configuration and admission failures are not item results: they stop
           // the run even when the program never awaits this promise or catches the rejection.
@@ -101,6 +106,8 @@ async function shutdown(run, { runtime, code, stopRecording }) {
   await Promise.allSettled([...run.pending, ...run.aborts]);
   if (runtime) await attempt(() => runtime.stop());
   if (runtime) await attempt(() => cleanupSessionResources());
+  // Nothing an attempt started may keep editing after its patches are collected.
+  if (stopRecording) await attempt(() => stopCommandGroups(dir, state.attempt));
   // Workers stopped by this shutdown may have edited after dispatch.
   for (const id of run.dispatched) {
     const job = state.jobs[id];
@@ -119,7 +126,7 @@ async function executeOwned({ dir, runtimeRoot }) {
   let journal, writing = Promise.resolve();
   const run = {
     dir, runtimeRoot, config, state, controller, signal: controller.signal, errors,
-    handles: new Map(), dispatched: new Set(), pending: new Set(), aborts: [], occurrences: new Map(),
+    handles: new Map(), dispatched: new Set(), pending: new Set(), aborts: [], occurrences: new Map(), liveKeys: new Set(),
     // An error already recorded, directly or as the cause of a recorded wrapper, is not recorded again.
     known: error => errors.some(recorded => recorded === error || recorded?.cause === error),
     attempt: async fn => { try { return await fn(); } catch (error) { if (!run.known(error)) errors.push(error); } },
@@ -140,12 +147,28 @@ async function executeOwned({ dir, runtimeRoot }) {
   };
   // One abort path: whoever aborts the controller also aborts every live worker.
   run.signal.addEventListener('abort', () => { for (const handle of run.handles.values()) run.aborts.push(run.attempt(() => handle.abort())); });
-  const onSignal = () => {
-    if (run.signal.aborted) process.exit(1);
+  const resources = {};
+  // SIGINT/SIGTERM stop this owner and keep in-flight work resumable; SIGUSR2, sent by
+  // `cancel`, discards it. A second signal of any kind exits at once.
+  let interrupting = false;
+  const onCancel = () => {
+    if (run.signal.aborted || interrupting) process.exit(1);
     run.emit({ type: 'cancel-requested' });
     controller.abort(new DOMException('Cancellation requested', 'AbortError'));
   };
-  const resources = {};
+  const onSignal = () => {
+    if (run.signal.aborted || interrupting) process.exit(1);
+    interrupting = true;
+    interrupt().finally(() => process.exit(1));
+  };
+  // Like a crash, minus the leftover commands: the saved state stays `running` with a
+  // dead owner (`inspect` shows `interrupted`), in-flight jobs stay pending and Flue keeps
+  // their submissions, so `resume` re-attaches. Flue's own shutdown would wait for them.
+  async function interrupt() {
+    await run.attempt(() => run.emit({ type: 'run-interrupted' }));
+    resources.stopRecording?.();
+    await run.attempt(() => stopCommandGroups(dir, state.attempt));
+  }
   let result;
   try {
     await preflight({ dir, manifest, state });
@@ -155,7 +178,7 @@ async function executeOwned({ dir, runtimeRoot }) {
     await run.persist();
     journal = openSync(join(dir, 'events.jsonl'), 'a', 0o600);
     run.emit({ type: 'run-started', auth: source, model: config.model });
-    process.on('SIGINT', onSignal); process.on('SIGTERM', onSignal);
+    process.on('SIGINT', onSignal); process.on('SIGTERM', onSignal); process.on('SIGUSR2', onCancel);
     resources.stopRecording = recordCommands(pid => run.emit({ type: 'command', pid }));
     const code = resources.code = await loader(manifest.program, runtimeRoot);
     const tools = await optionalModule(manifest.program, code, 'tools.mjs');
@@ -168,7 +191,7 @@ async function executeOwned({ dir, runtimeRoot }) {
   } catch (error) {
     if (!run.known(error)) errors.push(error);
   } finally {
-    process.removeListener('SIGINT', onSignal); process.removeListener('SIGTERM', onSignal);
+    process.removeListener('SIGINT', onSignal); process.removeListener('SIGTERM', onSignal); process.removeListener('SIGUSR2', onCancel);
     await shutdown(run, resources);
   }
   if (journal !== undefined) {
