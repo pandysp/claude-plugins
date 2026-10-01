@@ -26,6 +26,10 @@ module HostPackages
   HOST_SUPPORT = {
     "align" => { codex: true, pi: true },
     "clarify" => { codex: true, pi: true },
+    "classify-with-jev" => {
+      codex: "classifiers run through Pi's codemode tool, which Codex does not have",
+      pi: true
+    },
     "design-options" => { codex: true, pi: true },
     "drive-browser" => {
       codex: true,

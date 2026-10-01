@@ -275,6 +275,21 @@
       "category": "Developer Tools"
     },
     {
+      "name": "classify-with-jev",
+      "interface": {
+        "displayName": "Classify With Jev"
+      },
+      "source": {
+        "source": "local",
+        "path": "./plugins/classify-with-jev"
+      },
+      "policy": {
+        "installation": "NOT_AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
       "name": "quality-review",
       "interface": {
         "displayName": "Quality Review"

@@ -1,0 +1,10 @@
+{
+  "name": "classify-with-jev",
+  "description": "Classify, label or score many items with TypeSafe's Jev classifier from Pi's codemode.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT"
+}

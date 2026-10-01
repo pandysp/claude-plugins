@@ -80,10 +80,11 @@ the update command above, then restart Pi to load changed skills.
 | [worktrunk-hook](./plugins/worktrunk-hook) | Tooling | no | no | Route Claude Code's auto-created git worktrees through worktrunk so sessions inherit project hooks |
 | [drive-browser](./plugins/drive-browser) | Tooling | yes | no | Drive a browser with Playwright. Resilient locators for your own app, a vision loop for opaque sites |
 | [excalidraw](./plugins/excalidraw) | Tooling | yes | yes | Draw diagrams and sketches with Excalidraw in an Obsidian vault, and check each one with a screenshot |
+| [classify-with-jev](./plugins/classify-with-jev) | Tooling | no | yes | Classify, label or score many items with TypeSafe's Jev classifier from Pi's codemode |
 
 ## Withheld
 
-Four plugin/host combinations are deliberately not shipped. `scripts/generate.rb`
+Six plugin/host combinations are deliberately not shipped. `scripts/generate.rb`
 holds the declaration; a plugin that states neither support nor a reason fails CI.
 
 - `quality-review` (Codex, Pi): high, xhigh, and max reviews invoke Claude's
@@ -93,6 +94,9 @@ holds the declaration; a plugin that states neither support nor a reason fails C
   `WorktreeCreate` and `WorktreeRemove` events.
 - `drive-browser` (Pi): Playwright runs over `bash`, but the vision loop also
   needs a browser runtime and screenshots returned to the model. Unverified on Pi.
+- `classify-with-jev` (Codex): classifiers run through Pi's `codemode` tool,
+  which Codex does not have. Claude Code has no such tool either, so the plugin
+  is listed in its marketplace but only works in Pi.
 
 Four skills pick host mechanics by capability and work on all three hosts:
 `explore` falls back from exploration workers to search and file reads,
