@@ -33,10 +33,10 @@ export async function save(path, value) {
 
 export const load = async path => JSON.parse(await readFile(path, 'utf8'));
 
-export function lease(path, busy = `Another process owns ${path}; inspect or cancel it first.`) {
+export function lease(path, busy = `Another process owns ${path}; inspect or cancel it first.`, waitMs = 0) {
   const db = new DatabaseSync(path);
   try {
-    db.exec('PRAGMA busy_timeout=0; BEGIN EXCLUSIVE;');
+    db.exec(`PRAGMA busy_timeout=${waitMs}; BEGIN EXCLUSIVE;`);
   } catch (cause) {
     db.close();
     if (cause.errcode === 5 || cause.errcode === 6) throw new RunError(busy, { cause });
@@ -44,6 +44,11 @@ export function lease(path, busy = `Another process owns ${path}; inspect or can
   }
   return () => { try { db.exec('ROLLBACK'); } finally { db.close(); } };
 }
+
+// Serializes the commands that publish, reference or delete runtime installations
+// (setup.mjs, run creation, prune), so prune never deletes a runtime a run is pinning.
+export const workspaceLock = workspace => lease(join(workspace, '.runtime.lock'),
+  'Another setup, prune or run creation has held this workspace for two minutes; try again when it has finished.', 120_000);
 
 export function ownerActive(path) {
   try { lease(path)(); return false; }

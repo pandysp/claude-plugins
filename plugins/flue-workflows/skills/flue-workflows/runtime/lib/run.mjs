@@ -120,7 +120,9 @@ async function executeOwned({ dir, runtimeRoot }) {
   const run = {
     dir, runtimeRoot, config, state, controller, signal: controller.signal, errors,
     handles: new Map(), dispatched: new Set(), pending: new Set(), aborts: [], occurrences: new Map(),
-    attempt: async fn => { try { return await fn(); } catch (error) { if (!errors.includes(error)) errors.push(error); } },
+    // An error already recorded, directly or as the cause of a recorded wrapper, is not recorded again.
+    known: error => errors.some(recorded => recorded === error || recorded?.cause === error),
+    attempt: async fn => { try { return await fn(); } catch (error) { if (!run.known(error)) errors.push(error); } },
     persist: () => (writing = writing.then(() => save(join(dir, 'state.json'), state))),
     emit(event) {
       const row = { at: new Date().toISOString(), attempt: state.attempt, ...event };
@@ -131,7 +133,7 @@ async function executeOwned({ dir, runtimeRoot }) {
     },
     // The first fatal failure aborts the attempt; every distinct one is reported.
     fail(error) {
-      if (cancelled(error) || errors.includes(error)) return;
+      if (cancelled(error) || run.known(error)) return;
       errors.push(error);
       if (!controller.signal.aborted) controller.abort(error);
     },
@@ -164,7 +166,7 @@ async function executeOwned({ dir, runtimeRoot }) {
     result = await runProgram(run, { manifest, code, normalize });
     await save(join(dir, 'result.json'), result);
   } catch (error) {
-    if (!errors.includes(error)) errors.push(error);
+    if (!run.known(error)) errors.push(error);
   } finally {
     process.removeListener('SIGINT', onSignal); process.removeListener('SIGTERM', onSignal);
     await shutdown(run, resources);

@@ -326,10 +326,11 @@ node /absolute/workflow-space/flue.mjs resume audit-1
   that attempt journaled. Re-attaching to a submission adds nothing already in
   the journal.
 - `prune` deletes runtime installations that neither the current setup nor any
-  saved run uses. Only one `setup.mjs` or `prune` runs per workspace at a time;
-  a second one fails at once. `prune` also refuses while a run is still being
-  created. Workspaces created by an earlier setup layout are refused; start a
-  fresh workspace instead.
+  saved run uses. `setup.mjs`, `prune` and the creation step of `run` take turns
+  through a workspace lock (waiting up to two minutes), so prune never removes a
+  runtime a new run is pinning. A run directory without a manifest is an
+  interrupted creation; prune refuses until it is removed. Workspaces created by
+  an earlier setup layout are refused; start a fresh workspace instead.
 - Keep the whole run directory intact; a deleted `flue.sqlite` makes pending
   work run again. What survives inside a worker is Flue's contract, see its
   [durability guide](https://flueframework.com/docs/guide/durability/).
