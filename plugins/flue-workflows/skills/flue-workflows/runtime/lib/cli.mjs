@@ -1,5 +1,5 @@
 import { parseArgs } from 'node:util';
-import { readFile, mkdir, stat } from 'node:fs/promises';
+import { readFile, readdir, mkdir, rm, stat, realpath } from 'node:fs/promises';
 import { resolve, dirname, basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
@@ -18,9 +18,11 @@ node flue.mjs run PATH/TO/program.mjs --id NAME --cwd REPO --model PROVIDER/MODE
 node flue.mjs inspect NAME
 node flue.mjs resume NAME
 node flue.mjs cancel NAME
+node flue.mjs prune
 
 Run options: --effort low (default), --concurrency 6, --max-jobs 1000,
---timeout 600 (seconds per worker), --auth-file PATH (pi only), --args JSON.
+--timeout 600 (seconds per worker, one budget across Flue's up to 3 attempts),
+--auth-file PATH (pi only), --args JSON.
 `;
 
 function positive(value, label) {
@@ -41,6 +43,29 @@ async function inspect(dir) {
     error: state.error, result: join(dir, 'result.json'), events: join(dir, 'events.jsonl'),
     jobs: Object.values(state.jobs).map(job => ({ id: job.id, key: job.key, label: job.descriptor.label, status: job.status, error: job.error, artifact: job.artifact })),
   };
+}
+
+// Remove runtime installations that neither the current setup nor any run uses.
+async function prune(workspace) {
+  const installs = join(workspace, '.runtime');
+  const listing = async (path, filter = () => true) => {
+    try { return (await readdir(path, { withFileTypes: true })).filter(entry => entry.isDirectory() && filter(entry.name)).map(entry => entry.name); }
+    catch (error) { if (error.code === 'ENOENT') return []; throw error; }
+  };
+  const used = new Set([await realpath(join(installs, (await load(join(workspace, '.runtime.json'))).runtime))]);
+  for (const id of await listing(join(workspace, 'runs'))) used.add(await realpath((await load(join(workspace, 'runs', id, 'manifest.json'))).runtime).catch(() => null));
+  const removed = [];
+  for (const lock of await listing(installs, name => !name.includes('.installing-'))) {
+    const entries = await listing(join(installs, lock), name => name !== 'node_modules');
+    if (!entries.length) continue; // dependencies whose first library is still being set up
+    const unknown = entries.filter(name => !/^[a-f0-9]{64}(\.installing-|$)/.test(name));
+    if (unknown.length) throw new RunError(`Unrecognized installation layout in ${join(installs, lock)} (${unknown.join(', ')}); prune only handles installations from this setup version. Nothing was removed there.`);
+    const unused = entries.filter(name => !name.includes('.installing-') && !used.has(join(installs, lock, name)));
+    // Dependencies go with their last library, unless a setup is still building one.
+    const paths = unused.length === entries.length ? [join(installs, lock)] : unused.map(name => join(installs, lock, name));
+    for (const path of paths) { await rm(path, { recursive: true }); removed.push(path); }
+  }
+  return { removed, kept: [...used].filter(Boolean) };
 }
 
 async function executeAndInspect(dir) {
@@ -77,7 +102,12 @@ export async function main(workspace, argv = process.argv.slice(2)) {
   } });
   if (values.help || !positionals.length) { console.log(help); return; }
   const [command, subject] = positionals;
-  if (positionals.length > 2 || !['check', 'doctor', 'run', 'inspect', 'resume', 'cancel'].includes(command)) throw new RunError(help);
+  if (positionals.length > 2 || !['check', 'doctor', 'run', 'inspect', 'resume', 'cancel', 'prune'].includes(command)) throw new RunError(help);
+  if (command === 'prune') {
+    if (subject || Object.keys(values).length) throw new RunError('prune takes no arguments.');
+    console.log(json(await prune(await realpath(workspace))));
+    return;
+  }
   if (command === 'check') {
     if (!subject) throw new RunError('check needs an entry module path.');
     const path = resolve(subject);
@@ -121,8 +151,6 @@ export async function main(workspace, argv = process.argv.slice(2)) {
   const dir = join(workspace, 'runs', subject);
   if (command === 'inspect') { console.log(json(await inspect(dir))); return; }
   if (command === 'cancel') { await cancel(dir); return; }
-  const manifest = await load(join(dir, 'manifest.json'));
-  if (manifest.runtime !== runtimeRoot) throw new RunError('This run belongs to another runtime installation; use the launcher that created it.');
   await executeAndInspect(dir);
 }
 

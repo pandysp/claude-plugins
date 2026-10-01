@@ -1,7 +1,7 @@
 import { registerHooks } from 'node:module';
 import { cp, lstat, readlink, realpath } from 'node:fs/promises';
 import { pathToFileURL, fileURLToPath } from 'node:url';
-import { join, relative, resolve, sep, isAbsolute } from 'node:path';
+import { dirname, join, relative, resolve, sep, isAbsolute } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { entries, hashTree } from './files.mjs';
 import { RunError } from './primitives.mjs';
@@ -32,14 +32,25 @@ export async function copyProgram(source, target) {
   return before;
 }
 
+// The runtime's dependencies: beside its library in the source tree, one level up in a
+// workspace installation (see scripts/setup.mjs).
+async function dependencies(runtime) {
+  for (const path of [join(runtime, 'node_modules'), join(dirname(runtime), 'node_modules')]) {
+    try { return await realpath(path); }
+    catch (error) { if (error.code !== 'ENOENT') throw error; }
+  }
+  throw new RunError(`No installed dependencies found for the runtime at ${runtime}.`);
+}
+
 export async function loader(root, runtime) {
   root = await realpath(root);
+  const modules = await dependencies(runtime);
   const hooks = registerHooks({
     resolve(specifier, context, next) {
       const result = next(specifier, context);
       if (context.parentURL?.startsWith(pathToFileURL(root + sep).href) && result.url.startsWith('file:')) {
         const path = fileURLToPath(result.url);
-        if (!inside(root, path) && !inside(join(runtime, 'node_modules'), path)) {
+        if (!inside(root, path) && !inside(modules, path)) {
           throw new RunError(`Import escapes the program directory: ${specifier}. Keep modules in the program directory; pass data through args.`);
         }
       }
