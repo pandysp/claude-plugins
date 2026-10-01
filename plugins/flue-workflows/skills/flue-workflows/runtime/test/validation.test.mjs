@@ -20,6 +20,13 @@ test('bad options/model/tool/schema fail locally rather than falling back', () =
   assert.throws(() => normalize('hello', { isolation: 'container' }), /isolation must be/);
 });
 
+test('model selection is validated during normalization, including the default', () => {
+  const worker = workers({ config: { ...config, model: 'openai-codex/not-a-model' }, provider: openaiCodexProvider(), emit() {} });
+  assert.throws(() => worker.normalize('hello', {}), /not available under the selected/);
+  assert.throws(() => worker.normalize('hello', { model: 'openai-codex/also-missing' }), /not available under the selected/);
+  assert.equal(worker.normalize('hello', { model: config.model }).model, config.model);
+});
+
 test('custom tool maps accept plain and null-prototype objects', () => {
   for (const prototype of [Object.prototype, null]) {
     const extra = Object.assign(Object.create(prototype), { custom: () => ({ name: 'custom', parameters: { type: 'object' }, execute() {} }) });

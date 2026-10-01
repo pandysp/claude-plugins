@@ -47,13 +47,6 @@ export function workers({ config, provider, tools = {}, hook, emit }) {
   }
   const models = createModels();
   models.setProvider(provider);
-  function modelExists(specifier) {
-    const split = specifier.indexOf('/');
-    if (specifier.slice(0, split) !== provider.id || !models.getModel(provider.id, specifier.slice(split + 1))) {
-      throw new RunError(`Model ${specifier} is not available under the selected ${provider.id} provider.`);
-    }
-  }
-  modelExists(config.model);
 
   function normalize(prompt, options) {
     if (typeof prompt !== 'string' || !prompt.trim()) throw new RunError('agent() needs a nonempty prompt string.');
@@ -63,7 +56,10 @@ export function workers({ config, provider, tools = {}, hook, emit }) {
       if (options[key] !== undefined && (typeof options[key] !== 'string' || !options[key].trim())) throw new RunError(`${key} must be a nonempty string.`);
     }
     const model = options.model ?? config.model;
-    modelExists(model);
+    const split = model.indexOf('/');
+    if (model.slice(0, split) !== provider.id || !models.getModel(provider.id, model.slice(split + 1))) {
+      throw new RunError(`Model ${model} is not available under the selected ${provider.id} provider.`);
+    }
     const effort = options.effort ?? config.effort;
     if (!efforts.includes(effort)) throw new RunError(`Unsupported effort: ${effort}. Use one of ${efforts.join(', ')}.`);
     const selected = options.tools ?? Object.keys(factories);
