@@ -27,8 +27,9 @@ Before running, establish:
   broad home/tmp directory or put changing run files among program inputs.
 - **Credentials/model:** choose explicitly; the authoring host's model, login,
   instructions and tools are not inherited. `--auth pi` reads an existing valid
-  OpenAI subscription login from pi. `--auth env:VARIABLE` deliberately selects
-  API-key billing. Never print, copy or refresh credentials to make a test work.
+  OpenAI or Claude subscription login from pi; `--auth env:VARIABLE` deliberately
+  selects API-key billing ([credential sources](references/api.md#cli-and-authentication)).
+  Never print, copy or refresh credentials to make a test work.
 - **Coverage:** define complete, partial and failed outcomes; report discovered,
   attempted, failed and deliberately omitted work. A finished program, valid
   JSON or a vote count does not prove the answer is true or complete.

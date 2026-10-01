@@ -335,7 +335,8 @@ quote JSON supplied in shell arguments.
 
 | Explicit choice | Credential source |
 |---|---|
-| `--model openai-codex/gpt-5.5 --auth pi` | Existing valid OpenAI OAuth record at `~/.pi/agent/auth.json` |
+| `--model openai-codex/gpt-5.5 --auth pi` | Existing valid OpenAI (ChatGPT/Codex subscription) OAuth record at `~/.pi/agent/auth.json` |
+| `--model anthropic/MODEL --auth pi` | Existing valid Anthropic (Claude Pro/Max subscription) OAuth record at `~/.pi/agent/auth.json`; pi-ai's standard request shaping only |
 | Same plus `--auth-file /absolute/auth.json` | Deliberately selected existing pi-format file; never make a credential copy for this |
 | `--model openai/MODEL --auth env:VARIABLE` | Only that API-key environment variable; explicitly selects API billing |
 | `--model anthropic/MODEL --auth env:VARIABLE` | Only that API-key environment variable; explicitly selects API billing |

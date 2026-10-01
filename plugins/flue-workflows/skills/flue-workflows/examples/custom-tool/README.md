@@ -36,8 +36,9 @@ node "$ROOT/program/verify.mjs" "$ROOT/inspection.json" "$ROOT/args.json"
 ```
 
 Authentication must already be valid. `--auth pi` selects the runner's read-only
-pi OpenAI OAuth route, not the main host's login. Do not copy credentials, put
-keys in arguments or use secrets as the text to hash. Hashing is not a substitute
+pi subscription route, not the main host's login; see
+[credential sources](../../references/api.md#cli-and-authentication). Do not
+copy credentials, put keys in arguments or use secrets as the text to hash. Hashing is not a substitute
 for keeping credentials out of artifacts.
 
 The result is complete only if all three fields match the caller's computation;

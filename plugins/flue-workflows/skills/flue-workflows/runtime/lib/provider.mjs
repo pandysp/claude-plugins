@@ -7,6 +7,8 @@ import { anthropicProvider } from '@earendil-works/pi-ai/providers/anthropic';
 import { RunError } from './primitives.mjs';
 
 const factories = { 'openai-codex': openaiCodexProvider, openai: openaiProvider, anthropic: anthropicProvider };
+// Providers whose existing pi OAuth login `--auth pi` may read.
+const piLogins = new Set(['openai-codex', 'anthropic']);
 
 export async function credentials({ model, auth, authFile }) {
   const providerId = model?.split('/')[0];
@@ -15,7 +17,7 @@ export async function credentials({ model, auth, authFile }) {
   let resolveAuth;
   let source;
   if (auth === 'pi') {
-    if (providerId !== 'openai-codex') throw new RunError('--auth pi supports openai-codex models only.');
+    if (!piLogins.has(providerId)) throw new RunError('--auth pi supports openai-codex/… and anthropic/… models only.');
     const path = resolve(authFile ?? join(homedir(), '.pi/agent/auth.json'));
     source = { kind: 'pi-subscription', path };
     resolveAuth = async () => {
@@ -23,7 +25,7 @@ export async function credentials({ model, auth, authFile }) {
       try { stored = JSON.parse(await readFile(path, 'utf8'))[providerId]; }
       catch (cause) { throw new RunError(`Cannot read pi credentials at ${path}.`, { cause }); }
       if (stored?.type !== 'oauth' || !Number.isFinite(stored.expires) || stored.expires <= Date.now() + 60_000) {
-        throw new RunError(`No valid OpenAI OAuth credential at ${path}; log in through pi first.`);
+        throw new RunError(`No valid ${providerId} OAuth credential at ${path}; log in through pi first.`);
       }
       return { auth: await base.auth.oauth.toAuth(stored), source: 'explicit existing pi subscription, read-only' };
     };
@@ -37,7 +39,7 @@ export async function credentials({ model, auth, authFile }) {
       if (!key) throw new RunError(`Environment variable ${variable} is not set.`);
       return { auth: { apiKey: key }, source: `explicit ${variable} API key` };
     };
-  } else throw new RunError('Choose --auth pi (OpenAI subscription via pi) or --auth env:VARIABLE (API key).');
+  } else throw new RunError('Choose --auth pi (OpenAI or Claude subscription via pi) or --auth env:VARIABLE (API key).');
   await resolveAuth();
   return { source, provider: { ...base, auth: { apiKey: { name: 'Explicit workflow credentials', resolve: resolveAuth } } } };
 }

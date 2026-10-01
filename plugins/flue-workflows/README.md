@@ -52,9 +52,10 @@ node "$ROOT/workflow-space/flue.mjs" inspect coding-1 > "$ROOT/inspection.json"
 node "$ROOT/program/verify.mjs" "$ROOT/inspection.json" "$ROOT/baseline.json" "$ROOT/args.json"
 ```
 
-`--auth pi` reads an existing OpenAI OAuth login from pi's auth store; the
-runner never logs in, refreshes or copies credentials. `--auth env:VARIABLE`
-with an `openai/…` or `anthropic/…` model selects API-key billing instead.
+`--auth pi` reads an existing OpenAI or Claude subscription login from pi's auth
+store; the runner never logs in, refreshes or copies credentials. `--auth
+env:VARIABLE` selects API-key billing instead. All credential sources are listed
+in the [API reference](skills/flue-workflows/references/api.md#cli-and-authentication).
 
 `verify.mjs` is the consumer-side check: it reruns the fixture's checks against
 each retained candidate and confirms the original files, HEAD and index are
@@ -82,3 +83,9 @@ reused all four results with zero new dispatches or fetch attempts. Hard-kill,
 `SIGTERM` and receipt-free keyed recovery are covered by the automated
 real-Flue suite, not this trial. The hard-kill test checks that resume reuses
 the original submission ID, rather than merely finishing another submission.
+
+2026-10-01, macOS, Node 26.5, `anthropic/claude-opus-5` via `--auth pi` (a
+Claude subscription login): the same example from a fresh install completed four
+workers in 47 s, `verify.mjs` reported `complete` with the source unchanged, and
+`resume` reused all four with zero new dispatches. No token appeared in any run
+file.
