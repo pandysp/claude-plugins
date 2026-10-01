@@ -1,7 +1,7 @@
 // End-to-end through the CLI with real Flue, SQLite and Git. Only the model is scripted.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, writeFile, appendFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile, appendFile, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -162,7 +162,7 @@ test('a structured worker that answers in text instead of submit_result is a fai
   assert.match(failed.error, /without calling submit_result/);
 });
 
-test('an unawaited worker call that fails fatally fails the run', async t => {
+test('a fatal worker call whose rejection the program swallows fails the run', async t => {
   const f = await fixture(t, { body: `run.agent('Never awaited.', { key: 'lost', effort: 'not-an-effort' }).catch(() => {});
     await new Promise(resolve => setTimeout(resolve, 50));
     return 'finished anyway';` });
@@ -171,6 +171,31 @@ test('an unawaited worker call that fails fatally fails the run', async t => {
   assert.equal(result.state.status, 'failed');
   assert.match(result.state.error, /Unsupported effort: not-an-effort/);
   await assert.rejects(readFile(join(f.dir, 'result.json')), { code: 'ENOENT' });
+});
+
+test('a fatal worker call that is never awaited or handled fails the run', async t => {
+  const f = await fixture(t, { body: `run.agent('Never awaited.', { key: 'lost', effort: 'not-an-effort' });
+    await new Promise(resolve => setTimeout(resolve, 50));
+    return 'finished anyway';` });
+  const result = await f.invoke('run');
+  assert.equal(result.code, 1, result.stderr);
+  assert.equal(result.state.status, 'failed');
+  assert.match(result.state.error, /Unsupported effort: not-an-effort/);
+});
+
+test('a worker.mjs hook can import the pinned Flue package by name', async t => {
+  const f = await fixture(t, { files: { 'worker.mjs': "import { useInstruction } from '@flue/runtime';\nexport default () => { useInstruction('Cite evidence.'); };\n" } });
+  const result = await f.invoke('run');
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(Object.values(result.state.jobs)[0].status, 'completed');
+});
+
+test('a refused program leaves no half-created run behind', async t => {
+  const f = await fixture(t, { body: 'return 1; }; invalid syntax {' });
+  const failed = await exec(process.execPath, [child, join(f.root, 'workspace'), 'run', f.program, f.trace], { env: baseEnv }).catch(error => error);
+  assert.equal(failed.code, 1, 'the CLI exits 1 for a refused program');
+  assert.match(failed.stderr, /Syntax check failed for program\.mjs/);
+  await assert.rejects(stat(f.dir), { code: 'ENOENT' }, 'the run directory is removed, so the id can be used again');
 });
 
 test('a caught fatal worker error still fails the run', async t => {
@@ -242,7 +267,8 @@ test('resume reattaches a pending worker through Flue without a saved receipt', 
   assert.deepEqual(await load(join(f.dir, 'result.json')), { answer: 42 });
   const tools = (await readFile(join(f.dir, 'events.jsonl'), 'utf8')).trim().split('\n').map(JSON.parse)
     .filter(event => event.type.startsWith('tool-') && event.attempt === resumed.state.attempt).map(event => event.type);
-  assert.deepEqual(tools, ['tool-start', 'tool-completed'], 'reading a settled submission reports its tool calls once in this attempt');
+  assert.deepEqual(tools, [], 'the first attempt already journaled these tool calls; re-reading the submission adds none');
+  assert.equal(resumed.state.toolErrors, 0);
 });
 
 test('a hard-killed run resumes: Flue finishes the admitted worker and the program reuses it', async t => {
@@ -263,7 +289,7 @@ test('a hard-killed run resumes: Flue finishes the admitted worker and the progr
   assert.deepEqual(await load(join(f.dir, 'result.json')), { answer: 42 });
   const tools = (await readFile(join(f.dir, 'events.jsonl'), 'utf8')).trim().split('\n').map(JSON.parse)
     .filter(event => event.type.startsWith('tool-')).map(event => [event.attempt === resumed.state.attempt ? 'resumed' : 'killed', event.type]);
-  assert.deepEqual(tools, [['resumed', 'tool-start'], ['resumed', 'tool-completed']], 'each tool call is journaled once, by the attempt that observed it');
+  assert.deepEqual(tools, [['resumed', 'tool-start'], ['resumed', 'tool-completed']], 'the killed attempt saw no tool call; the resumed one journals it once');
 });
 
 test('SIGTERM cancels: live workers settle aborted, the run is cancelled, resume keeps them aborted', async t => {

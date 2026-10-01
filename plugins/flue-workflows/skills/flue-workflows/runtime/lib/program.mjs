@@ -45,10 +45,16 @@ async function dependencies(runtime) {
 export async function loader(root, runtime) {
   root = await realpath(root);
   const modules = await dependencies(runtime);
+  const program = pathToFileURL(root + sep).href;
+  // Bare package names from the program resolve as if imported by the runtime: the
+  // program copy lives in its run directory, outside the dependencies' ancestors.
+  const anchor = pathToFileURL(join(runtime, 'program-import')).href;
+  const bare = specifier => !/^(\.{0,2}\/|[a-z][a-z0-9+.-]*:)/i.test(specifier);
   const hooks = registerHooks({
     resolve(specifier, context, next) {
-      const result = next(specifier, context);
-      if (context.parentURL?.startsWith(pathToFileURL(root + sep).href) && result.url.startsWith('file:')) {
+      const fromProgram = context.parentURL?.startsWith(program);
+      const result = next(specifier, fromProgram && bare(specifier) ? { ...context, parentURL: anchor } : context);
+      if (fromProgram && result.url.startsWith('file:')) {
         const path = fileURLToPath(result.url);
         if (!inside(root, path) && !inside(modules, path)) {
           throw new RunError(`Import escapes the program directory: ${specifier}. Keep modules in the program directory; pass data through args.`);

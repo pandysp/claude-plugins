@@ -76,3 +76,25 @@ test('prune refuses an installation layout it does not recognize', async t => {
   await assert.rejects(f.flue('prune'), /Unrecognized installation layout.*lib/);
   await readdir(join(old, 'lib'));
 });
+
+test('inspect, resume and cancel use the runtime that created the run, not the current one', async t => {
+  const f = await fixture(t);
+  const first = await realpath((await f.setup()).runtime); // the CLI records real paths
+  await appendFile(join(f.copy, 'runtime/lib/primitives.mjs'), '\n// library-only change\n');
+  await f.setup();
+  await mkdir(join(f.workspace, 'runs', 'old'), { recursive: true });
+  await writeFile(join(f.workspace, 'runs', 'old', 'manifest.json'), JSON.stringify({ runtime: first }));
+  await rm(join(first, 'lib'), { recursive: true });
+  // The current runtime is intact, so only routing to the run's own runtime can fail here.
+  await assert.rejects(f.flue('inspect', 'old'), new RegExp(`${first.split('/').at(-1)}/lib/cli.mjs`));
+  assert.match(await f.flue('--help'), /node flue.mjs prune/);
+});
+
+test('prune reports a run that has no manifest yet instead of failing', async t => {
+  const f = await fixture(t);
+  await f.setup();
+  await mkdir(join(f.workspace, 'runs', 'creating'), { recursive: true });
+  const report = JSON.parse(await f.flue('prune'));
+  assert.deepEqual(report.runsWithoutManifest, ['creating']);
+  assert.deepEqual(report.removed, []);
+});

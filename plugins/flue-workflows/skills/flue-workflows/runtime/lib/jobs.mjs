@@ -17,17 +17,33 @@ export function jobId(namespace, descriptor, key, occurrences) {
 }
 
 // Tool lifecycle as Flue recorded it, so failures before execute() (argument
-// validation) count like failures inside it.
-function toolEvents(emit, worker) {
+// validation) count like failures inside it. Reading a submission again replays
+// its stream, so each step is journaled once across attempts (`journaled` holds
+// `type:call` keys already in the journal).
+export function toolEvents(emit, worker, journaled) {
   const names = new Map();
+  const report = (type, call, tool, extra) => {
+    if (journaled.has(`${type}:${call}`)) return;
+    journaled.add(`${type}:${call}`);
+    emit({ type, worker, tool, call, ...extra });
+  };
   return chunk => {
     if (chunk.type === 'tool-input') {
       names.set(chunk.toolCallId, chunk.toolName);
-      emit({ type: 'tool-start', worker, tool: chunk.toolName, call: chunk.toolCallId });
+      report('tool-start', chunk.toolCallId, chunk.toolName);
     } else if (chunk.type === 'tool-output') {
-      emit({ type: 'tool-completed', worker, tool: names.get(chunk.toolCallId), call: chunk.toolCallId });
+      report('tool-completed', chunk.toolCallId, names.get(chunk.toolCallId));
     } else if (chunk.type === 'tool-output-error') {
-      emit({ type: 'tool-failed', worker, tool: names.get(chunk.toolCallId), call: chunk.toolCallId, message: chunk.errorText });
+      report('tool-failed', chunk.toolCallId, names.get(chunk.toolCallId), { message: chunk.errorText });
+    } else if (chunk.type === 'conversation-reset') {
+      // A batch Flue folded into a snapshot carries its tool calls only as message parts.
+      for (const part of chunk.snapshot.messages.flatMap(message => message.parts)) {
+        if (part.type !== 'dynamic-tool') continue;
+        names.set(part.toolCallId, part.toolName);
+        report('tool-start', part.toolCallId, part.toolName);
+        if (part.state === 'output-available') report('tool-completed', part.toolCallId, part.toolName);
+        if (part.state === 'output-error') report('tool-failed', part.toolCallId, part.toolName, { message: part.errorText });
+      }
     }
   };
 }
@@ -70,7 +86,7 @@ function resultOf(descriptor, reply, submissionId) {
 }
 
 // Runs one worker call to a result, `null` for a failed/aborted worker, or a thrown fatal error.
-// `run` holds the attempt's shared state: { dir, runtimeRoot, config, state, Worker, persist, emit, signal, handles, dispatched, occurrences }.
+// `run` holds the attempt's shared state: { dir, runtimeRoot, config, state, Worker, persist, emit, signal, handles, dispatched, occurrences, journaled }.
 export async function job(run, { namespace, descriptor, key }) {
   descriptor.cwd = await workingDirectory(run, descriptor.cwd);
   const { job, reused } = claim(run, { namespace, descriptor, key });
@@ -93,7 +109,7 @@ export async function job(run, { namespace, descriptor, key }) {
     const receipt = await handle.dispatch({ message: task.prompt, initialData: structuredClone(task), idempotencyKey: 'workflow-job-v1' });
     if (run.signal.aborted) await handle.abort();
     run.emit({ type: 'worker-started', id, label, phase, workspace: task.cwd, submissionId: receipt.submissionId, deduplicated: receipt.deduplicated === true });
-    const reply = await handle.read(receipt, { onEvent: toolEvents(run.emit, id) });
+    const reply = await handle.read(receipt, { onEvent: toolEvents(run.emit, id, run.journaled) });
     job.result = JSON.parse(json(resultOf(descriptor, reply, receipt.submissionId)));
     if (job.workspace) job.artifact = await collect(job.workspace.cwd, job.workspace.commit, join(run.dir, `${id}.patch`));
     job.status = 'completed';

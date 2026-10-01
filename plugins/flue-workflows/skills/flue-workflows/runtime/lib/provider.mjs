@@ -25,8 +25,9 @@ export async function credentials({ model, auth, authFile }) {
       try { text = await readFile(path, 'utf8'); }
       catch (cause) { throw new RunError(`Cannot read pi credentials at ${path}.`, { cause }); }
       // Parser messages quote the input, which here is a credential store: report the path only.
-      try { stored = JSON.parse(text)[providerId]; }
+      try { stored = JSON.parse(text); }
       catch { throw new RunError(`pi credentials at ${path} are not valid JSON.`); }
+      stored = stored?.[providerId];
       if (stored?.type !== 'oauth' || !Number.isFinite(stored.expires) || stored.expires <= Date.now() + 60_000) {
         throw new RunError(`No valid ${providerId} OAuth credential at ${path}; log in through pi first.`);
       }

@@ -12,7 +12,7 @@ import { homedir } from 'node:os';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { randomUUID } from 'node:crypto';
-import { hashTree, hash, json, save } from '../runtime/lib/files.mjs';
+import { hashTree, hash, json, save, lease } from '../runtime/lib/files.mjs';
 
 const scripts = dirname(fileURLToPath(import.meta.url));
 const source = resolve(scripts, '../runtime');
@@ -36,6 +36,9 @@ async function install(path, build) {
   return true;
 }
 
+await mkdir(workspace, { recursive: true });
+// One setup or prune at a time per workspace; see `prune` in runtime/lib/cli.mjs.
+const release = lease(join(workspace, '.runtime.lock'));
 const lockHash = hash(json({ package: hash(await readFile(join(source, 'package.json'))), lock: hash(await readFile(join(source, 'package-lock.json'))) }));
 const libHash = await hashTree(join(source, 'lib'));
 const dependencies = join(workspace, '.runtime', lockHash);
@@ -54,4 +57,5 @@ await install(runtime, async stage => {
 await save(join(workspace, '.runtime.json'), { runtime: `${lockHash}/${libHash}` });
 await copyFile(join(scripts, 'launcher.mjs'), join(workspace, 'flue.mjs'));
 await chmod(join(workspace, 'flue.mjs'), 0o700);
+release();
 console.log(json({ ready: true, workspace, runtime, dependenciesInstalled: installedDependencies, command: `node ${join(workspace, 'flue.mjs')} --help` }));

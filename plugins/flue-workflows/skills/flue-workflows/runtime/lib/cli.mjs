@@ -3,7 +3,7 @@ import { readFile, readdir, mkdir, rm, stat, realpath } from 'node:fs/promises';
 import { resolve, dirname, basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { json, save, load, ownerActive } from './files.mjs';
+import { json, save, load, ownerActive, lease } from './files.mjs';
 import { checkProgram, copyProgram } from './program.mjs';
 import { RunError, message } from './primitives.mjs';
 import { liveCommandGroups } from './commands.mjs';
@@ -46,14 +46,28 @@ async function inspect(dir) {
 }
 
 // Remove runtime installations that neither the current setup nor any run uses.
+// Holds the workspace installation lock, so a concurrent setup cannot publish a
+// runtime between the reference scan and the deletions.
 async function prune(workspace) {
+  const release = lease(join(workspace, '.runtime.lock'));
+  try { return await pruneLocked(workspace); }
+  finally { release(); }
+}
+
+async function pruneLocked(workspace) {
   const installs = join(workspace, '.runtime');
   const listing = async (path, filter = () => true) => {
     try { return (await readdir(path, { withFileTypes: true })).filter(entry => entry.isDirectory() && filter(entry.name)).map(entry => entry.name); }
     catch (error) { if (error.code === 'ENOENT') return []; throw error; }
   };
   const used = new Set([await realpath(join(installs, (await load(join(workspace, '.runtime.json'))).runtime))]);
-  for (const id of await listing(join(workspace, 'runs'))) used.add(await realpath((await load(join(workspace, 'runs', id, 'manifest.json'))).runtime).catch(() => null));
+  const incomplete = [];
+  for (const id of await listing(join(workspace, 'runs'))) {
+    let manifest;
+    try { manifest = await load(join(workspace, 'runs', id, 'manifest.json')); }
+    catch (error) { if (error.code !== 'ENOENT') throw error; incomplete.push(id); continue; } // a run still being created
+    used.add(await realpath(manifest.runtime).catch(() => null));
+  }
   const removed = [];
   for (const lock of await listing(installs, name => !name.includes('.installing-'))) {
     const entries = await listing(join(installs, lock), name => name !== 'node_modules');
@@ -65,7 +79,7 @@ async function prune(workspace) {
     const paths = unused.length === entries.length ? [join(installs, lock)] : unused.map(name => join(installs, lock, name));
     for (const path of paths) { await rm(path, { recursive: true }); removed.push(path); }
   }
-  return { removed, kept: [...used].filter(Boolean) };
+  return { removed, kept: [...used].filter(Boolean), runsWithoutManifest: incomplete };
 }
 
 async function executeAndInspect(dir) {
@@ -140,9 +154,14 @@ export async function main(workspace, argv = process.argv.slice(2)) {
     await mkdir(dir);
     const sourceFile = resolve(subject);
     const program = join(dir, 'program');
-    const programHash = await copyProgram(dirname(sourceFile), program);
-    await save(join(dir, 'manifest.json'), { id: values.id, runtime: runtimeRoot, program, programHash, entry: basename(sourceFile), config, args });
-    await save(join(dir, 'state.json'), { status: 'created', attempt: null, owner: null, jobs: {}, calls: 0, reused: 0, compositionErrors: 0, toolErrors: 0, error: null });
+    try {
+      const programHash = await copyProgram(dirname(sourceFile), program);
+      await save(join(dir, 'state.json'), { status: 'created', attempt: null, owner: null, jobs: {}, calls: 0, reused: 0, compositionErrors: 0, toolErrors: 0, error: null });
+      await save(join(dir, 'manifest.json'), { id: values.id, runtime: runtimeRoot, program, programHash, entry: basename(sourceFile), config, args });
+    } catch (error) {
+      await rm(dir, { recursive: true, force: true }); // a refused program leaves no half-created run behind
+      throw error;
+    }
     await executeAndInspect(dir);
     return;
   }

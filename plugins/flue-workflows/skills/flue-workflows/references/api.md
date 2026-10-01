@@ -30,9 +30,10 @@ The final return value must be finite, acyclic JSON: no `undefined`, `Date`,
 `BigInt`, functions or class instances. Await every worker and composition call.
 
 The runner copies the **whole program directory**, excluding `.git` and
-`node_modules`, into `runs/<id>/program/`. Program symlinks must use relative targets within that directory.
-File imports from the copy must stay within it or the pinned runtime's
-`node_modules`. Node built-ins remain available. This import rule is not a
+`node_modules`, into `runs/<id>/program/`. Program symlinks must use relative
+targets within that directory. File imports from the copy must stay within it;
+package names (such as `@flue/runtime`) resolve from the pinned runtime's
+dependencies. Node built-ins remain available. This import rule is not a
 security sandbox: arbitrary filesystem reads, clocks, randomness and
 external effects are still possible, and their state is not checkpointed.
 
@@ -320,13 +321,14 @@ node /absolute/workflow-space/flue.mjs resume audit-1
   snapshot workspace is missing, or a shell command from the previous attempt
   is still running (its process group and start time are journaled at spawn).
   Stop such commands yourself; do not edit the journal.
-- Tool events (`tool-start`, `tool-completed`, `tool-failed`) and the
-  `toolErrors` count belong to the attempt that observed them. An attempt that
-  re-attaches to a finished submission reports that submission's tool calls
-  again, once.
+- Each tool step (`tool-start`, `tool-completed`, `tool-failed`) is journaled
+  once, by the first attempt that observes it; `toolErrors` counts the failures
+  that attempt journaled. Re-attaching to a submission adds nothing already in
+  the journal.
 - `prune` deletes runtime installations that neither the current setup nor any
-  saved run uses. Workspaces created by an earlier setup layout are refused;
-  start a fresh workspace instead.
+  saved run uses. It and `setup.mjs` take turns through a workspace lock.
+  Workspaces created by an earlier setup layout are refused; start a fresh
+  workspace instead.
 - Keep the whole run directory intact; a deleted `flue.sqlite` makes pending
   work run again. What survives inside a worker is Flue's contract, see its
   [durability guide](https://flueframework.com/docs/guide/durability/).

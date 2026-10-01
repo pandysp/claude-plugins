@@ -46,6 +46,7 @@ export async function liveCommandGroups(dir) {
     started.set(Number(pid), now - elapsedMs(etime));
   }
   // A live group counts unless its leader is a newer process that reused the pid.
-  // A group whose leader already exited cannot have been reused: its pgid stays reserved.
+  // A group whose leader already exited has no start time to compare; it is reported,
+  // erring towards refusing a resume over running beside a leftover command.
   return [...spawned].filter(([pid, at]) => groups.has(pid) && (!started.has(pid) || Math.abs(started.get(pid) - at) <= SAME_PROCESS_MS)).map(([pid]) => pid);
 }

@@ -23,8 +23,9 @@ between them.
 
 Deliberate boundaries:
 
-- One pinned dependency graph per workflow workspace, outside host plugin
-  caches. `inspect`, `resume` and `cancel` use the runtime that created the run.
+- Each run is pinned to the runtime installation that created it, inside the
+  workflow workspace and outside host plugin caches. `inspect`, `resume` and
+  `cancel` use that runtime.
 - Workers have unrestricted local access after explicit approval. No containers
   or command approval UI.
 - No automatic workflow on every task, no silent provider fallback, no automatic

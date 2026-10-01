@@ -1,5 +1,5 @@
 import { appendFileSync, openSync, closeSync, fsyncSync } from 'node:fs';
-import { stat, access, realpath } from 'node:fs/promises';
+import { stat, access, realpath, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { start, sqlite } from '@flue/runtime/node';
@@ -22,6 +22,14 @@ async function optionalModule(root, code, name) {
   const module = await code.load(name);
   if (module.default === undefined) throw new RunError(`${name} must export a default value.`);
   return module.default;
+}
+
+// `type:call` keys of tool steps earlier attempts already journaled.
+async function journaledToolSteps(dir) {
+  let text;
+  try { text = await readFile(join(dir, 'events.jsonl'), 'utf8'); }
+  catch (error) { if (error.code === 'ENOENT') return new Set(); throw error; }
+  return new Set(text.split('\n').filter(Boolean).map(line => JSON.parse(line)).filter(row => row.type.startsWith('tool-')).map(row => `${row.type}:${row.call}`));
 }
 
 // Refuse to start when the saved run no longer matches what created it.
@@ -139,6 +147,7 @@ async function executeOwned({ dir, runtimeRoot }) {
   let result;
   try {
     await preflight({ dir, manifest, state });
+    run.journaled = await journaledToolSteps(dir);
     const { provider, source } = await credentials(config);
     Object.assign(state, { attempt: randomUUID(), status: 'running', owner: { pid: process.pid }, error: null, calls: 0, reused: 0, compositionErrors: 0, toolErrors: 0 });
     await run.persist();
@@ -161,12 +170,16 @@ async function executeOwned({ dir, runtimeRoot }) {
     await shutdown(run, resources);
   }
   if (journal !== undefined) {
-    const failures = errors.filter(error => !cancelled(error));
-    state.status = failures.length ? 'failed' : errors.length ? 'cancelled' : 'finished';
-    state.error = errors.length ? (failures.length ? failures : errors).map(message).join('; ') : null;
+    const decide = () => {
+      const failures = errors.filter(error => !cancelled(error));
+      state.status = failures.length ? 'failed' : errors.length ? 'cancelled' : 'finished';
+      state.error = errors.length ? (failures.length ? failures : errors).map(message).join('; ') : null;
+    };
+    decide();
     await run.attempt(() => run.emit(state.status === 'finished' ? { type: 'program-finished', result: join(dir, 'result.json') } : { type: 'run-failed', message: state.error }));
     await run.attempt(() => closeSync(journal));
     await run.attempt(() => writing);
+    decide(); // the final journal writes can fail too
     state.owner = null;
     await run.attempt(() => save(join(dir, 'state.json'), state));
   }
