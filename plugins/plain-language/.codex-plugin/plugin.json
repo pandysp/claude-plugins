@@ -1,0 +1,6 @@
+{
+  "name": "plain-language",
+  "version": "1.0.0",
+  "description": "Explain things in plain, jargon-free language to a smart reader with no context, leading with the problem behind the problem, without talking down.",
+  "skills": "./skills/"
+}

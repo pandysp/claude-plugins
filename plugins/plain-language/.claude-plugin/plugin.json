@@ -1,0 +1,10 @@
+{
+  "name": "plain-language",
+  "description": "Explain things in plain, jargon-free language to a smart reader with no context, leading with the problem behind the problem, without talking down.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT"
+}

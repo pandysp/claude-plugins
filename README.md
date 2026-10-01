@@ -77,6 +77,7 @@ the update command above, then restart Pi to load changed skills.
 | [handoff](./plugins/handoff) | Workflow | yes | yes | Write a durable handoff — PR descriptions, summaries, memos, or memory notes |
 | [reflect](./plugins/reflect) | Workflow | yes | yes | Surface a session's durable lessons before they fade, each with the place it would be saved |
 | [understudy](./plugins/understudy) | Workflow | yes | yes | Write code, comments, tests, and commits that read as if the project's own maintainer wrote them |
+| [plain-language](./plugins/plain-language) | Workflow | yes | yes | Explain things in plain, jargon-free language to a smart reader with no context, leading with the problem behind the problem |
 | [worktrunk-hook](./plugins/worktrunk-hook) | Tooling | no | no | Route Claude Code's auto-created git worktrees through worktrunk so sessions inherit project hooks |
 | [drive-browser](./plugins/drive-browser) | Tooling | yes | no | Drive a browser with Playwright. Resilient locators for your own app, a vision loop for opaque sites |
 | [excalidraw](./plugins/excalidraw) | Tooling | yes | yes | Draw diagrams and sketches with Excalidraw in an Obsidian vault, and check each one with a screenshot |
