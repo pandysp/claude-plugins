@@ -38,8 +38,8 @@ node "$ROOT/program/verify.mjs" "$ROOT/inspection.json" "$ROOT/args.json"
 Authentication must already be valid. `--auth pi` selects the runner's read-only
 pi subscription route, not the main host's login; see
 [credential sources](../../references/api.md#cli-and-authentication). Do not
-copy credentials, put keys in arguments or use secrets as the text to hash. Hashing is not a substitute
-for keeping credentials out of artifacts.
+copy credentials, put keys in arguments or use secrets as the text to hash.
+Hashing is not a substitute for keeping credentials out of artifacts.
 
 The result is complete only if all three fields match the caller's computation;
 it is failed if the worker fails or returns wrong facts. This single-item
@@ -56,8 +56,7 @@ completion. A valid JSON shape or model assertion alone does not pass it.
   remains trusted JavaScript with host access.
 - The raw tool schema is separate from the worker's final-result schema.
   `content` is what the worker sees; `details` carries structured tool data.
-- Finished matching jobs can be reused. Current recovery refuses pending work
-  when `tools.mjs` or `worker.mjs` exists, even for this pure tool: it does not
-  infer arbitrary module purity. Do not remove the module to bypass that check.
-- Syntax checks are not live proof. This example still requires final installed
-  runtime and consumer-side live verification before a release claim.
+- Finished matching jobs are reused on `resume`. A pending worker re-attaches
+  to its Flue submission, and Flue may run it again (up to 3 attempts), so a
+  custom tool must be safe to run more than once.
+- `check` is a syntax check, not live proof; `verify.mjs` is the consumer check.

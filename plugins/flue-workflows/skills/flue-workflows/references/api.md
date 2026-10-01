@@ -12,7 +12,7 @@ Keep three separate directories:
 |---|---|
 | Source repository | The code or documents workers inspect; Git root required for snapshots |
 | Program directory | `program.mjs`, local modules and fixed resources; no credentials or changing outputs |
-| Workflow workspace | Installed runtime versions, run records and retained worker copies |
+| Workflow workspace | Installed runtimes, run records (each with its pinned program copy) and retained worker copies |
 
 ```js
 export default async function (run, args) {
@@ -30,7 +30,7 @@ The final return value must be finite, acyclic JSON: no `undefined`, `Date`,
 `BigInt`, functions or class instances. Await every worker and composition call.
 
 The runner copies the **whole program directory**, excluding `.git` and
-`node_modules`. Program symlinks must use relative targets within that directory.
+`node_modules`, into `runs/<id>/program/`. Program symlinks must use relative targets within that directory.
 File imports from the copy must stay within it or the pinned runtime's
 `node_modules`. Node built-ins remain available. This import rule is not a
 security sandbox: arbitrary filesystem reads, clocks, randomness and
@@ -41,7 +41,8 @@ external effects are still possible, and their state is not checkpointed.
 One worker with a fresh task. With `schema`, returns a validated object; without
 it, returns final text. A terminal worker failure/abort returns `null` and is
 reported in the journal. Configuration, infrastructure, admission-limit and
-run-cancellation failures reject rather than returning a pretend answer.
+run-cancellation failures reject rather than returning a pretend answer. Such a
+failure stops the run even if the program catches it or never awaits the call.
 
 | Option | Default | Contract |
 |---|---|---|
@@ -97,8 +98,12 @@ raw tool invocation, correct facts or complete coverage.
   changes. Without a key, repeated identical calls are distinguished by their
   occurrence in the program invocation.
 - Do not launch the same pending key twice. Share and await its promise instead.
-- Terminal failed/aborted submissions are not silently retried. An intentional
-  new attempt needs a distinct key, such as `check:item:attempt:2`.
+- Flue itself re-runs a worker whose attempt was interrupted or failed
+  transiently, up to **3 attempts** per worker. `--timeout` is one wall-clock
+  budget across those attempts. Write prompts that are safe to run again: a
+  direct-edit worker (`isolation: 'none'`) may see its own earlier edits.
+- After Flue gives up, a failed/aborted worker is final for that key. An
+  intentional new attempt needs a distinct key, such as `check:item:attempt:2`.
 - Child program invocations have separate key namespaces that include their
   invocation order. Stable keys do not restore changed child-call ordering.
 - The run-wide limit reserves a job before any asynchronous preparation and
@@ -311,10 +316,17 @@ node /absolute/workflow-space/flue.mjs resume audit-1
   and `aborted` return `null`, `pending` dispatches the same keyed request and
   Flue returns the existing submission (or runs it if it was never admitted).
   Work Flue restarts on its own at startup may briefly exceed `--concurrency`.
-- `resume` refuses to start when the saved configuration or pinned program
-  changed, a retained snapshot workspace is missing, or a shell command from
-  the previous attempt is still running (its process group is journaled at
-  spawn). Stop such commands yourself; do not edit the journal.
+- `resume` refuses to start when the pinned program changed, a retained
+  snapshot workspace is missing, or a shell command from the previous attempt
+  is still running (its process group and start time are journaled at spawn).
+  Stop such commands yourself; do not edit the journal.
+- Tool events (`tool-start`, `tool-completed`, `tool-failed`) and the
+  `toolErrors` count belong to the attempt that observed them. An attempt that
+  re-attaches to a finished submission reports that submission's tool calls
+  again, once.
+- `prune` deletes runtime installations that neither the current setup nor any
+  saved run uses. Workspaces created by an earlier setup layout are refused;
+  start a fresh workspace instead.
 - Keep the whole run directory intact; a deleted `flue.sqlite` makes pending
   work run again. What survives inside a worker is Flue's contract, see its
   [durability guide](https://flueframework.com/docs/guide/durability/).
@@ -327,19 +339,21 @@ node /absolute/workflow-space/flue.mjs resume audit-1
 | `doctor --model … --auth …` | Validate local runtime/config/credentials; no model request |
 | `run /path/program.mjs --id … --cwd … --model … --auth … --access unrestricted` | Create a new run; existing IDs are refused |
 | `inspect ID` / `cancel ID` / `resume ID` | Operate the saved run; no configuration overrides |
+| `prune` | Remove runtime installations no run uses |
 
 Run options: `--effort low`, `--concurrency 6`, `--max-jobs 1000`, `--timeout 600`
-(seconds per worker), and either `--args JSON` or `--args-file PATH`. IDs are
+(seconds per worker, one budget across Flue's attempts), and either `--args JSON` or `--args-file PATH`. IDs are
 1–48 lowercase letters/digits/hyphens, starting with a letter or digit. Always
 quote JSON supplied in shell arguments.
 
 | Explicit choice | Credential source |
 |---|---|
 | `--model openai-codex/gpt-5.5 --auth pi` | Existing valid OpenAI (ChatGPT/Codex subscription) OAuth record at `~/.pi/agent/auth.json` |
-| `--model anthropic/MODEL --auth pi` | Existing valid Anthropic (Claude Pro/Max subscription) OAuth record at `~/.pi/agent/auth.json`; pi-ai's standard request shaping only |
+| `--model anthropic/MODEL --auth pi` | Existing valid Anthropic (Claude Pro/Max subscription) OAuth record at `~/.pi/agent/auth.json`; requests are sent as pi-ai builds them, with nothing added |
 | Same plus `--auth-file /absolute/auth.json` | Deliberately selected existing pi-format file; never make a credential copy for this |
 | `--model openai/MODEL --auth env:VARIABLE` | Only that API-key environment variable; explicitly selects API billing |
 | `--model anthropic/MODEL --auth env:VARIABLE` | Only that API-key environment variable; explicitly selects API billing |
+| `--model openai-codex/MODEL --auth env:VARIABLE` | Refused: Codex models need `--auth pi`; use `openai/MODEL` with an API key |
 
 The provider resolves the selected credential read-only. Expired/missing OAuth
 requires the user to log in/refresh through pi separately; the runner cannot do

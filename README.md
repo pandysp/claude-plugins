@@ -69,7 +69,7 @@ the update command above, then restart Pi to load changed skills.
 | [second-opinion](./plugins/second-opinion) | Workflow | yes | yes | Get an independent review through the strongest channel the host provides |
 | [steel-man-own-position](./plugins/steel-man-own-position) | Workflow | yes | yes | Restate the strongest version of a prior position before flipping under pushback |
 | [spec](./plugins/spec) | Workflow | yes | yes | Write the implementation spec that drives execution after design is chosen |
-| [flue-workflows](./plugins/flue-workflows) | Workflow | draft | draft | Compose native Flue workers in JavaScript with parallel, pipeline and child programs |
+| [flue-workflows](./plugins/flue-workflows) | Workflow | yes | yes | Compose native Flue workers in JavaScript with parallel, pipeline and child programs |
 | [verify-claims](./plugins/verify-claims) | Workflow | yes | yes | Identify and verify unverified claims before presenting them as conclusions |
 | [verify-result](./plugins/verify-result) | Workflow | yes | yes | Black-box verification of any agent output — code, documents, presentations, configs |
 | [silent-failures](./plugins/silent-failures) | Workflow | yes | yes | Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks |

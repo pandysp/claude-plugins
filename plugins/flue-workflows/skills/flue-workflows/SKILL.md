@@ -1,6 +1,6 @@
 ---
 name: flue-workflows
-description: Author and run dynamic multi-agent JavaScript programs using Flue workers from Claude Code, Codex or pi. Use when work needs discovered fan-out, per-item pipelines, independent checks, conditional follow-up or parallel coding workers. Supplies execution primitives, not a fixed research/review recipe. The main assistant remains outside Flue and owns the task, program and user interaction. Local workers have unrestricted file/shell access only after explicit approval; isolated copies prevent edit collisions, not host access.
+description: Author and run dynamic multi-agent JavaScript programs using Flue workers from Claude Code, Codex or pi. Use when the user asks for Flue workflows, or when work needs discovered fan-out, per-item pipelines, independent checks, conditional follow-up or parallel coding workers and the host's own subagents or workflow tool do not fit (another provider or subscription for workers, resumable long runs, retained Git copies). Supplies execution primitives, not a fixed research/review recipe. The main assistant remains outside Flue and owns the task, program and user interaction. Local workers have unrestricted file/shell access only after explicit approval; isolated copies prevent edit collisions, not host access.
 ---
 
 # Flue workflows
@@ -9,6 +9,15 @@ Write a program when the next work depends on what earlier workers find. Keep
 ordinary judgment in the main conversation. The program supplies the control
 flow; Flue supplies the workers. Do not hand the overall task to a supervisor
 model or replace it with a predefined workflow catalog.
+
+## When to use it
+
+Use it when the user asks for Flue workflows, or when the work needs something
+the host's own subagents or workflow tool cannot give: workers on another
+provider or subscription, a long fan-out that must survive a crash and resume,
+or parallel coding workers in independent Git copies with retained patches.
+Otherwise prefer the host's mechanism: it needs no setup and no unrestricted
+local workers.
 
 ## Start with the work, not a fleet
 
@@ -129,7 +138,8 @@ Workers can run `read`, `write`, `edit`, `bash`, `grep` and `glob`. Without a
 snapshot, their working directory is the supplied source directory: edits are
 **direct edits**, not staged proposals. Do not run competing writers there.
 Commands must stay in the foreground with bounded timeouts. Do not leave
-servers, daemons or detached work behind.
+servers, daemons or detached work behind. Flue may re-run an interrupted worker
+(up to 3 attempts), so write prompts that are safe to run again.
 
 `run.artifacts()` and `inspect` return retained workspace/patch paths. Collecting
 captures committed changes, working-tree edits and non-ignored untracked files,
@@ -150,8 +160,12 @@ Progress is structured stderr; stdout ends with an inspection summary. Read its
 `result` file and retained artifacts. `execution: finished` means JavaScript
 returned, not that every requested input was covered. Worker/composition errors
 produce exit 2 even if the program returns a useful partial result; fatal errors
-or cancellation produce exit 1. Keep a live run in a terminal or host session
-you can inspect and cancel.
+or cancellation produce exit 1.
+
+Start `run` and `resume` in the background (the host's background task, or
+`tmux`) and poll with `inspect`: a foreground command can be stopped by the
+host's tool timeout long before the workers finish. If that kills the owner,
+`inspect` shows `execution: interrupted`; continue with `resume`.
 
 `resume` re-enters the pinned program from the beginning and reuses saved jobs
 by key: completed results are returned, failed/aborted jobs stay `null`, and

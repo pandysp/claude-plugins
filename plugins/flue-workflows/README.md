@@ -20,13 +20,14 @@ prevents edit collisions; it is not a security sandbox.
 | [Skill](skills/flue-workflows/SKILL.md) | Authoring workflow and operating rules |
 | [API](skills/flue-workflows/references/api.md) | Exact primitives, options, operation and recovery contract |
 | [Patterns](skills/flue-workflows/references/patterns.md) | Choosing dependencies, checks and coverage rules |
-| [Claude comparison](skills/flue-workflows/references/claude-parity.md) | Matches, differences and remaining work |
+| [Claude comparison](skills/flue-workflows/references/claude-parity.md) | What differs from Claude Code's Workflow tool |
 | [Coding example](skills/flue-workflows/examples/coding/program.mjs) | Discovery, conditional repair, parallel pipelines and independent checks |
 | [Custom-tool example](skills/flue-workflows/examples/custom-tool/README.md) | A native tool factory, raw result schema and consumer check |
 
 Prerequisites: Node 22.19+, npm, Git, macOS/Linux. CI runs the runtime and
 example tests on both platforms with Node 22.19 and 26.5, using real Flue,
-SQLite and Git with scripted model replies.
+SQLite and Git with scripted model replies. Live runs below were started from a
+shell; authoring programs from inside Claude Code or Codex has not been tried.
 
 ## A disposable coding example
 
