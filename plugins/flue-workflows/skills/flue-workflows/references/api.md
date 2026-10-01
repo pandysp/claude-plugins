@@ -313,9 +313,12 @@ node /absolute/workflow-space/flue.mjs resume audit-1
   they left running before it collects their patches. `cancel` fails if a
   recorded command is still alive afterwards.
 - `SIGINT`/`SIGTERM` (Ctrl-C, a host timeout) only stop the owner: it kills the
-  attempt's commands and exits, in-flight jobs stay `pending`, `inspect` shows
-  `execution: interrupted`, and `resume` re-attaches them. A second signal exits
-  at once.
+  attempt's running commands and exits at once, in-flight jobs stay `pending`,
+  `inspect` shows `execution: interrupted`, and `resume` re-attaches them. Resume
+  first waits about 30 seconds for Flue to reclaim the stopped workers, and each
+  interruption uses one of a worker's 3 attempts.
+- A command never outlives its shell: when a worker's shell exits (finished,
+  timed out or aborted), anything left in its process group is killed.
 - Flue counts `--timeout` from a worker's first start, across crashes and
   interruptions. Resume an interrupted run within that budget, or give runs that
   may sit unattended a larger `--timeout`; a worker past it fails on resume.

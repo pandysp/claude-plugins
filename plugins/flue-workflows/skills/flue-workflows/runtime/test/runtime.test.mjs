@@ -386,21 +386,26 @@ test('a failure writing the final journal event fails the run instead of saving 
   assert.equal(result.state.owner, null);
 });
 
+// A tool that runs one foreground command whose child ignores SIGTERM and writes late.txt after 2 s.
+function stubbornTool(marker, execOptions = '') {
+  const command = `sh -c 'trap "" TERM; echo ready > "${marker}"; sleep 2; echo late > late.txt; sleep 30' >/dev/null 2>&1; echo done`;
+  return `export default { broken: sandbox => ({ name: 'broken', label: 'Probe', description: 'Runs a stubborn command.', parameters: { type: 'object', properties: {} }, async execute(_id, _args, signal) { const result = await sandbox.exec(${JSON.stringify(command)}, { signal${execOptions} }); return { content: [{ type: 'text', text: result.stdout }] }; } }) };\n`;
+}
+const waitFor = async path => { for (let i = 0; i < 100 && !(await readFile(path, 'utf8').catch(() => '')); i++) await sleep(100); };
+
 test('cancel stops worker commands that ignore SIGTERM before it reports the run cancelled', async t => {
   const marker = join(tmpdir(), `flue-cancel-ready-${process.pid}-${Date.now()}`);
   t.after(() => rm(marker, { force: true }));
-  // A foreground child that ignores SIGTERM and would write after cancellation.
-  const command = `sh -c 'trap "" TERM; echo ready > "${marker}"; sleep 2; echo late > late.txt; sleep 30' >/dev/null 2>&1; echo done`;
   const f = await fixture(t, {
     git: true,
     env: { FLUE_FIXTURE_RESPONSE: 'tool-error-first' },
-    files: { 'tools.mjs': `export default { broken: sandbox => ({ name: 'broken', label: 'Probe', description: 'Runs a stubborn command.', parameters: { type: 'object', properties: {} }, async execute(_id, _args, signal) { const result = await sandbox.exec(${JSON.stringify(command)}, { signal }); return { content: [{ type: 'text', text: result.stdout }] }; } }) };\n` },
+    files: { 'tools.mjs': stubbornTool(marker) },
     body: `return ${call('answer', ", isolation: 'snapshot'").replace('tools: []', "tools: ['broken']")};`,
   });
   await writeFile(f.trace, '');
   const proc = spawn(process.execPath, [child, join(f.root, 'workspace'), 'run', f.program, f.trace], { env: { ...baseEnv, FLUE_FIXTURE_RESPONSE: 'tool-error-first' }, stdio: ['ignore', 'pipe', 'pipe'] });
   const exited = new Promise(resolve => proc.on('exit', resolve));
-  for (let i = 0; i < 100 && !(await readFile(marker, 'utf8').catch(() => '')); i++) await sleep(100);
+  await waitFor(marker);
   assert.equal((await readFile(marker, 'utf8')).trim(), 'ready');
   const cliUrl = new URL('../lib/cli.mjs', import.meta.url).href;
   const { stdout } = await exec(process.execPath, ['--input-type=module', '-e', `const { cli } = await import(${JSON.stringify(cliUrl)}); await cli(process.argv[1], ['cancel', 'fixture']); process.exit(process.exitCode ?? 0);`, '--', join(f.root, 'workspace')], { env: baseEnv });
@@ -418,4 +423,42 @@ test('a second live call with the same key is refused at any concurrency', async
   const result = await f.invoke('run');
   assert.equal(result.code, 1, result.stderr);
   assert.match(result.stderr, /Key same is already running/);
+});
+
+test('SIGTERM while a command runs: no command runs on after the owner, not even one started during the stop', async t => {
+  const marker = join(tmpdir(), `flue-interrupt-ready-${process.pid}-${Date.now()}`);
+  t.after(() => rm(marker, { force: true }));
+  // The worker calls the stubborn tool again as soon as the first command ends.
+  const f = await fixture(t, { git: true, env: { FLUE_FIXTURE_RESPONSE: 'tool-twice' }, files: { 'tools.mjs': stubbornTool(marker) },
+    body: `return ${call('answer', ", isolation: 'snapshot'").replace('tools: []', "tools: ['broken']")};` });
+  await writeFile(f.trace, '');
+  const proc = spawn(process.execPath, [child, join(f.root, 'workspace'), 'run', f.program, f.trace], { env: { ...baseEnv, FLUE_FIXTURE_RESPONSE: 'tool-twice' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  const exited = new Promise(resolve => proc.on('exit', resolve));
+  await waitFor(marker);
+  proc.kill('SIGTERM');
+  assert.equal(await exited, 1);
+  await sleep(3000);
+  const cliUrl = new URL('../lib/cli.mjs', import.meta.url).href;
+  const { stdout } = await exec(process.execPath, ['--input-type=module', '-e', `const { cli } = await import(${JSON.stringify(cliUrl)}); await cli(process.argv[1], ['inspect', 'fixture']);`, '--', join(f.root, 'workspace')], { env: baseEnv });
+  const summary = JSON.parse(stdout);
+  assert.equal(summary.execution, 'interrupted');
+  assert.deepEqual(summary.liveCommandGroups, []);
+  assert.equal(summary.jobs[0].status, 'pending');
+  const workspace = (await load(join(f.dir, 'state.json'))).jobs[summary.jobs[0].id].workspace.cwd;
+  await assert.rejects(readFile(join(workspace, 'late.txt')), { code: 'ENOENT' });
+});
+
+test('a command child that ignores SIGTERM after a timeout is killed with its shell, so the patch stays true', async t => {
+  const marker = join(tmpdir(), `flue-timeout-ready-${process.pid}-${Date.now()}`);
+  t.after(() => rm(marker, { force: true }));
+  const f = await fixture(t, { git: true, env: { FLUE_FIXTURE_RESPONSE: 'tool-error-first' }, files: { 'tools.mjs': stubbornTool(marker, ', timeoutMs: 500') },
+    body: `const answer = await ${call('answer', ", isolation: 'snapshot'").replace('tools: []', "tools: ['broken']")};
+      await new Promise(resolve => setTimeout(resolve, 3000)); // longer than the child would need to write
+      return answer;` });
+  const result = await f.invoke('run');
+  assert.equal(result.code, 0, result.stderr);
+  const [job] = Object.values(result.state.jobs);
+  assert.equal(job.status, 'completed');
+  await assert.rejects(readFile(join(job.artifact.cwd, 'late.txt')), { code: 'ENOENT' }, 'the child was killed when its shell exited');
+  assert.deepEqual(job.artifact.changed, []);
 });

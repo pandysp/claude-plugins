@@ -5,7 +5,8 @@
 //
 // FLUE_FIXTURE_RESPONSE   structured (default) | text | invalid-first (an invalid
 //                         submit_result, then a valid one) | tool-error-first (a
-//                         call to the program's `broken` tool, then a valid result)
+//                         call to the program's `broken` tool, then a valid result) |
+//                         tool-twice (two `broken` calls, then a valid result)
 // FLUE_FIXTURE_BLOCK      hold the first model call open until the process is
 //                         signalled or killed (cancel/crash tests)
 import { registerHooks, syncBuiltinESMExports } from 'node:module';
@@ -32,6 +33,7 @@ const reply = () => {
   if (mode === 'text') return fauxAssistantMessage('checked text');
   if (mode === 'invalid-first' && first) return toolUse('submit_result', { answer: 'not a number' });
   if (mode === 'tool-error-first' && first) return toolUse('broken', {});
+  if (mode === 'tool-twice' && replies <= 2) return toolUse('broken', {});
   return toolUse('submit_result', { answer: 42 });
 };
 let blocked = false;

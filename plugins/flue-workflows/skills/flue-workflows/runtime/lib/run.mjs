@@ -10,7 +10,7 @@ import { collect } from './workspace.mjs';
 import { credentials } from './provider.mjs';
 import { workers } from './workers.mjs';
 import { job } from './jobs.mjs';
-import { recordCommands, liveCommandGroups, stopCommandGroups } from './commands.mjs';
+import { recordCommands, liveCommandGroups } from './commands.mjs';
 import { loader, hashProgram } from './program.mjs';
 
 const QUIET = new Set(['tool-start', 'tool-completed', 'result-written', 'command']);
@@ -100,20 +100,21 @@ async function runProgram(run, { manifest, code, normalize }) {
 }
 
 // Stop every worker, Flue and the recorder; keep partial output of stopped snapshot workers.
-async function shutdown(run, { runtime, code, stopRecording }) {
+async function shutdown(run, { runtime, code, recorder }) {
   const { state, dir, attempt } = run;
   if (!run.signal.aborted) run.controller.abort(new DOMException('Run shutting down', 'AbortError'));
   await Promise.allSettled([...run.pending, ...run.aborts]);
   if (runtime) await attempt(() => runtime.stop());
   if (runtime) await attempt(() => cleanupSessionResources());
-  // Nothing an attempt started may keep editing after its patches are collected.
-  if (stopRecording) await attempt(() => stopCommandGroups(dir, state.attempt));
+  // Nothing an attempt started may keep editing after its patches are collected; commands
+  // whose shell already exited had their groups killed then (see recordCommands).
+  recorder?.killLive();
   // Workers stopped by this shutdown may have edited after dispatch.
   for (const id of run.dispatched) {
     const job = state.jobs[id];
     if (job.workspace && job.status !== 'completed') await attempt(async () => { job.artifact = await collect(job.workspace.cwd, job.workspace.commit, join(dir, `${id}.patch`)); });
   }
-  stopRecording?.();
+  recorder?.stop();
   await attempt(() => code?.close());
 }
 
@@ -149,26 +150,22 @@ async function executeOwned({ dir, runtimeRoot }) {
   run.signal.addEventListener('abort', () => { for (const handle of run.handles.values()) run.aborts.push(run.attempt(() => handle.abort())); });
   const resources = {};
   // SIGINT/SIGTERM stop this owner and keep in-flight work resumable; SIGUSR2, sent by
-  // `cancel`, discards it. A second signal of any kind exits at once.
-  let interrupting = false;
+  // `cancel`, discards it. Stopping is a crash minus the leftover commands, all in one
+  // synchronous step so no worker can start another command: the saved state stays
+  // `running` with a dead owner (`inspect` shows `interrupted`), in-flight jobs stay
+  // pending and Flue keeps their submissions, so `resume` re-attaches. Flue's own
+  // shutdown would wait for them. A second signal, or one during shutdown, also stops.
+  const stopNow = () => {
+    try { run.emit({ type: 'run-interrupted' }); }
+    catch (error) { console.error(`flue: stopped; the interruption was not journaled: ${message(error)}`); }
+    resources.recorder?.killLive();
+    process.exit(1);
+  };
   const onCancel = () => {
-    if (run.signal.aborted || interrupting) process.exit(1);
+    if (run.signal.aborted) stopNow();
     run.emit({ type: 'cancel-requested' });
     controller.abort(new DOMException('Cancellation requested', 'AbortError'));
   };
-  const onSignal = () => {
-    if (run.signal.aborted || interrupting) process.exit(1);
-    interrupting = true;
-    interrupt().finally(() => process.exit(1));
-  };
-  // Like a crash, minus the leftover commands: the saved state stays `running` with a
-  // dead owner (`inspect` shows `interrupted`), in-flight jobs stay pending and Flue keeps
-  // their submissions, so `resume` re-attaches. Flue's own shutdown would wait for them.
-  async function interrupt() {
-    await run.attempt(() => run.emit({ type: 'run-interrupted' }));
-    resources.stopRecording?.();
-    await run.attempt(() => stopCommandGroups(dir, state.attempt));
-  }
   let result;
   try {
     await preflight({ dir, manifest, state });
@@ -178,8 +175,8 @@ async function executeOwned({ dir, runtimeRoot }) {
     await run.persist();
     journal = openSync(join(dir, 'events.jsonl'), 'a', 0o600);
     run.emit({ type: 'run-started', auth: source, model: config.model });
-    process.on('SIGINT', onSignal); process.on('SIGTERM', onSignal); process.on('SIGUSR2', onCancel);
-    resources.stopRecording = recordCommands(pid => run.emit({ type: 'command', pid }));
+    process.on('SIGINT', stopNow); process.on('SIGTERM', stopNow); process.on('SIGUSR2', onCancel);
+    resources.recorder = recordCommands(pid => run.emit({ type: 'command', pid }));
     const code = resources.code = await loader(manifest.program, runtimeRoot);
     const tools = await optionalModule(manifest.program, code, 'tools.mjs');
     const hook = await optionalModule(manifest.program, code, 'worker.mjs');
@@ -191,8 +188,8 @@ async function executeOwned({ dir, runtimeRoot }) {
   } catch (error) {
     if (!run.known(error)) errors.push(error);
   } finally {
-    process.removeListener('SIGINT', onSignal); process.removeListener('SIGTERM', onSignal); process.removeListener('SIGUSR2', onCancel);
     await shutdown(run, resources);
+    process.removeListener('SIGINT', stopNow); process.removeListener('SIGTERM', stopNow); process.removeListener('SIGUSR2', onCancel);
   }
   if (journal !== undefined) {
     const decide = () => {

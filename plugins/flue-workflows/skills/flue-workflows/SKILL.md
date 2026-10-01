@@ -157,7 +157,8 @@ node /absolute/workflow-space/flue.mjs cancel audit-1
 node /absolute/workflow-space/flue.mjs resume audit-1
 ```
 
-Progress is structured stderr; stdout ends with an inspection summary. Read its
+Progress is structured stderr; stdout ends with an inspection summary when the
+owner finishes, fails or is cancelled. Read its
 `result` file and retained artifacts. `execution: finished` means JavaScript
 returned, not that every requested input was covered. Worker/composition errors
 produce exit 2 even if the program returns a useful partial result; fatal errors
@@ -167,8 +168,9 @@ Start `run` and `resume` in the background (the host's background task, or
 `tmux`) and poll with `inspect`: a foreground command can be stopped by the
 host's tool timeout long before the workers finish. A signal (Ctrl-C, a host
 timeout) only stops the owner: `inspect` shows `execution: interrupted` and
-`resume` continues, within the worker `--timeout`, which counts from each
-worker's first start. Only `cancel` discards in-flight work.
+`resume` continues after about 30 seconds, within the worker `--timeout`, which
+counts from each worker's first start; each interruption uses one of a worker's
+3 attempts. Only `cancel` discards in-flight work.
 
 `resume` re-enters the pinned program from the beginning and reuses saved jobs
 by key: completed results are returned, failed/aborted jobs stay `null`, and

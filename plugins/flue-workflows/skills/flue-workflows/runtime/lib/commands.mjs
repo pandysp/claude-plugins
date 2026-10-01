@@ -2,9 +2,7 @@ import { subscribe, unsubscribe } from 'node:diagnostics_channel';
 import { readFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { setTimeout as sleep } from 'node:timers/promises';
 import { join } from 'node:path';
-import { RunError } from './primitives.mjs';
 
 const exec = promisify(execFile);
 // A recorded leader whose start differs from its spawn record by more than this
@@ -17,12 +15,29 @@ const SAME_PROCESS_MS = 10_000;
 // This relies on Flue's local sandbox spawning `[shell, '-c', command]` with
 // `detached: true` (@flue/runtime 2.2.2 `execShell`); commands.test.mjs fails
 // if that changes.
+//
+// Flue stops escalating to SIGKILL once a command's shell exits, so a child that
+// ignores SIGTERM (after a timeout or abort) could keep editing files. Whatever is
+// left in a group when its shell exits has outlived its command and is killed.
 export function recordCommands(onSpawn) {
+  const live = new Set();
   const observer = ({ process: child }) => child.once('spawn', () => {
-    if (child.spawnargs[1] === '-c') onSpawn(child.pid);
+    if (child.spawnargs[1] !== '-c') return;
+    live.add(child.pid);
+    onSpawn(child.pid);
+    child.once('exit', () => { live.delete(child.pid); killGroup(child.pid); });
   });
   subscribe('child_process', observer);
-  return () => unsubscribe('child_process', observer);
+  return {
+    stop: () => unsubscribe('child_process', observer),
+    // Synchronous, so an owner can kill its commands and exit before a worker starts another.
+    killLive: () => { for (const pid of live) killGroup(pid); },
+  };
+}
+
+function killGroup(pid) {
+  try { process.kill(-pid, 'SIGKILL'); }
+  catch (error) { if (error.code !== 'ESRCH') throw error; }
 }
 
 // `ps` elapsed time, `[[dd-]hh:]mm:ss`, identical on macOS and Linux.
@@ -32,13 +47,12 @@ function elapsedMs(text) {
   return (Number(days) * 86_400 + seconds) * 1000;
 }
 
-// Recorded command groups that are still alive; only those of one attempt when given.
-export async function liveCommandGroups(dir, attempt) {
+export async function liveCommandGroups(dir) {
   let text;
   try { text = await readFile(join(dir, 'events.jsonl'), 'utf8'); }
   catch (error) { if (error.code === 'ENOENT') return []; throw error; }
   const spawned = new Map(text.split('\n').filter(Boolean).map(line => JSON.parse(line))
-    .filter(row => row.type === 'command' && (attempt === undefined || row.attempt === attempt)).map(row => [row.pid, Date.parse(row.at)]));
+    .filter(row => row.type === 'command').map(row => [row.pid, Date.parse(row.at)]));
   if (!spawned.size) return [];
   const now = Date.now();
   const { stdout } = await exec('ps', ['-axo', 'pid=,pgid=,etime='], { maxBuffer: 8 * 1024 * 1024 });
@@ -54,19 +68,3 @@ export async function liveCommandGroups(dir, attempt) {
   return [...spawned].filter(([pid, at]) => groups.has(pid) && (!started.has(pid) || Math.abs(started.get(pid) - at) <= SAME_PROCESS_MS)).map(([pid]) => pid);
 }
 
-// Kill whatever an attempt's commands left running. Flue stops escalating to SIGKILL
-// once a command's shell has exited, so a child that ignores SIGTERM can outlive it.
-export async function stopCommandGroups(dir, attempt) {
-  const groups = await liveCommandGroups(dir, attempt);
-  for (const pid of groups) {
-    try { process.kill(-pid, 'SIGKILL'); }
-    catch (error) { if (error.code !== 'ESRCH') throw error; }
-  }
-  for (let i = 0; i < 50 && groups.length; i++) {
-    if (!(await liveCommandGroups(dir, attempt)).length) return groups;
-    await sleep(100);
-  }
-  const left = await liveCommandGroups(dir, attempt);
-  if (left.length) throw new RunError(`Worker commands are still running after SIGKILL (process groups ${left.join(', ')}).`);
-  return groups;
-}

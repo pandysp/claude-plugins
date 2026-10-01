@@ -11,8 +11,8 @@ test('shell commands run by Flue are recorded; git and other helpers are not', a
   const dir = await mkdtemp(join(tmpdir(), 'flue-commands-'));
   t.after(() => rm(dir, { recursive: true, force: true }));
   const pids = [];
-  const stop = recordCommands(pid => pids.push(pid));
-  t.after(stop);
+  const recorder = recordCommands(pid => pids.push(pid));
+  t.after(recorder.stop);
   const sandbox = await local({ cwd: dir }).createSandbox({ id: 'test' });
   const result = await sandbox.exec('echo $$');
   assert.equal(result.exitCode, 0);
