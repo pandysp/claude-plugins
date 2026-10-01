@@ -135,7 +135,7 @@ begin
   entries = marketplace.fetch("plugins", []).to_h { |entry| [entry["name"], entry] }
   dir_names = plugin_dirs.map { |dir| dir.basename.to_s }
 
-  (dir_names - entries.keys).each { |name| failures << "marketplace.json: missing entry for plugins/#{name}" }
+  HostPackages.unlisted_plugins.each { |name| failures << "marketplace.json: missing entry for plugins/#{name}" }
   (entries.keys - dir_names).each { |name| failures << "marketplace.json: entry '#{name}' has no plugin directory" }
 
   entries.each do |name, entry|
