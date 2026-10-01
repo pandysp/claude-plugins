@@ -354,3 +354,12 @@ test('cancel signals the live owner and reports the settled run', async t => {
   assert.equal(summary.execution, 'cancelled');
   assert.deepEqual(summary.workers, { aborted: 1 });
 });
+
+test('program-local #imports resolve within the program, package names within the runtime', async t => {
+  const f = await fixture(t, {
+    files: { 'package.json': JSON.stringify({ type: 'module', imports: { '#helper': './helper.mjs' } }), 'helper.mjs': "export const answer = 'local';\n" },
+    body: `const { answer } = await import('#helper'); if (answer !== 'local') throw new Error('wrong helper'); return ${call('answer')};`,
+  });
+  const result = await f.invoke('run');
+  assert.equal(result.code, 0, result.stderr);
+});

@@ -38,7 +38,7 @@ async function install(path, build) {
 
 await mkdir(workspace, { recursive: true });
 // One setup or prune at a time per workspace; see `prune` in runtime/lib/cli.mjs.
-const release = lease(join(workspace, '.runtime.lock'));
+const release = lease(join(workspace, '.runtime.lock'), 'Another setup or prune is running in this workspace; try again when it has finished.');
 const lockHash = hash(json({ package: hash(await readFile(join(source, 'package.json'))), lock: hash(await readFile(join(source, 'package-lock.json'))) }));
 const libHash = await hashTree(join(source, 'lib'));
 const dependencies = join(workspace, '.runtime', lockHash);

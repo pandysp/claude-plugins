@@ -90,11 +90,22 @@ test('inspect, resume and cancel use the runtime that created the run, not the c
   assert.match(await f.flue('--help'), /node flue.mjs prune/);
 });
 
-test('prune reports a run that has no manifest yet instead of failing', async t => {
+test('prune refuses while a run has no manifest yet, since its runtime is unknown', async t => {
   const f = await fixture(t);
+  const first = await realpath((await f.setup()).runtime);
+  await appendFile(join(f.copy, 'runtime/lib/primitives.mjs'), '\n// library-only change\n');
   await f.setup();
   await mkdir(join(f.workspace, 'runs', 'creating'), { recursive: true });
-  const report = JSON.parse(await f.flue('prune'));
-  assert.deepEqual(report.runsWithoutManifest, ['creating']);
-  assert.deepEqual(report.removed, []);
+  await assert.rejects(f.flue('prune'), /Runs without a manifest: creating/);
+  await readdir(join(first, 'lib')); // nothing was removed
+});
+
+test('a second setup or prune fails at once while one holds the workspace', async t => {
+  const f = await fixture(t);
+  await f.setup();
+  const { lease } = await import('../lib/files.mjs');
+  const release = lease(join(f.workspace, '.runtime.lock'));
+  t.after(release);
+  await assert.rejects(f.flue('prune'), /Another setup or prune is running in this workspace/);
+  await assert.rejects(f.setup(), /Another setup or prune is running in this workspace/);
 });

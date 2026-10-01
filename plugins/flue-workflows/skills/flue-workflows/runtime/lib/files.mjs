@@ -33,13 +33,13 @@ export async function save(path, value) {
 
 export const load = async path => JSON.parse(await readFile(path, 'utf8'));
 
-export function lease(path) {
+export function lease(path, busy = `Another process owns ${path}; inspect or cancel it first.`) {
   const db = new DatabaseSync(path);
   try {
     db.exec('PRAGMA busy_timeout=0; BEGIN EXCLUSIVE;');
   } catch (cause) {
     db.close();
-    if (cause.errcode === 5 || cause.errcode === 6) throw new RunError(`Another process owns ${path}; inspect or cancel it first.`, { cause });
+    if (cause.errcode === 5 || cause.errcode === 6) throw new RunError(busy, { cause });
     throw new RunError(`Cannot acquire ownership at ${path}`, { cause });
   }
   return () => { try { db.exec('ROLLBACK'); } finally { db.close(); } };

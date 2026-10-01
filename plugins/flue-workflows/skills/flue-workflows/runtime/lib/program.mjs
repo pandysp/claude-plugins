@@ -49,7 +49,7 @@ export async function loader(root, runtime) {
   // Bare package names from the program resolve as if imported by the runtime: the
   // program copy lives in its run directory, outside the dependencies' ancestors.
   const anchor = pathToFileURL(join(runtime, 'program-import')).href;
-  const bare = specifier => !/^(\.{0,2}\/|[a-z][a-z0-9+.-]*:)/i.test(specifier);
+  const bare = specifier => !/^(\.{0,2}\/|#|[a-z][a-z0-9+.-]*:)/i.test(specifier);
   const hooks = registerHooks({
     resolve(specifier, context, next) {
       const fromProgram = context.parentURL?.startsWith(program);

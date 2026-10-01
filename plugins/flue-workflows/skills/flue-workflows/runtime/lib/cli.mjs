@@ -49,7 +49,7 @@ async function inspect(dir) {
 // Holds the workspace installation lock, so a concurrent setup cannot publish a
 // runtime between the reference scan and the deletions.
 async function prune(workspace) {
-  const release = lease(join(workspace, '.runtime.lock'));
+  const release = lease(join(workspace, '.runtime.lock'), 'Another setup or prune is running in this workspace; try again when it has finished.');
   try { return await pruneLocked(workspace); }
   finally { release(); }
 }
@@ -65,9 +65,11 @@ async function pruneLocked(workspace) {
   for (const id of await listing(join(workspace, 'runs'))) {
     let manifest;
     try { manifest = await load(join(workspace, 'runs', id, 'manifest.json')); }
-    catch (error) { if (error.code !== 'ENOENT') throw error; incomplete.push(id); continue; } // a run still being created
+    catch (error) { if (error.code !== 'ENOENT') throw error; incomplete.push(id); continue; }
     used.add(await realpath(manifest.runtime).catch(() => null));
   }
+  // A run without a manifest is being created (or its creation was killed): its runtime is unknown.
+  if (incomplete.length) throw new RunError(`Runs without a manifest: ${incomplete.join(', ')}. Let them finish starting, or remove those directories if their creation was interrupted, then prune again. Nothing was removed.`);
   const removed = [];
   for (const lock of await listing(installs, name => !name.includes('.installing-'))) {
     const entries = await listing(join(installs, lock), name => name !== 'node_modules');
@@ -79,7 +81,7 @@ async function pruneLocked(workspace) {
     const paths = unused.length === entries.length ? [join(installs, lock)] : unused.map(name => join(installs, lock, name));
     for (const path of paths) { await rm(path, { recursive: true }); removed.push(path); }
   }
-  return { removed, kept: [...used].filter(Boolean), runsWithoutManifest: incomplete };
+  return { removed, kept: [...used].filter(Boolean) };
 }
 
 async function executeAndInspect(dir) {
@@ -158,6 +160,10 @@ export async function main(workspace, argv = process.argv.slice(2)) {
       const programHash = await copyProgram(dirname(sourceFile), program);
       await save(join(dir, 'state.json'), { status: 'created', attempt: null, owner: null, jobs: {}, calls: 0, reused: 0, compositionErrors: 0, toolErrors: 0, error: null });
       await save(join(dir, 'manifest.json'), { id: values.id, runtime: runtimeRoot, program, programHash, entry: basename(sourceFile), config, args });
+      // prune refuses while this run has no manifest; once it has one, prune keeps its runtime.
+      // A prune that scanned before this run existed may already have removed it, though.
+      try { await stat(join(runtimeRoot, 'lib', 'cli.mjs')); }
+      catch (cause) { throw new RunError('This runtime installation was pruned while the run was being created; run setup.mjs again and retry.', { cause }); }
     } catch (error) {
       await rm(dir, { recursive: true, force: true }); // a refused program leaves no half-created run behind
       throw error;

@@ -4,7 +4,7 @@ import { toolEvents } from '../lib/jobs.mjs';
 
 test('tool steps are journaled once, from stream chunks and from reset snapshots', () => {
   const events = [];
-  const journaled = new Set(['tool-start:old', 'tool-completed:old']); // an earlier attempt's steps
+  const journaled = new Set(['worker-1:tool-start:old', 'worker-1:tool-completed:old', 'worker-2:tool-start:a']); // earlier steps
   const observe = toolEvents(event => events.push(event), 'worker-1', journaled);
   // A re-read replays the earlier attempt's call: nothing new is journaled.
   observe({ type: 'tool-input', toolCallId: 'old', toolName: 'read' });
@@ -27,5 +27,5 @@ test('tool steps are journaled once, from stream chunks and from reset snapshots
     ['tool-start', 'read', 'c', undefined],
     ['tool-completed', 'read', 'c', undefined],
   ]);
-  assert.ok(events.every(e => e.worker === 'worker-1'));
+  assert.ok(events.every(e => e.worker === 'worker-1'), 'another worker\'s step with the same call id does not hide this one');
 });

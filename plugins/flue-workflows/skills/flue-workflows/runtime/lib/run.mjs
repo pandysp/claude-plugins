@@ -24,12 +24,12 @@ async function optionalModule(root, code, name) {
   return module.default;
 }
 
-// `type:call` keys of tool steps earlier attempts already journaled.
+// `worker:type:call` keys of tool steps earlier attempts already journaled.
 async function journaledToolSteps(dir) {
   let text;
   try { text = await readFile(join(dir, 'events.jsonl'), 'utf8'); }
   catch (error) { if (error.code === 'ENOENT') return new Set(); throw error; }
-  return new Set(text.split('\n').filter(Boolean).map(line => JSON.parse(line)).filter(row => row.type.startsWith('tool-')).map(row => `${row.type}:${row.call}`));
+  return new Set(text.split('\n').filter(Boolean).map(line => JSON.parse(line)).filter(row => row.type.startsWith('tool-')).map(row => `${row.worker}:${row.type}:${row.call}`));
 }
 
 // Refuse to start when the saved run no longer matches what created it.
@@ -120,7 +120,7 @@ async function executeOwned({ dir, runtimeRoot }) {
   const run = {
     dir, runtimeRoot, config, state, controller, signal: controller.signal, errors,
     handles: new Map(), dispatched: new Set(), pending: new Set(), aborts: [], occurrences: new Map(),
-    attempt: async fn => { try { return await fn(); } catch (error) { errors.push(error); } },
+    attempt: async fn => { try { return await fn(); } catch (error) { if (!errors.includes(error)) errors.push(error); } },
     persist: () => (writing = writing.then(() => save(join(dir, 'state.json'), state))),
     emit(event) {
       const row = { at: new Date().toISOString(), attempt: state.attempt, ...event };

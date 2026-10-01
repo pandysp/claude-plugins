@@ -19,12 +19,13 @@ export function jobId(namespace, descriptor, key, occurrences) {
 // Tool lifecycle as Flue recorded it, so failures before execute() (argument
 // validation) count like failures inside it. Reading a submission again replays
 // its stream, so each step is journaled once across attempts (`journaled` holds
-// `type:call` keys already in the journal).
+// `worker:type:call` keys already in the journal).
 export function toolEvents(emit, worker, journaled) {
   const names = new Map();
   const report = (type, call, tool, extra) => {
-    if (journaled.has(`${type}:${call}`)) return;
-    journaled.add(`${type}:${call}`);
+    const key = `${worker}:${type}:${call}`;
+    if (journaled.has(key)) return;
+    journaled.add(key);
     emit({ type, worker, tool, call, ...extra });
   };
   return chunk => {
