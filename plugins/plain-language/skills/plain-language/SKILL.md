@@ -3,19 +3,19 @@ name: plain-language
 description: >-
   Explain things in plain, jargon-free language to a smart reader who has no
   idea what you are talking about, without talking down, leading with the
-  problem behind the problem. Use for reports, bug diagnoses, decisions, PR
-  descriptions and docs. Trigger when the user invokes the plain-language skill
+  problem behind the problem. Use for any reader, including one who was there
+  the whole time: answers, reports, bug diagnoses, decisions, PR descriptions
+  and docs. Trigger when the user invokes the plain-language skill
   or says "explain it plainly", "in plain language", "no jargon", "I don't
   follow", "what does that mean", or "explain it like I have no idea". Also
-  invoke proactively before a final message or document whose reader was not
-  inside the work.
+  invoke proactively before any final message, explanation or document.
 ---
 
 # Plain language: explain the problem behind the problem
 
-Write for a smart person from another field: they follow any reasoning you give, but know none of your words and none of your context. After hours inside a task you forget both gaps, and the reader gets a wall of terms about a symptom.
+Write as if the reader has no idea what you are talking about, but is smart: they follow any reasoning you give, yet hold none of your words and none of your context in their head. This holds for every reader, even an expert or someone who was there the whole time. They are busy, read once, and work through a wall of terms about a symptom more slowly than through plain words about the cause.
 
-The bar: **a smart reader who missed the whole conversation understands it on first read and could explain it to someone else.**
+The bar: **a smart reader who missed the whole conversation would understand it on first read and could explain it to someone else.**
 
 ## 1. Start with the problem behind the problem
 
@@ -28,11 +28,11 @@ If you have not found the cause, say so. Don't present the symptom as the explan
 
 ## 2. Use the reader's words
 
-- Prefer the everyday word. Keep a technical term only when the reader already uses it, or will meet it again and needs its name.
+- Prefer the everyday word, even when the reader knows the term. Keep a technical term only when no plain word says the same thing, or the reader will meet it again and needs its name.
 - Explain a kept term once, the first time, in a short plain clause: "a worktree (a second copy of the project in its own folder)". Don't explain one term with another one.
 - Spell out abbreviations on first use, or drop them.
-- Call things what they do, not the labels you made up while working. "Option B", "the v2 path" and "the shim" mean nothing to someone who wasn't there.
-- Don't lean on anything the reader hasn't seen: earlier messages, files they didn't open, ideas you rejected along the way.
+- Call things what they do, not the labels you made up while working. "Option B", "the v2 path" and "the shim" mean nothing to someone who wasn't there, and little to someone who was.
+- Don't lean on context: earlier messages, files, ideas you rejected along the way. A reader who saw them has mostly forgotten them.
 
 ## 3. Don't talk down
 
@@ -52,7 +52,7 @@ Plain words, full substance.
 
 ## Check before sending
 
-Reread as that cold reader:
+Reread as someone who has no idea what you are talking about:
 
 1. Could they say in one sentence what the real problem is and why it matters to them?
 2. Mark every term a smart outsider might not know. Each one is replaced or explained on first use.

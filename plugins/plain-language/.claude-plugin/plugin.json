@@ -1,6 +1,6 @@
 {
   "name": "plain-language",
-  "description": "Explain things in plain, jargon-free language to a smart reader with no context, leading with the problem behind the problem, without talking down.",
+  "description": "Explain things in plain, jargon-free language, as if the reader has no idea what you are talking about, leading with the problem behind the problem, without talking down.",
   "version": "1.0.0",
   "author": {
     "name": "Andreas Spannagel"

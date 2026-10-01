@@ -4,7 +4,7 @@ Makes the agent explain things in plain, jargon-free language to a smart reader 
 
 ## Why
 
-After hours inside a task, an agent writes for itself: terms it picked up along the way, labels it made up, and the surface symptom instead of its cause. The reader can't follow and can't act. The usual overcorrection, explaining it like to a five-year-old, is just as bad: it drops facts and patronises. This skill aims at a smart reader from another field. Plain words, full substance, the real cause first.
+After hours inside a task, an agent writes for itself: terms it picked up along the way, labels it made up, and the surface symptom instead of its cause. The reader can't follow and can't act. The usual overcorrection, explaining it like to a five-year-old, is just as bad: it drops facts and patronises. This skill writes as if the reader has no idea what the agent is talking about, but is smart. That holds for every reader, even one who was there the whole time. Plain words, full substance, the real cause first.
 
 ## Usage
 
@@ -14,7 +14,7 @@ After hours inside a task, an agent writes for itself: terms it picked up along 
 
 Or just say: "Explain it plainly." / "No jargon." / "Explain it like I have no idea."
 
-Also self-invokes before a final message or document whose reader was not inside the work.
+Also self-invokes before any final message, explanation or document.
 
 ## Installation
 
