@@ -25,7 +25,7 @@ async function fixture(t) {
   await mkdir(bin);
   await writeFile(join(bin, 'npm'), `#!/bin/sh\necho "$@" >> ${JSON.stringify(calls)}\nln -s ${JSON.stringify(modules)} node_modules\n`);
   await chmod(join(bin, 'npm'), 0o755);
-  const env = { ...process.env, PATH: `${bin}:${process.env.PATH}` };
+  const env = { ...process.env, PATH: `${bin}:${process.env.PATH}`, FLUE_SETUP_TEST_KEY: 'not-a-credential' };
   const workspace = join(root, 'workspace');
   return {
     copy, workspace,
@@ -98,6 +98,26 @@ test('prune refuses while an interrupted run creation left a run without a manif
   await mkdir(join(f.workspace, 'runs', 'creating'), { recursive: true });
   await assert.rejects(f.flue('prune'), /Runs without a manifest: creating\. Their creation was interrupted/);
   await readdir(join(first, 'lib')); // nothing was removed
+});
+
+test('run creation waits for the workspace lock and pins the current runtime before prune can see it', async t => {
+  const f = await fixture(t);
+  const current = await realpath((await f.setup()).runtime);
+  const source = join(f.workspace, '..', 'source'), program = join(f.workspace, '..', 'program');
+  await mkdir(source); await mkdir(program);
+  await writeFile(join(program, 'program.mjs'), "export default async () => 'no workers';\n");
+  const { workspaceLock } = await import('../lib/files.mjs');
+  const release = workspaceLock(f.workspace);
+  setTimeout(release, 500);
+  const started = Date.now();
+  const [run, pruned] = await Promise.all([
+    f.flue('run', join(program, 'program.mjs'), '--id', 'waits', '--cwd', source, '--model', 'openai/gpt-5.5', '--auth', 'env:FLUE_SETUP_TEST_KEY', '--access', 'unrestricted'),
+    new Promise(resolve => setTimeout(resolve, 100)).then(() => f.flue('prune')),
+  ]);
+  assert.ok(Date.now() - started >= 500, 'creation waited for the holder');
+  assert.equal(JSON.parse(run).execution, 'finished');
+  assert.equal(JSON.parse(await readFile(join(f.workspace, 'runs', 'waits', 'manifest.json'), 'utf8')).runtime, current);
+  assert.deepEqual(JSON.parse(pruned).removed, []);
 });
 
 test('prune and setup wait for whoever holds the workspace lock', async t => {

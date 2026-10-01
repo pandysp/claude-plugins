@@ -329,8 +329,9 @@ node /absolute/workflow-space/flue.mjs resume audit-1
   saved run uses. `setup.mjs`, `prune` and the creation step of `run` take turns
   through a workspace lock (waiting up to two minutes), so prune never removes a
   runtime a new run is pinning. A run directory without a manifest is an
-  interrupted creation; prune refuses until it is removed. Workspaces created by
-  an earlier setup layout are refused; start a fresh workspace instead.
+  interrupted creation; prune refuses until it is removed. After installing a
+  new version of this plugin, set up a fresh workspace rather than reusing one
+  an earlier draft created.
 - Keep the whole run directory intact; a deleted `flue.sqlite` makes pending
   work run again. What survives inside a worker is Flue's contract, see its
   [durability guide](https://flueframework.com/docs/guide/durability/).
