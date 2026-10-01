@@ -158,6 +158,16 @@
       }
     },
     {
+      "name": "plain-language",
+      "description": "Explain things in plain, jargon-free language, as if the reader has no idea what you are talking about, leading with the problem behind the problem, without talking down.",
+      "source": "./plugins/plain-language",
+      "category": "workflow",
+      "keywords": ["writing", "plain-language", "jargon", "explain", "clarity", "root-cause"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
+    },
+    {
       "name": "worktrunk-hook",
       "description": "Route Claude Code's auto-created git worktrees through worktrunk so background and --worktree sessions inherit project hooks (env symlinks, installs, port allocation).",
       "source": "./plugins/worktrunk-hook",

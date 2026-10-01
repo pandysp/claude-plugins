@@ -38,6 +38,7 @@ module HostPackages
     "excalidraw" => { codex: true, pi: true },
     "explore" => { codex: true, pi: true },
     "handoff" => { codex: true, pi: true },
+    "plain-language" => { codex: true, pi: true },
     "pre-mortem" => { codex: true, pi: true },
     "preflight" => { codex: true, pi: true },
     "quality-review" => {
