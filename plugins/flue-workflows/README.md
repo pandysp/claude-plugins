@@ -74,18 +74,16 @@ described in the [API reference](skills/flue-workflows/references/api.md#operate
 
 ## Live verification
 
-2026-09-18, macOS, Node 26.5, `openai-codex/gpt-5.5` via `--auth pi`, on this
-runtime: the example above ran from a fresh `setup.mjs` install. Four workers
-(two repairs in separate Git copies, two independent verifiers) completed;
-`verify.mjs` reported `complete` for `identity`, `slug` and `sum` with the
-original source, HEAD and index unchanged. `resume` with `fetch` disabled
-reused all four results with zero new dispatches or fetch attempts. Hard-kill,
-`SIGTERM` and receipt-free keyed recovery are covered by the automated
-real-Flue suite, not this trial. The hard-kill test checks that resume reuses
-the original submission ID, rather than merely finishing another submission.
+2026-10-01, macOS, Node 26.5, Flue 2.2.2 and pi-ai 0.87.1, via `--auth pi`:
+the example above ran from a fresh `setup.mjs` install once with
+`openai-codex/gpt-5.5` (ChatGPT subscription) and once with
+`anthropic/claude-opus-5-5` (Claude subscription). Each time four workers (two
+repairs in separate Git copies, two independent verifiers) completed in about
+30 s; `verify.mjs` reported `complete` for `identity`, `slug` and `sum` with the
+original source, HEAD and index unchanged; `resume` reused all four results with
+no new worker dispatches; and no token appeared in any run file.
 
-2026-10-01, macOS, Node 26.5, `anthropic/claude-opus-5` via `--auth pi` (a
-Claude subscription login): the same example from a fresh install completed four
-workers in 47 s, `verify.mjs` reported `complete` with the source unchanged, and
-`resume` reused all four with zero new dispatches. No token appeared in any run
-file.
+Hard-kill, `SIGTERM` and receipt-free keyed recovery are covered by the
+automated real-Flue suite, not these trials. The hard-kill test checks that
+resume reuses the original submission ID, rather than merely finishing another
+submission.

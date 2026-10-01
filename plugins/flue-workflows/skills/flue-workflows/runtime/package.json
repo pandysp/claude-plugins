@@ -10,8 +10,8 @@
     "test": "node --test --test-reporter=tap test/*.test.mjs"
   },
   "dependencies": {
-    "@earendil-works/pi-ai": "0.83.0",
-    "@flue/runtime": "2.0.3",
+    "@earendil-works/pi-ai": "0.87.1",
+    "@flue/runtime": "2.2.2",
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1"
   }
