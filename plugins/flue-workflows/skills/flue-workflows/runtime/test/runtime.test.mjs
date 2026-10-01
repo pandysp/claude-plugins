@@ -363,3 +363,22 @@ test('program-local #imports resolve within the program, package names within th
   const result = await f.invoke('run');
   assert.equal(result.code, 0, result.stderr);
 });
+
+test('a failure writing the final journal event fails the run instead of saving it as finished', async t => {
+  // The program replaces the builtin the runtime journals with, failing only the closing event.
+  const f = await fixture(t, { body: `
+    const fs = (await import('node:fs')).default;
+    const { syncBuiltinESMExports } = await import('node:module');
+    const append = fs.appendFileSync;
+    fs.appendFileSync = (file, data, ...rest) => {
+      if (String(data).includes('"program-finished"')) throw new Error('journal disk full');
+      return append(file, data, ...rest);
+    };
+    syncBuiltinESMExports();
+    return ${call('answer')};` });
+  const result = await f.invoke('run');
+  assert.equal(result.code, 1, result.stderr);
+  assert.equal(result.state.status, 'failed');
+  assert.match(result.state.error, /journal disk full/);
+  assert.equal(result.state.owner, null);
+});

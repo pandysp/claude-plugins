@@ -2,10 +2,10 @@
 // already-installed dependencies, so no network or second install is needed.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, cp, rm, writeFile, appendFile, readFile, readdir, chmod, realpath } from 'node:fs/promises';
+import { mkdtemp, mkdir, cp, rm, writeFile, appendFile, readFile, readdir, chmod, realpath, symlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -131,4 +131,26 @@ test('prune and setup wait for whoever holds the workspace lock', async t => {
   const [pruned] = await Promise.all([f.flue('prune'), f.setup()]);
   assert.ok(Date.now() - started >= 500, 'they waited for the holder');
   assert.deepEqual(JSON.parse(pruned).removed, []);
+});
+
+test('a run is refused when its runtime was pruned before run creation took the lock', async t => {
+  // A runtime library copied into the workspace layout, its CLI loaded, then its files removed
+  // the way prune removes them: the CLI process keeps running from memory.
+  const root = await mkdtemp(join(tmpdir(), 'flue-pruned-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const install = join(root, 'workspace', '.runtime', 'a'.repeat(64));
+  const runtime = join(install, 'b'.repeat(64));
+  await mkdir(runtime, { recursive: true });
+  await cp(join(skill, 'runtime/lib'), join(runtime, 'lib'), { recursive: true });
+  await symlink(modules, join(install, 'node_modules'));
+  const { main } = await import(pathToFileURL(join(runtime, 'lib/cli.mjs')).href);
+  await rm(join(runtime, 'lib', 'cli.mjs'));
+  const source = join(root, 'source'), program = join(root, 'program');
+  await mkdir(source); await mkdir(program);
+  await writeFile(join(program, 'program.mjs'), "export default async () => 'no workers';\n");
+  process.env.FLUE_PRUNED_TEST_KEY = 'not-a-credential';
+  t.after(() => { delete process.env.FLUE_PRUNED_TEST_KEY; });
+  await assert.rejects(main(join(root, 'workspace'), ['run', join(program, 'program.mjs'), '--id', 'late', '--cwd', source,
+    '--model', 'openai/gpt-5.5', '--auth', 'env:FLUE_PRUNED_TEST_KEY', '--access', 'unrestricted']), /This runtime installation has been pruned; run setup.mjs again/);
+  await assert.rejects(readdir(join(root, 'workspace', 'runs', 'late')), { code: 'ENOENT' }, 'no run directory is left behind');
 });
