@@ -1,109 +1,177 @@
-# Recipes: copy-paste scaffolds
+# Recipes: setup, lifecycle, and actions
 
-Generalised from real working runs. Scripts are ESM (`.mjs`); put them under
-`~/scratch/<date>-<slug>/` and `npm i playwright-core` (attach) or `playwright`
-(launch) there first.
+Use a persistent Node REPL for multi-step exploration; see the REPL section below.
+Sections 2–4 are standalone `.mjs` lifecycle examples that close after their actions.
+Keep throwaway scripts and screenshots in the host's scratch directory, not in
+the application repo. Read the skill's Safety section before attaching to a real
+session.
 
-## 1. Open the debug port on the real browser (macOS / Helium)
+## 1. Setup
+
+Reuse an existing Node workspace if it can import `playwright-core`. Otherwise,
+in a scratch directory, choose one setup:
+
+**Attach to an existing browser** (no browser download):
+
 ```bash
-# Fully quit first — relaunching before it's gone throws a launchd race.
-osascript -e 'tell application "Helium" to quit'
-while pgrep -x Helium >/dev/null; do sleep 1; done
-# Launch via LaunchServices WITH the flag (NOT the raw binary).
-open -a Helium --args --remote-debugging-port=9222
-# Verify: should return the CDP version JSON.
-curl -s http://127.0.0.1:9222/json/version | grep -o '"Browser":"[^"]*"'
+npm install playwright-core
 ```
-Teardown when done (close the unauthenticated door):
-```bash
-osascript -e 'tell application "Helium" to quit'; sleep 2; open -a Helium   # normal, no flag
-```
-Chrome/Chromium proper works the same. Since **Chrome 136** the debug port is
-ignored on the *default* profile. If `connectOverCDP` can't connect, relaunch with
-`--user-data-dir=/tmp/cdp-profile`. Helium 149 didn't need this in practice, but the
-flag self-heals if that ever changes.
 
-## 2. Attach to the real session
+**Or launch a separate browser:**
+
+```bash
+npm install playwright
+npx playwright install chromium
+```
+
+For attachment, get the CDP endpoint from the host's instructions or the user.
+Set `CDP_URL` to that confirmed endpoint; do not assume a port belongs to Helium
+just because it responds. Verify the browser and profile before using its login.
+
+```bash
+: "${CDP_URL:?Set CDP_URL to the confirmed browser endpoint}"
+curl --fail --show-error "$CDP_URL/json/version"
+```
+
+If it is unavailable, follow the host's documented service/tunnel setup. Do not
+quit or relaunch the user's browser, replace its profile, or stop its debug
+service as a workaround. A fresh profile does not recover the user's login.
+If no managed endpoint exists, use a fresh launch for clean-state work; ask the
+user to enable local debug access when their existing login is required.
+
+## 2. Attach using the user's existing login
+
+Only use this path when the task needs that login. `contexts()[0]` is the shared
+context: never close or clear it. Create and close your own page. Put actions
+inside the inner `try`; the `finally` blocks also run when an action fails.
+
 ```js
 import { chromium } from "playwright-core";
-const browser = await chromium.connectOverCDP("http://127.0.0.1:9222");
-const ctx = browser.contexts()[0];        // the live session (real cookies)
-console.log("open tabs:", ctx.pages().map(p => p.url()));
-const page = await ctx.newPage();
-// ... drive it ...
-await browser.close();                    // disconnects only; leaves Helium open
+const endpoint = process.env.CDP_URL;
+if (!endpoint) throw new Error("Set CDP_URL to the confirmed browser endpoint");
+const browser = await chromium.connectOverCDP(endpoint);
+try {
+  const context = browser.contexts()[0];
+  const page = await context.newPage();
+  try {
+    page.setDefaultTimeout(10_000);
+    page.setDefaultNavigationTimeout(30_000);
+    // ... drive it ...
+  } finally {
+    await page.close();
+  }
+} finally {
+  await browser.close(); // disconnect; the user's browser stays open
+}
 ```
 
-## 3. Locator mode: debug your own app (precise + timed + CSS-media)
-Illustrative: log in, send something, act inside a transient window, read exact
-DOM, emulate a CSS media feature. Prefer locators; assert state instead of waiting
-on navigation. (Selectors/labels here are illustrative. Match the real app.)
+## 3. Attach with clean state or another login
+
+A new context has its own cookies and storage. Closing it removes only that
+context and its pages, not the user's session.
+
 ```js
-const page = ctx ? await ctx.newPage() : await browser.newPage();
-
-await page.goto("http://localhost:3000/login");        // default 'load'; avoid 'networkidle' (discouraged; hangs on SSE/WS)
-await page.getByLabel("Username").fill(user);          // locators auto-wait + ride the a11y tree
-await page.getByLabel("Password").fill(pass);
-await page.getByRole("button", { name: "Sign in" }).click();
-await page.waitForURL("**/chat/**");                   // assert the post-login state; not waitForNavigation (racy/discouraged)
-
-await page.goto("http://localhost:3000/chat/new");
-await page.getByPlaceholder("Send a message…").fill("hello");
-await page.getByRole("button", { name: "Send" }).click();
-
-// Precise timing: act inside a transient window (e.g. click Stop mid-stream).
-await page.waitForFunction(() =>                        // a REAL predicate — never `() => true` (resolves instantly)
-  document.querySelector(".is-assistant")?.textContent.startsWith("Thinking"));
-await page.waitForTimeout(1500);                        // sit in the gap; or keep polling
-await page.getByRole("button", { name: "Stop" }).click();
-
-// Exact DOM read — counts/states locators can't express:
-const state = await page.evaluate(() => ({
-  assistants: [...document.querySelectorAll(".is-assistant")].map(e => e.innerText.trim()),
-}));
-
-// CSS-media emulation:
-await page.emulateMedia({ reducedMotion: "reduce" });
-const pos = await page.evaluate(() =>
-  getComputedStyle(document.querySelector("[data-shimmer]")).backgroundPosition);  // sample twice to see if it moves
+import { chromium } from "playwright-core";
+const endpoint = process.env.CDP_URL;
+if (!endpoint) throw new Error("Set CDP_URL to the confirmed browser endpoint");
+const browser = await chromium.connectOverCDP(endpoint);
+try {
+  const context = await browser.newContext();
+  try {
+    const page = await context.newPage();
+    page.setDefaultTimeout(10_000);
+    page.setDefaultNavigationTimeout(30_000);
+    // ... drive it ...
+  } finally {
+    await context.close();
+  }
+} finally {
+  await browser.close(); // disconnect; the user's browser stays open
+}
 ```
 
-## 4. Vision mode: genuinely opaque UI
-Only when locators can't reach the controls. Iterative loop with YOU as the eyes:
-screenshot → Read the PNG → compute coords → click → screenshot again.
+## 4. Launch a separate browser
+
+This browser belongs to the task. Close it on success or failure.
+
 ```js
-// screenshot pixels are scaled by devicePixelRatio; mouse.click wants CSS pixels.
-const dpr = await page.evaluate(() => devicePixelRatio);     // 1 fresh-launch, 2 on a Retina real browser
-const click = (imgX, imgY) => page.mouse.click(imgX / dpr, imgY / dpr);
-
-await page.goto("https://example.com");
-await page.waitForTimeout(2500);
-await page.screenshot({ path: "step.png" });                 // <- Read this image, THEN decide the coords below
-
-// From what you SEE in step.png (coords in IMAGE pixels; click() rescales by dpr):
-await click(464, 512);                                       // focus a field
-await page.keyboard.type("Berlin Hbf");                      // genuinely trusted keystrokes
-await page.waitForTimeout(1500);                             // let autocomplete open
-await page.keyboard.press("ArrowDown");
-await page.keyboard.press("Enter");                          // select first suggestion
-await page.screenshot({ path: "after-from.png" });           // re-screenshot — layout may shift before the next click
-// ... repeat per field, then click the search button you can see ...
-
-// Recover a selector when one exists but you couldn't guess it:
-const fields = await page.evaluate(() =>
-  [...document.querySelectorAll("input")].map(i => ({ name: i.name, ph: i.placeholder })));
+import { chromium } from "playwright";
+const browser = await chromium.launch();
+try {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  page.setDefaultTimeout(10_000);
+  page.setDefaultNavigationTimeout(30_000);
+  // ... drive it ...
+} finally {
+  await browser.close(); // closes this task-owned browser and its contexts
+}
 ```
 
-## Gotchas
-- `connectOverCDP` + `browser.contexts()[0]` = the real session. A *launched*
-  browser starts with one fresh context instead.
-- `browser.close()` after `connectOverCDP` only disconnects. It does not close the
-  user's browser. The debug port stays open until you quit+reopen the browser.
-- Vision coords are screenshot (image) pixels. Rescale by `devicePixelRatio`
-  before `mouse.click`, and re-screenshot after anything that reflows.
-- `fill`/`keyboard.type` make React inputs update; `el.value = …` does not (see
-  SKILL.md "Input that React actually registers").
-- Slow SPAs: prefer web-first assertions / `waitForFunction` / `waitForURL` over
-  fixed sleeps; fixed sleeps are fine for quick throwaway runs.
-- Headless vs headed: headless for deterministic scripted work; attach-to-real is
-  inherently headed (it's the user's window).
+## 5. Locator mode: forms and page state
+
+Put actions like these inside the chosen lifecycle recipe. This example assumes
+an isolated test context and a test account, not the user's real credentials.
+Selectors and URLs are illustrative: use the actual app's values.
+
+```js
+await page.goto("http://localhost:3000/settings");
+await page.getByLabel("Display name").fill("Demo account");
+await page.getByRole("button", { name: "Save", exact: true }).click();
+await page.getByRole("status").getByText("Saved", { exact: true }).waitFor();
+```
+
+For a widget that needs keystrokes, use `locator.pressSequentially(text)` rather
+than `fill`. Wait for the resulting suggestions or other visible state before
+selecting an option. Don't assign `el.value` inside `evaluate`.
+
+## 6. Vision mode: controls locators cannot reach
+
+Use a page from the chosen lifecycle recipe. Take a viewport screenshot and read
+it before choosing coordinates. These are separate steps, not a script to run
+blindly end to end.
+
+```js
+await page.screenshot({ path: "step.png", scale: "css" });
+```
+
+Read `step.png` at its original dimensions. Once you have identified the control,
+click its image coordinates directly; the numbers below are illustrative.
+
+```js
+await page.mouse.click(464, 512);
+await page.keyboard.type("Berlin Hbf");
+await page.screenshot({ path: "after-input.png", scale: "css" });
+```
+
+Read the new screenshot before choosing the next action. Controls may have moved,
+and an autocomplete menu may not yet be ready. If the page exposes usable labels
+or roles, return to locators rather than continuing with coordinates.
+
+## 7. Persistent Node REPL
+
+In the host's persistent Node REPL, use `await import()` instead of static
+`import`, and keep handles at the top level. Start with clean state:
+
+```js
+var { chromium } = await import("playwright-core");
+if (!process.env.CDP_URL) throw new Error("Set CDP_URL to the confirmed browser endpoint");
+var browser = await chromium.connectOverCDP(process.env.CDP_URL);
+var context = await browser.newContext();
+var page = await context.newPage();
+page.setDefaultTimeout(10_000);
+page.setDefaultNavigationTimeout(30_000);
+```
+
+Run actions one at a time; the connection stays open between them. When finished,
+or if you abandon the task after an error, clean up:
+
+```js
+await context.close();
+await browser.close();
+```
+
+For the **user's existing login**, replace the `newContext()` line with
+`var context = browser.contexts()[0];` and replace `context.close()` with
+`page.close()` in cleanup. Never close the shared context or all of its pages.
+After a fresh launch, close the task-owned browser instead.

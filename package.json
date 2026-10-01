@@ -29,6 +29,8 @@
       "plugins/handoff/skills/handoff",
       "plugins/spec/skills/spec",
       "plugins/understudy/skills/understudy",
+      "plugins/excalidraw/skills/excalidraw",
+      "plugins/classify-with-jev/skills/classify-with-jev",
       "plugins/flue-workflows/skills/flue-workflows"
     ]
   }

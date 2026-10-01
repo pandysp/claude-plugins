@@ -260,19 +260,34 @@
       "category": "Developer Tools"
     },
     {
-      "name": "flue-workflows",
+      "name": "excalidraw",
       "interface": {
-        "displayName": "Flue Workflows"
+        "displayName": "Excalidraw"
       },
       "source": {
         "source": "local",
-        "path": "./plugins/flue-workflows"
+        "path": "./plugins/excalidraw"
       },
       "policy": {
         "installation": "AVAILABLE",
         "authentication": "ON_INSTALL"
       },
-      "category": "Productivity"
+      "category": "Developer Tools"
+    },
+    {
+      "name": "classify-with-jev",
+      "interface": {
+        "displayName": "Classify With Jev"
+      },
+      "source": {
+        "source": "local",
+        "path": "./plugins/classify-with-jev"
+      },
+      "policy": {
+        "installation": "NOT_AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
     },
     {
       "name": "quality-review",
@@ -285,6 +300,21 @@
       },
       "policy": {
         "installation": "NOT_AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "flue-workflows",
+      "interface": {
+        "displayName": "Flue Workflows"
+      },
+      "source": {
+        "source": "local",
+        "path": "./plugins/flue-workflows"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
         "authentication": "ON_INSTALL"
       },
       "category": "Productivity"

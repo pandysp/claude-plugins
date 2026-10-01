@@ -119,7 +119,7 @@
     },
     {
       "name": "reflect",
-      "description": "Capture durable lessons from a session before they fade, routing each insight to the applicable instructions, memory, project notes, or tooling ticket.",
+      "description": "Surfaces a session's durable lessons before they fade, each with the instructions, memory, project note, or ticket it would be saved to, and writes only what the user approves.",
       "source": "./plugins/reflect",
       "category": "workflow",
       "keywords": ["reflect", "lessons", "retro", "memory", "session-end", "post-mortem"],
@@ -178,11 +178,21 @@
       }
     },
     {
-      "name": "flue-workflows",
-      "description": "Author JavaScript workflows with native Flue workers, structured results, composition, retained edits, and saved-result reentry. Development draft.",
-      "source": "./plugins/flue-workflows",
-      "category": "workflow",
-      "keywords": ["flue", "workflow", "javascript", "agents", "structured-results", "recovery"],
+      "name": "excalidraw",
+      "description": "Draw diagrams and sketches with Excalidraw in an Obsidian vault, and check each one with a screenshot.",
+      "source": "./plugins/excalidraw",
+      "category": "tooling",
+      "keywords": ["excalidraw", "obsidian", "diagram", "drawing", "sketch"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
+    },
+    {
+      "name": "classify-with-jev",
+      "description": "Classify, label or score many items with TypeSafe's Jev classifier from Pi's codemode.",
+      "source": "./plugins/classify-with-jev",
+      "category": "tooling",
+      "keywords": ["classifier", "jev", "typesafe", "pi", "codemode"],
       "author": {
         "name": "Andreas Spannagel"
       }
@@ -193,6 +203,16 @@
       "source": "./plugins/quality-review",
       "category": "workflow",
       "keywords": ["quality", "review", "audit", "rubric", "docs", "lenses"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
+    },
+    {
+      "name": "flue-workflows",
+      "description": "Author JavaScript workflows with native Flue workers, structured results, composition, retained edits, and saved-result reentry. Development draft.",
+      "source": "./plugins/flue-workflows",
+      "category": "workflow",
+      "keywords": ["flue", "workflow", "javascript", "agents", "structured-results", "recovery"],
       "author": {
         "name": "Andreas Spannagel"
       }

@@ -1,0 +1,6 @@
+{
+  "name": "classify-with-jev",
+  "version": "0.1.0",
+  "description": "Classify, label or score many items with TypeSafe's Jev classifier from Pi's codemode.",
+  "skills": "./skills/"
+}

@@ -53,8 +53,9 @@ pi remove git:github.com/pandysp/claude-plugins
 
 Pi installs one package per repository rather than individual plugins. The
 package exposes its skills as `/skill:<name>` commands and adds no extensions,
-prompt templates, or themes. Pi refreshes the checkout at startup, so start a
-new session to load changed skills.
+prompt templates, or themes. On interactive startup, Pi checks for package
+updates and shows a notification; it does not install them automatically. Run
+the update command above, then restart Pi to load changed skills.
 
 ## Plugin catalog
 
@@ -75,14 +76,16 @@ new session to load changed skills.
 | [quality-review](./plugins/quality-review) | Workflow | no | no | Audit docs, code, or any artifact through 13 quality lenses with a workflow-backed finder/verifier pipeline |
 | [preflight](./plugins/preflight) | Workflow | yes | yes | Honest self-assessment before shipping; `--fix` fixes and reassesses until no autofixable issues remain |
 | [handoff](./plugins/handoff) | Workflow | yes | yes | Write a durable handoff — PR descriptions, summaries, memos, or memory notes |
-| [reflect](./plugins/reflect) | Workflow | yes | yes | Capture durable lessons from a session before they fade |
+| [reflect](./plugins/reflect) | Workflow | yes | yes | Surface a session's durable lessons before they fade, each with the place it would be saved |
 | [understudy](./plugins/understudy) | Workflow | yes | yes | Write code, comments, tests, and commits that read as if the project's own maintainer wrote them |
 | [worktrunk-hook](./plugins/worktrunk-hook) | Tooling | no | no | Route Claude Code's auto-created git worktrees through worktrunk so sessions inherit project hooks |
 | [drive-browser](./plugins/drive-browser) | Tooling | yes | no | Drive a browser with Playwright. Resilient locators for your own app, a vision loop for opaque sites |
+| [excalidraw](./plugins/excalidraw) | Tooling | yes | yes | Draw diagrams and sketches with Excalidraw in an Obsidian vault, and check each one with a screenshot |
+| [classify-with-jev](./plugins/classify-with-jev) | Tooling | no | yes | Classify, label or score many items with TypeSafe's Jev classifier from Pi's codemode |
 
 ## Withheld
 
-Five plugin/host combinations are deliberately not shipped. `scripts/generate.rb`
+Six plugin/host combinations are deliberately not shipped. `scripts/generate.rb`
 holds the declaration; a plugin that states neither support nor a reason fails CI.
 
 - `quality-review` (Codex, Pi): high, xhigh, and max reviews invoke Claude's
@@ -92,6 +95,9 @@ holds the declaration; a plugin that states neither support nor a reason fails C
   `WorktreeCreate` and `WorktreeRemove` events.
 - `drive-browser` (Pi): Playwright runs over `bash`, but the vision loop also
   needs a browser runtime and screenshots returned to the model. Unverified on Pi.
+- `classify-with-jev` (Codex): classifiers run through Pi's `codemode` tool,
+  which Codex does not have. Claude Code has no such tool either, so the plugin
+  is listed in its marketplace but only works in Pi.
 
 Four skills pick host mechanics by capability and work on all three hosts:
 `explore` falls back from exploration workers to search and file reads,
