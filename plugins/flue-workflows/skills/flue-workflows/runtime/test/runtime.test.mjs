@@ -26,7 +26,7 @@ async function fixture(t, { body = `return ${call('answer')};`, files = {}, env 
   const f = { root, dir, program, trace };
   t.after(async () => {
     const pinned = (await load(join(dir, 'manifest.json')).catch(() => null))?.program;
-    if (pinned) { assert.equal(dirname(pinned), join(runtimeRoot, 'programs')); await rm(pinned, { recursive: true }); }
+    if (pinned) assert.equal(pinned, join(dir, 'program'), 'the pinned program lives inside its run');
     await rm(root, { recursive: true });
   });
   await mkdir(dirname(program));
@@ -162,6 +162,51 @@ test('a structured worker that answers in text instead of submit_result is a fai
   assert.match(failed.error, /without calling submit_result/);
 });
 
+test('an unawaited worker call that fails fatally fails the run', async t => {
+  const f = await fixture(t, { body: `run.agent('Never awaited.', { key: 'lost', effort: 'not-an-effort' }).catch(() => {});
+    await new Promise(resolve => setTimeout(resolve, 50));
+    return 'finished anyway';` });
+  const result = await f.invoke('run');
+  assert.equal(result.code, 1, result.stderr);
+  assert.equal(result.state.status, 'failed');
+  assert.match(result.state.error, /Unsupported effort: not-an-effort/);
+  await assert.rejects(readFile(join(f.dir, 'result.json')), { code: 'ENOENT' });
+});
+
+test('a caught fatal worker error still fails the run', async t => {
+  const f = await fixture(t, { body: `try { await run.agent('Bad option.', { key: 'bad', isolation: 'container' }); } catch {}
+    return 'continued';` });
+  const result = await f.invoke('run');
+  assert.equal(result.code, 1, result.stderr);
+  assert.equal(result.state.status, 'failed');
+  assert.match(result.state.error, /isolation must be/);
+});
+
+test('an invalid submit_result is a counted tool failure, even though it fails before execute()', async t => {
+  const f = await fixture(t, { env: { FLUE_FIXTURE_RESPONSE: 'invalid-first' } });
+  const result = await f.invoke('run');
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.state.toolErrors, 1);
+  const journal = (await readFile(join(f.dir, 'events.jsonl'), 'utf8')).trim().split('\n').map(JSON.parse);
+  assert.deepEqual(journal.filter(e => e.type.startsWith('tool-')).map(e => [e.type, e.tool]),
+    [['tool-start', 'submit_result'], ['tool-failed', 'submit_result'], ['tool-start', 'submit_result'], ['tool-completed', 'submit_result']]);
+  assert.deepEqual(await load(join(f.dir, 'result.json')), { answer: 42 });
+});
+
+test('a custom tool that throws is a counted tool failure with its message', async t => {
+  const f = await fixture(t, {
+    env: { FLUE_FIXTURE_RESPONSE: 'tool-error-first' },
+    files: { 'tools.mjs': "export default { broken: () => ({ name: 'broken', label: 'Broken', description: 'Always fails.', parameters: { type: 'object', properties: {} }, async execute() { throw new Error('broken on purpose'); } }) };\n" },
+    body: `return ${call('answer', '').replace('tools: []', "tools: ['broken']")};`,
+  });
+  const result = await f.invoke('run');
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.state.toolErrors, 1);
+  const failed = (await readFile(join(f.dir, 'events.jsonl'), 'utf8')).trim().split('\n').map(JSON.parse).find(e => e.type === 'tool-failed');
+  assert.equal(failed.tool, 'broken');
+  assert.match(failed.message, /broken on purpose/);
+});
+
 test('text results are plain strings', async t => {
   const f = await fixture(t, { env: { FLUE_FIXTURE_RESPONSE: 'text' }, body: "return run.agent('Return checked text.', { key: 'text', tools: [] });" });
   const result = await f.invoke('run');
@@ -195,6 +240,9 @@ test('resume reattaches a pending worker through Flue without a saved receipt', 
   assert.equal(started.deduplicated, true);
   assert.equal(started.submissionId, submissionId);
   assert.deepEqual(await load(join(f.dir, 'result.json')), { answer: 42 });
+  const tools = (await readFile(join(f.dir, 'events.jsonl'), 'utf8')).trim().split('\n').map(JSON.parse)
+    .filter(event => event.type.startsWith('tool-') && event.attempt === resumed.state.attempt).map(event => event.type);
+  assert.deepEqual(tools, ['tool-start', 'tool-completed'], 'reading a settled submission reports its tool calls once in this attempt');
 });
 
 test('a hard-killed run resumes: Flue finishes the admitted worker and the program reuses it', async t => {
@@ -213,6 +261,9 @@ test('a hard-killed run resumes: Flue finishes the admitted worker and the progr
   assert.equal(started.submissionId, original.submissionId, 'resume must not create a fresh submission');
   assert.equal(resumed.state.status, 'finished');
   assert.deepEqual(await load(join(f.dir, 'result.json')), { answer: 42 });
+  const tools = (await readFile(join(f.dir, 'events.jsonl'), 'utf8')).trim().split('\n').map(JSON.parse)
+    .filter(event => event.type.startsWith('tool-')).map(event => [event.attempt === resumed.state.attempt ? 'resumed' : 'killed', event.type]);
+  assert.deepEqual(tools, [['resumed', 'tool-start'], ['resumed', 'tool-completed']], 'each tool call is journaled once, by the attempt that observed it');
 });
 
 test('SIGTERM cancels: live workers settle aborted, the run is cancelled, resume keeps them aborted', async t => {
@@ -237,7 +288,7 @@ test('resume is refused while a shell command from the previous attempt is still
   const sleeper = spawn('sleep', ['30'], { detached: true, stdio: 'ignore' });
   t.after(() => { try { process.kill(-sleeper.pid, 'SIGKILL'); } catch {} });
   await new Promise(resolve => sleeper.once('spawn', resolve));
-  await appendFile(join(f.dir, 'events.jsonl'), JSON.stringify({ type: 'command', pid: sleeper.pid }) + '\n');
+  await appendFile(join(f.dir, 'events.jsonl'), JSON.stringify({ type: 'command', pid: sleeper.pid, at: new Date().toISOString() }) + '\n');
   const refused = await f.invoke('resume');
   assert.equal(refused.code, 1);
   assert.match(refused.stderr, new RegExp(`still running.*${sleeper.pid}`));

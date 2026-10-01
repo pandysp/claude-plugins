@@ -21,15 +21,19 @@ export async function credentials({ model, auth, authFile }) {
     const path = resolve(authFile ?? join(homedir(), '.pi/agent/auth.json'));
     source = { kind: 'pi-subscription', path };
     resolveAuth = async () => {
-      let stored;
-      try { stored = JSON.parse(await readFile(path, 'utf8'))[providerId]; }
+      let text, stored;
+      try { text = await readFile(path, 'utf8'); }
       catch (cause) { throw new RunError(`Cannot read pi credentials at ${path}.`, { cause }); }
+      // Parser messages quote the input, which here is a credential store: report the path only.
+      try { stored = JSON.parse(text)[providerId]; }
+      catch { throw new RunError(`pi credentials at ${path} are not valid JSON.`); }
       if (stored?.type !== 'oauth' || !Number.isFinite(stored.expires) || stored.expires <= Date.now() + 60_000) {
         throw new RunError(`No valid ${providerId} OAuth credential at ${path}; log in through pi first.`);
       }
       return { auth: await base.auth.oauth.toAuth(stored), source: 'explicit existing pi subscription, read-only' };
     };
-  } else if (auth?.startsWith('env:') && providerId !== 'openai-codex') {
+  } else if (auth?.startsWith('env:')) {
+    if (providerId === 'openai-codex') throw new RunError('openai-codex/… models need --auth pi; use openai/… models with an API key.');
     const variable = auth.slice(4);
     if (!/^[A-Z_][A-Z0-9_]*$/.test(variable)) throw new RunError('Use --auth env:VARIABLE_NAME.');
     if (authFile) throw new RunError('--auth-file applies only to --auth pi.');

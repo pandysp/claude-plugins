@@ -58,6 +58,24 @@ for (const [providerId, model] of [['anthropic', 'anthropic/claude-sonnet-5'], [
   }
 }
 
+test('a malformed auth store is reported by path, never by its contents', async t => {
+  forbidNetwork(t);
+  const dir = await mkdtemp(join(tmpdir(), 'flue-auth-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const path = join(dir, 'auth.json');
+  await writeFile(path, `{"anthropic":{"access":${token}}}`);
+  await assert.rejects(credentials({ model: 'anthropic/claude-sonnet-5', auth: 'pi', authFile: path }), error => {
+    assert.equal(error.message, `pi credentials at ${path} are not valid JSON.`);
+    assert.equal(error.cause, undefined);
+    return true;
+  });
+});
+
+test('openai-codex models are refused with an API key, naming the working alternatives', async () => {
+  await assert.rejects(credentials({ model: 'openai-codex/gpt-5.5', auth: 'env:OPENAI_API_KEY' }), error =>
+    error instanceof RunError && /openai-codex\/… models need --auth pi; use openai\/… models with an API key/.test(error.message));
+});
+
 test('--auth pi refuses providers without a pi login route', async t => {
   forbidNetwork(t);
   const path = await authFile(t, { openai: oauth(Date.now() + 3_600_000) });

@@ -3,7 +3,9 @@
 //
 //   node native-worker-child.mjs WORKSPACE run|resume PROGRAM TRACE
 //
-// FLUE_FIXTURE_RESPONSE   structured (default) | text
+// FLUE_FIXTURE_RESPONSE   structured (default) | text | invalid-first (an invalid
+//                         submit_result, then a valid one) | tool-error-first (a
+//                         call to the program's `broken` tool, then a valid result)
 // FLUE_FIXTURE_BLOCK      hold the first model call open until the process is
 //                         signalled or killed (cancel/crash tests)
 import { registerHooks, syncBuiltinESMExports } from 'node:module';
@@ -22,9 +24,16 @@ childProcess.execFileSync = (file, args, options) => {
 };
 syncBuiltinESMExports();
 const faux = fauxProvider({ provider: 'openai', api: 'flue-fixture', models: [{ id: 'flue-fixture' }] });
-const reply = () => process.env.FLUE_FIXTURE_RESPONSE === 'text'
-  ? fauxAssistantMessage('checked text')
-  : fauxAssistantMessage(fauxToolCall('submit_result', { answer: 42 }), { stopReason: 'toolUse' });
+const toolUse = (name, args) => fauxAssistantMessage(fauxToolCall(name, args), { stopReason: 'toolUse' });
+let replies = 0;
+const reply = () => {
+  const mode = process.env.FLUE_FIXTURE_RESPONSE ?? 'structured';
+  const first = replies++ === 0;
+  if (mode === 'text') return fauxAssistantMessage('checked text');
+  if (mode === 'invalid-first' && first) return toolUse('submit_result', { answer: 'not a number' });
+  if (mode === 'tool-error-first' && first) return toolUse('broken', {});
+  return toolUse('submit_result', { answer: 42 });
+};
 let blocked = false;
 const respond = async (_context, options) => {
   faux.appendResponses([respond]); // every call re-queues itself: unlimited scripted replies

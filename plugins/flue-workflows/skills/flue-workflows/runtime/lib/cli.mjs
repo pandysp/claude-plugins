@@ -2,9 +2,8 @@ import { parseArgs } from 'node:util';
 import { readFile, mkdir, stat } from 'node:fs/promises';
 import { resolve, dirname, basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { randomUUID } from 'node:crypto';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { hash, json, save, load, ownerActive } from './files.mjs';
+import { json, save, load, ownerActive } from './files.mjs';
 import { checkProgram, copyProgram } from './program.mjs';
 import { RunError, message } from './primitives.mjs';
 import { liveCommandGroups } from './commands.mjs';
@@ -110,12 +109,10 @@ export async function main(workspace, argv = process.argv.slice(2)) {
     await mkdir(join(workspace, 'runs'), { recursive: true });
     await mkdir(dir);
     const sourceFile = resolve(subject);
-    const program = join(runtimeRoot, 'programs', randomUUID());
+    const program = join(dir, 'program');
     const programHash = await copyProgram(dirname(sourceFile), program);
-    const { FORMAT } = await import('./run.mjs');
-    const manifest = { format: FORMAT, id: values.id, runtime: runtimeRoot, program, programHash, entry: basename(sourceFile), config, args };
-    await save(join(dir, 'manifest.json'), manifest);
-    await save(join(dir, 'state.json'), { manifestHash: hash(json(manifest)), status: 'created', attempt: null, owner: null, jobs: {}, calls: 0, reused: 0, compositionErrors: 0, toolErrors: 0, error: null });
+    await save(join(dir, 'manifest.json'), { id: values.id, runtime: runtimeRoot, program, programHash, entry: basename(sourceFile), config, args });
+    await save(join(dir, 'state.json'), { status: 'created', attempt: null, owner: null, jobs: {}, calls: 0, reused: 0, compositionErrors: 0, toolErrors: 0, error: null });
     await executeAndInspect(dir);
     return;
   }

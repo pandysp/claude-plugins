@@ -26,10 +26,21 @@ test('a recorded process group that is still alive is reported until it exits', 
   const child = spawn('sleep', ['30'], { detached: true, stdio: 'ignore' });
   t.after(() => { try { process.kill(-child.pid, 'SIGKILL'); } catch {} });
   await new Promise(resolve => child.once('spawn', resolve));
-  await writeFile(join(dir, 'events.jsonl'), JSON.stringify({ type: 'command', pid: child.pid }) + '\n' + JSON.stringify({ type: 'log' }) + '\n');
+  await writeFile(join(dir, 'events.jsonl'), JSON.stringify({ type: 'command', pid: child.pid, at: new Date().toISOString() }) + '\n' + JSON.stringify({ type: 'log' }) + '\n');
   assert.deepEqual(await liveCommandGroups(dir), [child.pid]);
   process.kill(-child.pid, 'SIGKILL');
   await new Promise(resolve => child.once('exit', resolve));
   assert.deepEqual(await liveCommandGroups(dir), []);
   assert.deepEqual(await liveCommandGroups(join(dir, 'missing')), []);
+});
+
+test('a recorded pid now used by an unrelated, newer process is not reported', async t => {
+  const dir = await mkdtemp(join(tmpdir(), 'flue-commands-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const child = spawn('sleep', ['30'], { detached: true, stdio: 'ignore' });
+  t.after(() => { try { process.kill(-child.pid, 'SIGKILL'); } catch {} });
+  await new Promise(resolve => child.once('spawn', resolve));
+  // Same pid, but journaled an hour before this process started: the pid was reused.
+  await writeFile(join(dir, 'events.jsonl'), JSON.stringify({ type: 'command', pid: child.pid, at: new Date(Date.now() - 3_600_000).toISOString() }) + '\n');
+  assert.deepEqual(await liveCommandGroups(dir), []);
 });
