@@ -226,6 +226,16 @@
       "author": {
         "name": "Andreas Spannagel"
       }
+    },
+    {
+      "name": "deep-research",
+      "description": "Deep, multi-source research on Flue workers: parallel web and optional X search, skeptical per-candidate verification and a ranked, cited report with a coverage record.",
+      "source": "./plugins/deep-research",
+      "category": "workflow",
+      "keywords": ["research", "deep-research", "flue", "web-search", "verification", "citations"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
     }
   ]
 }
