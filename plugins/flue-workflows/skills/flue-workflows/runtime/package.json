@@ -12,7 +12,7 @@
   "dependencies": {
     "@earendil-works/pi-ai": "0.87.1",
     "@flue/runtime": "2.2.2",
-    "@pandysp/flue-hydra": "file:../../../../../../../../scratch/2026-10-01-flue-fork-research/pkg/pandysp-flue-hydra-0.1.0.tgz",
+    "@pandysp/flue-hydra": "0.1.1",
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1"
   }
