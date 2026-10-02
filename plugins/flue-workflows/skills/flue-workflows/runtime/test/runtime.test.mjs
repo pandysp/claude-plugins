@@ -574,6 +574,20 @@ test('a crash after a steer: the resumed text worker returns an answer listed as
   assert.equal(result, 'answer 41');
 });
 
+test('an unchecked answer stays listed when a later resume reuses its worker', async t => {
+  const f = await fixture(t, { files: { 'checker.md': headFile('checker') }, env: { FLUE_FIXTURE_HEADS: 'broken', FLUE_FIXTURE_RESPONSE: 'text' },
+    body: `return run.agent('Answer.', { key: 'a', label: 'Named task', tools: [], heads: ['checker.md'] });` });
+  const first = await f.invoke('run');
+  assert.equal(first.code, 2, first.stderr);
+  const [job] = Object.values(first.state.jobs);
+  const expected = [{ id: job.id, key: 'a', label: 'Named task', prompt: 'Answer.', heads: [join(f.dir, 'program', 'checker.md')], answer: 'answer 41' }];
+  assert.deepEqual(summaryOf(first).unchecked, expected);
+  const resumed = await f.invoke('resume');
+  assert.equal(resumed.code, 2, resumed.stderr);
+  assert.equal(resumed.modelCalls, 0, 'the saved answer is reused, not checked again');
+  assert.deepEqual(summaryOf(resumed).unchecked, expected);
+});
+
 test('when every head check fails, the answer is returned and listed as unchecked with exit 2', async t => {
   const f = await fixture(t, { files: { 'checker.md': headFile('checker') }, env: { FLUE_FIXTURE_HEADS: 'broken', FLUE_FIXTURE_RESPONSE: 'text' },
     body: `return run.agent('Answer.', { key: 'a', tools: [], heads: ['checker.md'] });` });

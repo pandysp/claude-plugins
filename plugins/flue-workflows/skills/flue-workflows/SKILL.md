@@ -178,7 +178,8 @@ produce exit 2 even if the program returns a useful partial result; fatal errors
 or cancellation produce exit 1. Exit 2 also means answers of workers with review
 heads went unchecked: the summary's `unchecked` list gives each one's task, head
 files and answer. Check those answers yourself against the head files, or rerun
-those workers under new keys.
+those workers under new keys; the list and exit 2 stay as the record of the
+original run.
 
 Start `run` and `resume` in the background (the host's background task, or
 `tmux`): a foreground command can be stopped by the host's tool timeout long
@@ -197,7 +198,18 @@ until tail -n +$((n+1)) "$E" | grep -qE '"type":"(worker-(completed|failed)|phas
 done
 ```
 
-Then run `inspect` to see what changed. A signal (Ctrl-C, a host
+Then run `inspect` to see what changed. `inspect` itself exits 0, so when the
+owner has exited, read the summary's `unchecked` list rather than relying on exit
+codes. It holds full answers and can be large; write the summary to a file and
+read it entry by entry so no output limit cuts it off:
+
+```bash
+node "$W/flue.mjs" inspect "$ID" > "$W/runs/$ID/summary.json"
+jq '.unchecked | length' "$W/runs/$ID/summary.json"                     # 0: every answer with heads was checked
+jq -c '.unchecked[0] | {key, prompt, heads}' "$W/runs/$ID/summary.json"   # then .unchecked[0].answer, and so on
+```
+
+A signal (Ctrl-C, a host
 timeout) only stops the owner: `inspect` shows `execution: interrupted` and
 `resume` continues after about 30 seconds, within the worker `--timeout`, which
 counts from each worker's first start; each interruption uses one of a worker's

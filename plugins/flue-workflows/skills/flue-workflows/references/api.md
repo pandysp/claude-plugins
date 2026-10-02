@@ -128,7 +128,10 @@ const review = await run.agent('Fix the date parser; cite the test you ran.', {
   still returns its answer, and the inspection summary lists it under `unchecked`:
   its `id`, `key`, `label`, `prompt`, the absolute paths of its `heads` and its
   `answer`. The run then exits 2. Check the listed answers yourself against those
-  head files (cheaper than a rerun), or rerun the worker under a new key. Heads
+  head files (cheaper than a rerun), or rerun the worker under a new key. The list
+  records how the original worker's review ended: it stays, and the run keeps
+  exiting 2, after you check an answer or rerun it; keep your own result of the
+  check, and start a new run for a fresh status. Heads
   are advisory, not a gate; their added time, cache use and other limits are in
   [flue-hydra's README](https://github.com/pandysp/flue-hydra#limits).
 
@@ -421,7 +424,7 @@ Do not put keys in arguments, programs, `args`, reports, tool results or logs.
 
 | Exit | Meaning |
 |---|---|
-| `0` | Command succeeded; `run`/`resume` had no counted worker/composition failures. Inspect the **domain result** separately |
+| `0` | Command succeeded; `run`/`resume` had no counted worker/composition failures and no unchecked answers. Inspect the **domain result** separately |
 | `2` | Counted terminal worker/composition failures, or answers whose review heads did not check them (summary `unchecked`); possibly with a useful result file |
 | `1` | Fatal failure or refusal; a cancelled or interrupted `run`/`resume` also exits `1` |
 
