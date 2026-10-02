@@ -340,8 +340,8 @@ Limits:
 - A check replays the worker's cached request, so most of it is billed at cache
   rates. It still adds a model call and waits: 1–7 s per round in pi-hydra's
   measurements.
-- On Anthropic, a head's request carries pi-ai's default effort (`high`), not
-  `--effort`. This is read from the code, not measured in a workflow
+- Heads are meant to use the worker's effort. On Anthropic they currently use
+  `high` regardless, a known bug
   ([pi-hydra#37](https://github.com/pandysp/pi-hydra/issues/37)).
 - Heads advise; they do not verify. A worker can ignore a steer, and a run
   interrupted during a check finishes that worker without checking again.
