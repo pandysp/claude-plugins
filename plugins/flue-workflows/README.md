@@ -9,9 +9,9 @@ runs the workers. No supervisor model, workflow catalog or prescribed phases.
 - Per-call prompts, JSON result schemas, model/effort, tools and working directory.
 - Parallel barriers, overlapping per-item pipelines and child programs.
 - Independent Git copies for parallel edits, retained as reviewable patches.
-- Optional review heads per worker, suggested and added only with the user's
-  agreement: pi-hydra head files check a worker's answer before it is returned, and
-  the worker corrects itself ([Review heads](skills/flue-workflows/references/api.md#review-heads)).
+- Optional review heads per worker: pi-hydra head files check a worker's answer
+  before it is returned, and the worker corrects itself
+  ([Review heads](skills/flue-workflows/references/api.md#review-heads)).
 - Explicit authentication, a pinned program and runtime per run, a journal,
   `inspect`, `cancel` and `resume` with keyed reuse of finished workers.
 

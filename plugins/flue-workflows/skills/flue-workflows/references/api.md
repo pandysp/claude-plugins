@@ -95,13 +95,9 @@ raw tool invocation, correct facts or complete coverage.
 
 ### Review heads
 
-Heads are optional. Suggest them to the user where a second look pays off and add
-them only if the user agrees; they add time and requests to every worker that has
-them. A head is a pi-hydra head file: a Markdown file with a name, a description,
-`tools: []` and instructions. pi-hydra's
-[navigator](https://github.com/pandysp/pi-hydra/blob/main/heads/navigator.md) and
-[simplifier](https://github.com/pandysp/pi-hydra/blob/main/heads/simplifier.md) heads
-are examples to copy or adapt; write your own for the task. When the worker is about to finish, each head
+Heads are optional; when to suggest them is in [SKILL.md](../SKILL.md#review-heads-optional-only-with-the-users-agreement).
+A head is a pi-hydra head file: a Markdown file with a name, a description,
+`tools: []` and instructions. When the worker is about to finish, each head
 re-sends the worker's last request from the provider's cache, adds the worker's
 final turn and its own instructions, and reports findings. A finding the worker
 must act on is added to its response, so it corrects itself before the answer is
