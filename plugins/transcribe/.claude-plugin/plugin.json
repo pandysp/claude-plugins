@@ -1,0 +1,10 @@
+{
+  "name": "transcribe",
+  "description": "Turn recordings into speaker-labelled markdown notes with AssemblyAI: language detected, EU processing, paid work never repeated, notes never overwritten.",
+  "version": "0.3.0",
+  "author": {
+    "name": "Andreas Spannagel"
+  },
+  "homepage": "https://github.com/pandysp/claude-plugins",
+  "license": "MIT"
+}

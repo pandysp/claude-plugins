@@ -27,6 +27,9 @@ jobs:
       - name: Validate plugins
         run: ruby scripts/validate.rb
 
+      - name: Test the transcribe script offline
+        run: python3 -m unittest discover -s plugins/transcribe/test -v
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:

@@ -84,6 +84,7 @@ the update command above, then restart Pi to load changed skills.
 | [drive-browser](./plugins/drive-browser) | Tooling | yes | no | Drive a browser with Playwright. Resilient locators for your own app, a vision loop for opaque sites |
 | [excalidraw](./plugins/excalidraw) | Tooling | yes | yes | Draw diagrams and sketches with Excalidraw in an Obsidian vault, and check each one with a screenshot |
 | [classify-with-jev](./plugins/classify-with-jev) | Tooling | no | yes | Classify, label or score many items with TypeSafe's Jev classifier from Pi's codemode |
+| [transcribe](./plugins/transcribe) | Tooling | yes | yes | Turn recordings into speaker-labelled markdown notes with AssemblyAI, without paying twice or overwriting corrected notes |
 
 ## Withheld
 
