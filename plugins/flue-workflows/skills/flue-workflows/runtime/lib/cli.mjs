@@ -131,7 +131,7 @@ async function cancel(dir) {
   const summary = await inspect(dir);
   console.log(json(summary));
   if (summary.liveCommandGroups.length) throw new RunError(`The owner exited but worker commands are still running (process groups ${summary.liveCommandGroups.join(', ')}); stop them before using the retained patches.`);
-  if (summary.execution === 'interrupted') throw new RunError('The owner stopped before it could cancel; in-flight work is still pending. Resume the run and cancel it again, or start a new run.');
+  if (summary.execution === 'interrupted') throw new RunError('The owner stopped before it could cancel (it may already have been shutting down). Check the jobs above: resume finishes or re-attaches what is pending; to discard it, resume and cancel again.');
 }
 
 export async function main(workspace, argv = process.argv.slice(2)) {

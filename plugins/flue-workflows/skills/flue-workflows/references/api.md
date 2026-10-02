@@ -317,8 +317,9 @@ node /absolute/workflow-space/flue.mjs resume audit-1
   `inspect` shows `execution: interrupted`, and `resume` re-attaches them. Resume
   first waits about 30 seconds for Flue to reclaim the stopped workers, and each
   interruption uses one of a worker's 3 attempts.
-- A command never outlives its shell: when a worker's shell exits (finished,
-  timed out or aborted), anything left in its process group is killed.
+- When a worker's shell exits (finished, timed out or aborted), anything left in
+  its process group is killed. A process that starts its own process group or
+  session is not tracked; workers are told not to leave such work behind.
 - Flue counts `--timeout` from a worker's first start, across crashes and
   interruptions. Resume an interrupted run within that budget, or give runs that
   may sit unattended a larger `--timeout`; a worker past it fails on resume.

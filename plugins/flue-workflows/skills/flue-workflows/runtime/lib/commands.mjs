@@ -19,13 +19,17 @@ const SAME_PROCESS_MS = 10_000;
 // Flue stops escalating to SIGKILL once a command's shell exits, so a child that
 // ignores SIGTERM (after a timeout or abort) could keep editing files. Whatever is
 // left in a group when its shell exits has outlived its command and is killed.
-export function recordCommands(onSpawn) {
+// A failed kill in that exit listener goes to `onKillFailure` instead of crashing the owner.
+export function recordCommands(onSpawn, onKillFailure) {
   const live = new Set();
   const observer = ({ process: child }) => child.once('spawn', () => {
     if (child.spawnargs[1] !== '-c') return;
     live.add(child.pid);
     onSpawn(child.pid);
-    child.once('exit', () => { live.delete(child.pid); killGroup(child.pid); });
+    child.once('exit', () => {
+      live.delete(child.pid);
+      try { killGroup(child.pid); } catch (error) { onKillFailure(error); }
+    });
   });
   subscribe('child_process', observer);
   return {
@@ -67,4 +71,3 @@ export async function liveCommandGroups(dir) {
   // erring towards refusing a resume over running beside a leftover command.
   return [...spawned].filter(([pid, at]) => groups.has(pid) && (!started.has(pid) || Math.abs(started.get(pid) - at) <= SAME_PROCESS_MS)).map(([pid]) => pid);
 }
-

@@ -176,7 +176,8 @@ async function executeOwned({ dir, runtimeRoot }) {
     journal = openSync(join(dir, 'events.jsonl'), 'a', 0o600);
     run.emit({ type: 'run-started', auth: source, model: config.model });
     process.on('SIGINT', stopNow); process.on('SIGTERM', stopNow); process.on('SIGUSR2', onCancel);
-    resources.recorder = recordCommands(pid => run.emit({ type: 'command', pid }));
+    resources.recorder = recordCommands(pid => run.emit({ type: 'command', pid }),
+      cause => run.fail(new RunError('Could not stop what a finished command left running', { cause })));
     const code = resources.code = await loader(manifest.program, runtimeRoot);
     const tools = await optionalModule(manifest.program, code, 'tools.mjs');
     const hook = await optionalModule(manifest.program, code, 'worker.mjs');
