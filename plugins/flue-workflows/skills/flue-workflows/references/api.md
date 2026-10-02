@@ -117,10 +117,8 @@ const review = await run.agent('Fix the date parser; cite the test you ran.', {
   files and duplicate paths are refused when `run.agent()` is called.
 - A text worker returns the final answer the heads left standing. A structured
   worker submits again after a correction; the corrected object is returned.
-- A structured worker's answer is its `submit_result` call, not text. Heads see the
-  call, but word their instructions for it ("check the values the assistant states
-  or submits"): in live runs a Codex head told to check "the answer" passed over a
-  wrong submitted value it could see.
+- A structured worker's answer is its `submit_result` call, not text; heads see the
+  call and its arguments.
 - Every check is a `head-check` event in the journal and the progress output,
   with the worker, head, round, outcome, findings and any error. After 3 rounds of
   feedback, remaining findings are marked `unresolved: true` and the worker

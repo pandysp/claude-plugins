@@ -1,7 +1,7 @@
 {
   "name": "flue-workflows",
   "description": "Author JavaScript workflows with native Flue workers, structured results, composition, retained edits, and saved-result reentry. Development draft.",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "author": {
     "name": "Andreas Spannagel"
   },
