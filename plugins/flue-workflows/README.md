@@ -11,6 +11,8 @@ runs the workers. No supervisor model, workflow catalog or prescribed phases.
 - Independent Git copies for parallel edits, retained as reviewable patches.
 - Explicit authentication, a pinned program and runtime per run, a journal,
   `inspect`, `cancel` and `resume` with keyed reuse of finished workers.
+- Optional review of workers by [pi-hydra](https://github.com/pandysp/pi-hydra)
+  heads, only for programs that include a `heads/` directory.
 
 Workers have **unrestricted host access** after explicit approval. A Git copy
 prevents edit collisions; it is not a security sandbox.

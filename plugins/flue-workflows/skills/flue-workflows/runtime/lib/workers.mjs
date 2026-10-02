@@ -59,7 +59,7 @@ function submitResultTool(schema, writeResult, onWritten) {
   };
 }
 
-export function workers({ config, provider, tools = {}, hook, emit }) {
+export function workers({ config, provider, tools = {}, hook, hydra, emit }) {
   if (hook !== undefined && !synchronous(hook)) throw new RunError('worker.mjs must export a default synchronous function.');
   if (!tools || typeof tools !== 'object' || ![Object.prototype, null].includes(Object.getPrototypeOf(tools))) {
     throw new RunError('tools.mjs must export a default plain object of tool factories.');
@@ -102,6 +102,7 @@ export function workers({ config, provider, tools = {}, hook, emit }) {
     const task = native.useInitialData();
     if (!task) throw new RunError(`Missing recorded task for ${id}.`);
     native.useModel(task.model, { thinkingLevel: task.effort });
+    hydra?.useHydra();
     const writeResult = native.useDataWriter('result');
     native.useSandbox({
       ...local({ cwd: task.cwd }),

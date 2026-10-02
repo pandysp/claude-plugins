@@ -71,6 +71,22 @@ check fails, retain the failure and candidate; don't quietly remove the item.
 For coding, keep the original checkout untouched, keep candidate patches
 separate, and run consumer-side tests before any merge.
 
+## Heads review in the moment; they are not independent
+
+[Review heads](api.md#review-heads-optional) are optional. Use them only when
+the user wants them.
+
+| | Review heads | A separate review worker |
+|---|---|---|
+| Sees | The worker's own conversation, before it finishes | Only what you give it |
+| Catches | Drift while it can still be fixed: a dropped requirement, an unchecked claim, needless complexity | A wrong result, reproduced from evidence |
+| Can check with tools | No | Yes |
+| Cost | A cached replay per check, on every worker | A full worker, only where you call one |
+
+Heads share the worker's context, so they can share its blind spots. When a
+result must be independent, call a review worker as described above, whether
+or not heads are present.
+
 ## If you use voting, define abstention
 
 Choose an acceptance rule in code **before** reading the votes. Missing,

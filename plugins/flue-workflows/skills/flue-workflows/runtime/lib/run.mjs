@@ -1,9 +1,10 @@
 import { appendFileSync, openSync, closeSync, fsyncSync } from 'node:fs';
-import { stat, access, realpath, readFile } from 'node:fs/promises';
+import { stat, access, realpath, readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { start, sqlite } from '@flue/runtime/node';
 import { cleanupSessionResources } from '@earendil-works/pi-ai';
+import { createFlueHydra } from 'pi-hydra/flue';
 import { primitives, concurrency, RunError, message, fatal } from './primitives.mjs';
 import { json, load, save, lease } from './files.mjs';
 import { collect } from './workspace.mjs';
@@ -23,6 +24,15 @@ async function optionalModule(root, code, name) {
   if (module.default === undefined) throw new RunError(`${name} must export a default value.`);
   return module.default;
 }
+
+// Review heads are opt-in: only a program with a heads/ directory gets them.
+async function headFiles(root) {
+  let names;
+  try { names = await readdir(join(root, 'heads')); }
+  catch (error) { if (error.code === 'ENOENT') return null; throw error; }
+  return names.filter(name => name.endsWith('.md')).sort().map(name => join(root, 'heads', name));
+}
+const HEAD_PROVIDERS = new Set(['anthropic', 'openai-codex']);
 
 // `worker:type:call` keys of tool steps earlier attempts already journaled.
 async function journaledToolSteps(dir) {
@@ -100,11 +110,12 @@ async function runProgram(run, { manifest, code, normalize }) {
 }
 
 // Stop every worker, Flue and the recorder; keep partial output of stopped snapshot workers.
-async function shutdown(run, { runtime, code, recorder }) {
+async function shutdown(run, { runtime, hydra, code, recorder }) {
   const { state, dir, attempt } = run;
   if (!run.signal.aborted) run.controller.abort(new DOMException('Run shutting down', 'AbortError'));
   await Promise.allSettled([...run.pending, ...run.aborts]);
   if (runtime) await attempt(() => runtime.stop());
+  if (hydra) await attempt(() => hydra.close());
   if (runtime) await attempt(() => cleanupSessionResources());
   // Nothing an attempt started may keep editing after its patches are collected; commands
   // whose shell already exited had their groups killed then (see recordCommands).
@@ -181,9 +192,12 @@ async function executeOwned({ dir, runtimeRoot }) {
     const code = resources.code = await loader(manifest.program, runtimeRoot);
     const tools = await optionalModule(manifest.program, code, 'tools.mjs');
     const hook = await optionalModule(manifest.program, code, 'worker.mjs');
-    const { Worker, normalize } = workers({ config, provider, tools, hook, emit: run.emit });
+    const heads = await headFiles(manifest.program);
+    if (heads && !HEAD_PROVIDERS.has(provider.id)) throw new RunError(`Review heads in heads/ need an anthropic/… or openai-codex/… model, not ${config.model}.`);
+    const hydra = resources.hydra = heads && createFlueHydra({ heads, onRecord: record => run.emit({ type: 'head-check', ...record }) });
+    const { Worker, normalize } = workers({ config, provider, tools, hook, hydra, emit: run.emit });
     run.Worker = Worker;
-    resources.runtime = await start({ agents: [Worker], db: sqlite(join(dir, 'flue.sqlite')), providers: [provider] });
+    resources.runtime = await start({ agents: [Worker], db: sqlite(join(dir, 'flue.sqlite')), providers: [hydra ? hydra.wrap(provider) : provider] });
     result = await runProgram(run, { manifest, code, normalize });
     await save(join(dir, 'result.json'), result);
   } catch (error) {

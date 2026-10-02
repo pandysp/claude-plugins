@@ -31,7 +31,10 @@ async function fixture(t, { body = `return ${call('answer')};`, files = {}, env 
   });
   await mkdir(dirname(program));
   await writeFile(program, `export default async run => { run.phase('entered'); ${body} };\n`);
-  for (const [name, text] of Object.entries(files)) await writeFile(join(dirname(program), name), text);
+  for (const [name, text] of Object.entries(files)) {
+    await mkdir(dirname(join(dirname(program), name)), { recursive: true });
+    await writeFile(join(dirname(program), name), text);
+  }
   if (git) {
     for (const args of [['init', '-q'], ['add', '.'], ['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', '-c', 'commit.gpgSign=false', 'commit', '-qm', 'Fixture']]) {
       await exec('git', ['-C', dirname(program), ...args], { env: baseEnv });
@@ -135,6 +138,27 @@ test('a hook that returns a promise fails the worker loudly', async t => {
   const [job] = Object.values(result.state.jobs);
   assert.equal(job.status, 'failed');
   assert.match(result.stderr, /must return synchronously/);
+});
+
+const judge = name => `---\nname: ${name}\ndescription: checks the submitted answer\ntools: []\n---\nSteer when the submitted answer is wrong.\n`;
+
+test('a review head in heads/ corrects a submitted result before the worker finishes', async t => {
+  const f = await fixture(t, { files: { 'heads/checker.md': judge('checker') }, env: { FLUE_FIXTURE_PROVIDER: 'anthropic', FLUE_FIXTURE_RESPONSE: 'head-steer' } });
+  const result = await f.invoke('run');
+  assert.equal(result.code, 0, result.stderr);
+  assert.deepEqual(await load(join(f.dir, 'result.json')), { answer: 42 }, 'the job keeps the corrected submission');
+  assert.equal(result.events.filter(event => event.event === 'model-call').length, 2);
+  const checks = result.stderrEvents.filter(event => event.type === 'head-check');
+  assert.deepEqual(checks.map(check => [check.head, check.round, check.outcome]), [['checker', 0, 'findings'], ['checker', 1, 'none']]);
+  assert.equal(checks[0].findings[0].message, 'The answer is 42.');
+});
+
+test('review heads are refused at start on a provider they cannot replay', async t => {
+  const f = await fixture(t, { files: { 'heads/checker.md': judge('checker') } });
+  const result = await f.invoke('run');
+  assert.equal(result.code, 1, result.stderr);
+  assert.match(result.stderr, /Review heads in heads\/ need an anthropic\/\u2026 or openai-codex\/\u2026 model, not openai\/flue-fixture/);
+  assert.equal(result.modelCalls, 0);
 });
 
 test('a caught child failure is visible without failing the parent', async t => {

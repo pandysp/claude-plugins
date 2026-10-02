@@ -295,6 +295,59 @@ The kit does not automatically provide web search, host MCP connections,
 custom host agent types or their credentials. Extra native tools/subagents can
 also introduce work outside the kit's job accounting and effect tracking.
 
+## Review heads (optional)
+
+A program can have its workers reviewed by [pi-hydra](https://github.com/pandysp/pi-hydra)
+heads: small judges that check each worker's answer before the worker finishes.
+This is opt-in. Only a program with a `heads/` directory gets heads; without
+one, nothing changes. Add heads only when the user wants this review, and
+suggest it when automatic review would clearly help.
+
+Put one Markdown file per head in `heads/` beside the entry module. The heads
+are pinned with the program, so `resume` refuses changed heads. Each file is a
+pi-hydra head: frontmatter with `name`, `description` and `tools: []` (heads
+must be judges, without tools), then what to check, in plain words.
+
+Example heads ship with the runtime. Copy them and adapt them rather than
+linking them; a symlink out of the program directory is refused:
+
+```sh
+ls /absolute/workflow-space/.runtime/*/node_modules/pi-hydra/heads/
+```
+
+`navigator.md` (judges the answer against the task) and `simplifier.md`
+(unnecessary complexity) are good starting points; `quality.md`, `security.md`
+and `api-design.md` also work. `foreman.md` and `tuner.md` use tools and are
+refused. These heads were written for pi, where a person reads notes sent
+with `print`. In a workflow, that reader is you, through the journal.
+
+| Head's decision | What happens |
+|---|---|
+| `steer` or `interrupt` | The worker receives the message and keeps working. It can correct its answer or call `submit_result` again; the last submission counts. |
+| `print` | Recorded in the `head-check` event (and Flue's own log); the worker never sees it |
+| Nothing to report | The worker finishes |
+
+Each check is a `head-check` event on stderr and in `events.jsonl`: `head`,
+`round`, `outcome` (`findings`, `none` or `failed`), `findings` (each with
+`action`, `reason`, `message`), `error`, `usage` (tokens and cost) and
+`durationMs`. After three rounds of feedback on one answer, further findings
+are logged as unresolved and the worker finishes.
+
+Limits:
+
+- Only `anthropic/…` and `openai-codex/…` models. Any other model with a
+  `heads/` directory refuses to start.
+- A check replays the worker's cached request, so most of it is billed at cache
+  rates. It still adds a model call and waits: 1–7 s per round in pi-hydra's
+  measurements.
+- On Anthropic, a head's request carries pi-ai's default effort (`high`), not
+  `--effort`. This is read from the code, not measured in a workflow
+  ([pi-hydra#37](https://github.com/pandysp/pi-hydra/issues/37)).
+- Heads advise; they do not verify. A worker can ignore a steer, and a run
+  interrupted during a check finishes that worker without checking again.
+  Heads see the worker's own context, so they are not an independent check
+  ([patterns](patterns.md#heads-review-in-the-moment-they-are-not-independent)).
+
 ## Operate and re-enter
 
 Use the workspace launcher, not a file inside the plugin cache:
