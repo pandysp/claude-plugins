@@ -48,6 +48,9 @@ REQUEST = {
 }
 
 
+STATUSES = {"uploading", "submitting", "submitted", "saved", "done"}
+
+
 class Failure(Exception):
     """This recording failed; the batch goes on."""
 
@@ -241,7 +244,10 @@ class State:
     def __init__(self, folder: Path, base: Path):
         self.dir = folder
         self.path = folder / "state.json"
-        data = json.loads(self.path.read_text(encoding="utf-8")) if self.path.exists() else {}
+        try:
+            data = json.loads(self.path.read_text(encoding="utf-8")) if self.path.exists() else {}
+        except ValueError as exc:
+            raise Fatal(f"{self.path} is damaged ({exc}); fix it or move it away")
         if data and "recordings" not in data:  # format of version 0.3.0
             data = {"recordings": data, "pending_delete": [
                 {"id": r["transcript_id"], "region": r.get("region", "eu")} for r in data.values()
@@ -313,6 +319,8 @@ def saved_result(state: State, transcript_id: str):
 def transcribe(path: Path, digest: str, state: State, client: Client, args) -> None:
     name = path.stem
     record = state.records.get(name)
+    if record and record.get("status") not in STATUSES:
+        raise Failure(f"unknown state {record.get('status')!r} for {name} in {state.path}")
     if record and record.get("status") == "done" and not args.retranscribe:
         if record.get("legacy"):
             print(f"skip (transcribed by an earlier version, id {record['transcript_id']}): {name}")
@@ -320,6 +328,8 @@ def transcribe(path: Path, digest: str, state: State, client: Client, args) -> N
         if not record.get("transcript_id") or not record.get("sha256"):
             raise Failure(f"the state record for {name} is incomplete; check {state.path}")
         if record["sha256"] == digest:
+            if not args.keep_remote and not record.get("remote_deleted"):  # kept earlier, delete now
+                state.queue_delete(record["transcript_id"], record.get("region", args.region))
             print(f"skip (already transcribed): {name} -> {record.get('note')}")
             return
     print(f"\n== {name}")
@@ -363,7 +373,11 @@ def transcribe(path: Path, digest: str, state: State, client: Client, args) -> N
         if not record.get("note"):
             record = state.save(name, note=str(free_note_path(args.out_dir, name, transcript_id)))
         note = Path(record["note"])
-        if not note.exists():  # an existing file at the recorded name is this job's, written before a crash
+        if note.exists() and f'transcript_id: "{transcript_id}"' not in note.read_text(encoding="utf-8"):
+            # Not the note an earlier run wrote before crashing: someone else took the name.
+            note = free_note_path(args.out_dir, name, transcript_id)
+            state.save(name, note=str(note))
+        if not note.exists():
             write_new(note, to_markdown(result, name, region))
         if not args.keep_remote:
             state.queue_delete(transcript_id, region)
@@ -424,15 +438,19 @@ def main() -> int:
     args = parser.parse_args()
     args.out_dir = args.out_dir or args.base_dir / "transcripts"
 
-    failed, done = [], []
+    failed, done, files, stopped = [], [], [], None
     try:
-        files = targets(args)
         folder = args.base_dir / ".transcribe"
         folder.mkdir(parents=True, exist_ok=True)
         held = lock(folder)  # noqa: F841 -- released when the process exits
         state = State(folder, args.base_dir)  # read under the lock
-        args.out_dir.mkdir(parents=True, exist_ok=True)
         clients = {args.region: Client(args.region)}
+        try:
+            files = targets(args)
+        except Fatal as exc:  # nothing to transcribe; queued deletions still run below
+            stopped = exc
+        if files:
+            args.out_dir.mkdir(parents=True, exist_ok=True)
         for path in files:
             try:
                 transcribe(path, sha256(path), state, clients[args.region], args)
@@ -441,6 +459,8 @@ def main() -> int:
                 failed.append(path.stem)
                 print(f"  FAILED: {exc}", file=sys.stderr, flush=True)
         undeleted = delete_pending(state, clients)
+        if stopped:
+            raise stopped
     except Fatal as exc:
         print(exc, file=sys.stderr)
         if done:
