@@ -230,6 +230,21 @@
       "category": "Productivity"
     },
     {
+      "name": "plain-language",
+      "interface": {
+        "displayName": "Plain Language"
+      },
+      "source": {
+        "source": "local",
+        "path": "./plugins/plain-language"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
       "name": "worktrunk-hook",
       "interface": {
         "displayName": "Worktrunk Hook"

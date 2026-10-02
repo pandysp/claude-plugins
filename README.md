@@ -78,6 +78,7 @@ the update command above, then restart Pi to load changed skills.
 | [handoff](./plugins/handoff) | Workflow | yes | yes | Write a durable handoff — PR descriptions, summaries, memos, or memory notes |
 | [reflect](./plugins/reflect) | Workflow | yes | yes | Surface a session's durable lessons before they fade, each with the place it would be saved |
 | [understudy](./plugins/understudy) | Workflow | yes | yes | Write code, comments, tests, and commits that read as if the project's own maintainer wrote them |
+| [plain-language](./plugins/plain-language) | Workflow | yes | yes | Explain things in plain, jargon-free language, as if the reader has no idea what you are talking about, leading with the problem behind the problem |
 | [worktrunk-hook](./plugins/worktrunk-hook) | Tooling | no | no | Route Claude Code's auto-created git worktrees through worktrunk so sessions inherit project hooks |
 | [drive-browser](./plugins/drive-browser) | Tooling | yes | no | Drive a browser with Playwright. Resilient locators for your own app, a vision loop for opaque sites |
 | [excalidraw](./plugins/excalidraw) | Tooling | yes | yes | Draw diagrams and sketches with Excalidraw in an Obsidian vault, and check each one with a screenshot |
@@ -117,6 +118,18 @@ marketplace and the Pi package from the Claude metadata. Its `HOST_SUPPORT`
 table is the only place host support is declared: a plugin missing from it fails
 validation, so nothing reaches Codex or Pi by accident. CI runs both scripts and
 checks that `npm install` leaves a Pi checkout clean.
+
+To test whether a skill changes what an agent does, give Pi the same prompt with
+and without it, with your own instructions and other skills turned off:
+
+```bash
+pi -p --no-session -nc -ns -ne --mode json --skill plugins/<name>/skills/<name> "<prompt>"
+pi -p --no-session -nc -ns -ne --mode json "<prompt>"
+```
+
+The prompt should not name the skill. In the JSON output, check that the agent
+read the whole `SKILL.md`: a `read` call with a `limit` means it saw only part of
+it. Keep tools on: with `-nt` Pi lists no skills at all.
 
 Flue keeps its pinned dependencies in a separate runtime, not the Pi package:
 
