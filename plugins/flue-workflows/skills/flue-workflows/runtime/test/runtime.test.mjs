@@ -345,7 +345,9 @@ test('unreadable run files release the owner lock before rejecting', async t => 
 });
 
 test('cancel signals the live owner and reports the settled run', async t => {
-  const f = await fixture(t);
+  // The program treats an empty worker as its own failure; a cancelled worker must
+  // reject instead, so the run still ends as cancelled.
+  const f = await fixture(t, { body: `const [answer] = await run.parallel([() => ${call('answer')}]); if (answer === null) throw new Error('worker came back empty'); return answer;` });
   await writeFile(f.trace, '');
   const proc = spawn(process.execPath, [child, join(f.root, 'workspace'), 'run', f.program, f.trace], { env: { ...baseEnv, FLUE_FIXTURE_BLOCK: '1' }, stdio: ['ignore', 'pipe', 'pipe'] });
   const exited = new Promise(resolve => proc.on('exit', resolve));
@@ -356,6 +358,7 @@ test('cancel signals the live owner and reports the settled run', async t => {
   const summary = JSON.parse(stdout);
   assert.equal(summary.execution, 'cancelled');
   assert.deepEqual(summary.workers, { aborted: 1 });
+  assert.doesNotMatch(summary.error ?? '', /came back empty/);
 });
 
 test('program-local #imports resolve within the program, package names within the runtime', async t => {

@@ -165,8 +165,23 @@ produce exit 2 even if the program returns a useful partial result; fatal errors
 or cancellation produce exit 1.
 
 Start `run` and `resume` in the background (the host's background task, or
-`tmux`) and poll with `inspect`: a foreground command can be stopped by the
-host's tool timeout long before the workers finish. A signal (Ctrl-C, a host
+`tmux`): a foreground command can be stopped by the host's tool timeout long
+before the workers finish. If the host cannot notify you when a background
+command ends, wait for the next progress event instead of sleeping a fixed time.
+This Bash loop returns when a worker finishes or fails, a phase starts, the
+owner exits (finished, failed, interrupted, cancelled or killed) or 20 minutes
+pass. A failing `inspect` stops it with a message:
+
+```bash
+W="/absolute/workflow-space"; ID="audit-1"; E="$W/runs/$ID/events.jsonl"; n=$(wc -l < "$E"); end=$((SECONDS+1200))
+until tail -n +$((n+1)) "$E" | grep -qE '"type":"(worker-(completed|failed)|phase)"' || ((SECONDS>end)); do
+  s=$(node "$W/flue.mjs" inspect "$ID") || { echo "inspect failed" >&2; break; }
+  grep -q '"ownerAlive":true' <<<"$s" || break
+  sleep 5
+done
+```
+
+Then run `inspect` to see what changed. A signal (Ctrl-C, a host
 timeout) only stops the owner: `inspect` shows `execution: interrupted` and
 `resume` continues after about 30 seconds, within the worker `--timeout`, which
 counts from each worker's first start; each interruption uses one of a worker's

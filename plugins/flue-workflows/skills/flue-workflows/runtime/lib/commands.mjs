@@ -1,6 +1,6 @@
 import { subscribe, unsubscribe } from 'node:diagnostics_channel';
 import { readFile } from 'node:fs/promises';
-import { execFile } from 'node:child_process';
+import { execFile, execFileSync } from 'node:child_process';
 import { promisify } from 'node:util';
 import { join } from 'node:path';
 
@@ -39,10 +39,29 @@ export function recordCommands(onSpawn, onKillFailure) {
   };
 }
 
-function killGroup(pid) {
+export function killGroup(pid) {
   try { process.kill(-pid, 'SIGKILL'); }
-  catch (error) { if (error.code !== 'ESRCH') throw error; }
+  catch (error) {
+    if (error.code === 'ESRCH') return;
+    // macOS answers EPERM, not ESRCH, for a group whose members have all exited but
+    // are not yet reaped. Such a group has nothing left to stop.
+    if (error.code === 'EPERM' && !liveGroups(processes(execFileSync('ps', PS_ARGS, PS_OPTIONS))).has(pid)) return;
+    throw error;
+  }
 }
+
+const PS_ARGS = ['-axo', 'pid=,pgid=,etime=,stat='];
+const PS_OPTIONS = { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 };
+
+function processes(stdout) {
+  return stdout.trim().split('\n').map(line => {
+    const [pid, pgid, etime, stat] = line.trim().split(/\s+/);
+    return { pid: Number(pid), pgid: Number(pgid), etime, zombie: stat.startsWith('Z') };
+  });
+}
+
+// A group is live while it has a member that has not exited; zombies only await reaping.
+const liveGroups = rows => new Set(rows.filter(row => !row.zombie).map(row => row.pgid));
 
 // `ps` elapsed time, `[[dd-]hh:]mm:ss`, identical on macOS and Linux.
 function elapsedMs(text) {
@@ -59,13 +78,9 @@ export async function liveCommandGroups(dir) {
     .filter(row => row.type === 'command').map(row => [row.pid, Date.parse(row.at)]));
   if (!spawned.size) return [];
   const now = Date.now();
-  const { stdout } = await exec('ps', ['-axo', 'pid=,pgid=,etime='], { maxBuffer: 8 * 1024 * 1024 });
-  const groups = new Set(), started = new Map();
-  for (const line of stdout.trim().split('\n')) {
-    const [pid, pgid, etime] = line.trim().split(/\s+/);
-    groups.add(Number(pgid));
-    started.set(Number(pid), now - elapsedMs(etime));
-  }
+  const rows = processes((await exec('ps', PS_ARGS, PS_OPTIONS)).stdout);
+  const groups = liveGroups(rows);
+  const started = new Map(rows.map(row => [row.pid, now - elapsedMs(row.etime)]));
   // A live group counts unless its leader is a newer process that reused the pid.
   // A group whose leader already exited has no start time to compare; it is reported,
   // erring towards refusing a resume over running beside a leftover command.
