@@ -85,7 +85,8 @@ function resultOf(descriptor, reply, submissionId) {
   return values[0];
 }
 
-// Runs one worker call to a result, `null` for a failed/aborted worker, or a thrown fatal error.
+// Runs one worker call to a result, `null` for a failed/aborted worker, or a thrown fatal error
+// (including the run's abort reason once the run is cancelled or failing).
 // `run` holds the attempt's shared state: { dir, runtimeRoot, config, state, Worker, persist, emit, signal, handles, dispatched, occurrences, journaled }.
 export async function job(run, { namespace, descriptor, key }) {
   descriptor.cwd = await workingDirectory(run, descriptor.cwd);
@@ -122,6 +123,9 @@ export async function job(run, { namespace, descriptor, key }) {
     job.error = message(error);
     await run.persist();
     run.emit({ type: 'worker-failed', id, outcome: error.outcome, message: job.error });
+    // Aborted because the run is cancelled or failing: reject, so the program stops
+    // instead of reading the empty worker as an ordinary failure.
+    if (run.signal.aborted) throw run.signal.reason;
     return null;
   } finally { run.handles.delete(id); }
 }
