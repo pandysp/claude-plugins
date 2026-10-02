@@ -9,10 +9,12 @@
 //                         tool-twice (two `broken` calls, then a valid result)
 // FLUE_FIXTURE_BLOCK      hold the first model call open until the process is
 //                         signalled or killed (cancel/crash tests); `head` holds the
-//                         first head check instead
+//                         first head check instead, `corrected` the worker's first call
+//                         after a head steered it
 // FLUE_FIXTURE_HEADS      the model speaks the Anthropic API so heads can review it:
 //                         `steer` (the first head check steers, later ones pass),
-//                         `always` (every check steers), `pass` (no findings).
+//                         `always` (every check steers), `pass` (no findings),
+//                         `broken` (every head answers with something that is not a finding).
 //                         The worker answers 41 until it has read a pi-hydra signal, then 42.
 import { registerHooks, syncBuiltinESMExports } from 'node:module';
 import childProcess from 'node:child_process';
@@ -44,7 +46,7 @@ const reply = () => {
 };
 let headChecks = 0;
 // A head check: the agent's own request replayed, ending with the head's instructions.
-const headReply = () => fauxAssistantMessage(JSON.stringify({ findings:
+const headReply = () => heads === 'broken' ? fauxAssistantMessage('I could not decide.') : fauxAssistantMessage(JSON.stringify({ findings:
   heads === 'always' || (heads === 'steer' && headChecks++ === 0) ? [{ action: 'steer', reason: 'checked', message: 'The answer is 42.' }] : [] }));
 const answer = context => {
   const corrected = JSON.stringify(context.messages).includes('pi-hydra');
@@ -61,7 +63,7 @@ const respond = async (context, options, _state, model) => {
     await new Promise(resolve => options.signal.addEventListener('abort', resolve, { once: true }));
     record({ event: 'model-aborted' });
   };
-  if (process.env.FLUE_FIXTURE_BLOCK && process.env.FLUE_FIXTURE_BLOCK !== 'head' && !blocked) await block();
+  if (process.env.FLUE_FIXTURE_BLOCK && !['head', 'corrected'].includes(process.env.FLUE_FIXTURE_BLOCK) && !blocked) await block();
   if (heads) {
     // Hand the request body to whoever wraps the provider, as a real provider does.
     const params = { model: model.id, system: [{ type: 'text', text: String(context.systemPrompt ?? '') }],
@@ -70,6 +72,7 @@ const respond = async (context, options, _state, model) => {
     const isHead = JSON.stringify(sent).includes("reviewing the main assistant");
     record({ event: isHead ? 'head-call' : 'model-call' });
     if (isHead && process.env.FLUE_FIXTURE_BLOCK === 'head' && !blocked) await block();
+    if (!isHead && process.env.FLUE_FIXTURE_BLOCK === 'corrected' && JSON.stringify(context.messages).includes('pi-hydra') && !blocked) await block();
     return isHead ? headReply() : answer(context);
   }
   return reply();
