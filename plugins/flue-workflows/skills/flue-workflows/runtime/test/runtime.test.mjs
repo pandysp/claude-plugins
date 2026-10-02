@@ -168,6 +168,26 @@ test('each head check can be traced to its worker through the journal alone', as
   assert.equal(new Set(checks.map(check => workerOf.get(check.conversationId))).size, 2);
 });
 
+test('a worker link that cannot be journaled fails the run instead of disappearing', async t => {
+  // worker.mjs runs before any worker starts; it makes the first worker-conversation write fail.
+  const failFirstLink = `import fs from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
+const append = fs.appendFileSync;
+let failed = false;
+fs.appendFileSync = (path, data, ...rest) => {
+  if (!failed && String(data).includes('"type":"worker-conversation"')) { failed = true; throw new Error('LINK_WRITE_FAILED'); }
+  return append(path, data, ...rest);
+};
+syncBuiltinESMExports();
+export default () => {};
+`;
+  const f = await fixture(t, { files: { 'heads/checker.md': judge('checker'), 'worker.mjs': failFirstLink }, env: { FLUE_FIXTURE_PROVIDER: 'anthropic', FLUE_FIXTURE_RESPONSE: 'head-steer' } });
+  const result = await f.invoke('run');
+  assert.notEqual(result.code, 0, result.stderr);
+  assert.equal(result.state.status, 'failed');
+  assert.match(result.state.error, /Could not journal which worker a conversation belongs to/);
+});
+
 test('review heads are refused at start on a provider they cannot replay', async t => {
   const f = await fixture(t, { files: { 'heads/checker.md': judge('checker') } });
   const result = await f.invoke('run');

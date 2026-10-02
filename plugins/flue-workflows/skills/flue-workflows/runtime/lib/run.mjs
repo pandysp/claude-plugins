@@ -203,9 +203,12 @@ async function executeOwned({ dir, runtimeRoot }) {
     if (hydra) {
       const linked = new Set();
       resources.unobserve = observe((event, ctx) => {
-        if (ctx?.agentName !== Worker.agentName || !event.conversationId || linked.has(`${ctx.id} ${event.conversationId}`)) return;
-        linked.add(`${ctx.id} ${event.conversationId}`);
-        run.emit({ type: 'worker-conversation', worker: ctx.id, conversationId: event.conversationId });
+        const link = `${ctx?.id} ${event.conversationId}`;
+        if (ctx?.agentName !== Worker.agentName || !event.conversationId || linked.has(link)) return;
+        // Flue swallows a subscriber's exception, so a failed write goes through the run's own failure path.
+        try { run.emit({ type: 'worker-conversation', worker: ctx.id, conversationId: event.conversationId }); }
+        catch (cause) { run.fail(new RunError('Could not journal which worker a conversation belongs to', { cause })); return; }
+        linked.add(link);
       });
     }
     resources.runtime = await start({ agents: [Worker], db: sqlite(join(dir, 'flue.sqlite')), providers: [hydra ? hydra.wrap(provider) : provider] });
