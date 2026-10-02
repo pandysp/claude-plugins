@@ -300,10 +300,20 @@ def lock(folder: Path):
 
 
 def free_note_path(out_dir: Path, name: str, transcript_id: str) -> Path:
+    """The first name that is free or already holds this transcript's note."""
     for candidate in (out_dir / f"{name}.md", out_dir / f"{name}.{transcript_id}.md"):
-        if not candidate.exists():
+        if not candidate.exists() or written_by(candidate, transcript_id):
             return candidate
-    raise Failure(f"{name}.md and {name}.{transcript_id}.md both exist in {out_dir}")
+    raise Failure(f"{name}.md and {name}.{transcript_id}.md both exist in {out_dir} and hold other notes")
+
+
+def written_by(note: Path, transcript_id: str) -> bool:
+    """Whether the note's header block (frontmatter) names this transcript."""
+    text = note.read_text(encoding="utf-8")
+    if not text.startswith("---\n"):
+        return False
+    header = text[4:].split("\n---", 1)[0]
+    return f'transcript_id: "{transcript_id}"' in header.splitlines()
 
 
 def saved_result(state: State, transcript_id: str):
@@ -373,12 +383,14 @@ def transcribe(path: Path, digest: str, state: State, client: Client, args) -> N
         if not record.get("note"):
             record = state.save(name, note=str(free_note_path(args.out_dir, name, transcript_id)))
         note = Path(record["note"])
-        if note.exists() and f'transcript_id: "{transcript_id}"' not in note.read_text(encoding="utf-8"):
+        if note.exists() and not written_by(note, transcript_id):
             # Not the note an earlier run wrote before crashing: someone else took the name.
             note = free_note_path(args.out_dir, name, transcript_id)
             state.save(name, note=str(note))
         if not note.exists():
-            write_new(note, to_markdown(result, name, region))
+            write_new(note, to_markdown(result, name, region))  # refuses if the name was just taken
+        elif not written_by(note, transcript_id):
+            raise Failure(f"{note} was taken by another file just now; nothing was overwritten, re-run")
         if not args.keep_remote:
             state.queue_delete(transcript_id, region)
         state.save(name, status="done")

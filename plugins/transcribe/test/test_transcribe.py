@@ -216,6 +216,24 @@ class TranscribeTest(unittest.TestCase):
         self.assertEqual(self.note(), "someone else's note")
         self.assertIn("Hallo.", self.note("call.t1.md"))
 
+    def test_a_note_only_counts_as_ours_with_our_id_in_its_header(self):
+        note = self.base / "n.md"
+        note.write_text('---\ntranscript_id: "t1"\n---\n\ntext', encoding="utf-8")
+        self.assertTrue(transcribe.written_by(note, "t1"))
+        note.write_text('# copied\n\n    transcript_id: "t1"\n', encoding="utf-8")
+        self.assertFalse(transcribe.written_by(note, "t1"))
+
+    def test_an_alternate_name_taken_after_it_was_chosen_is_not_counted_as_done(self):
+        self.run_script("--keep-remote")
+        state = json.loads((self.base / ".transcribe" / "state.json").read_text())
+        alternate = self.base / "transcripts" / "call.t1.md"
+        state["recordings"]["call"].update(status="saved", note=str(alternate))
+        (self.base / ".transcribe" / "state.json").write_text(json.dumps(state))
+        alternate.write_text("someone else's file", encoding="utf-8")
+        self.assertEqual(self.run_script("--keep-remote"), 0)
+        self.assertEqual(alternate.read_text(encoding="utf-8"), "someone else's file")
+        self.assertIn("Hallo.", self.note())  # call.md was free again (the first run's note)
+
     def test_unknown_or_damaged_state_is_refused(self):
         self.run_script()
         path = self.base / ".transcribe" / "state.json"
