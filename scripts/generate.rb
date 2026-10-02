@@ -32,10 +32,7 @@ module HostPackages
     },
     "design-options" => { codex: true, pi: true },
     "deep-research" => { codex: true, pi: true },
-    "drive-browser" => {
-      codex: true,
-      pi: "the vision loop needs a browser runtime and screenshots returned to the model; unverified on Pi"
-    },
+    "drive-browser" => { codex: true, pi: true },
     "excalidraw" => { codex: true, pi: true },
     "explore" => { codex: true, pi: true },
     "flue-workflows" => { codex: true, pi: true },
