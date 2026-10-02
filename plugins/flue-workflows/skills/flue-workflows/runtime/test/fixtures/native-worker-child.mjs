@@ -8,7 +8,8 @@
 //                         call to the program's `broken` tool, then a valid result) |
 //                         tool-twice (two `broken` calls, then a valid result)
 // FLUE_FIXTURE_BLOCK      hold the first model call open until the process is
-//                         signalled or killed (cancel/crash tests)
+//                         signalled or killed (cancel/crash tests); `head` holds the
+//                         first head check instead
 // FLUE_FIXTURE_HEADS      the model speaks the Anthropic API so heads can review it:
 //                         `steer` (the first head check steers, later ones pass),
 //                         `always` (every check steers), `pass` (no findings).
@@ -54,12 +55,13 @@ let blocked = false;
 const respond = async (context, options, _state, model) => {
   faux.appendResponses([respond]); // every call re-queues itself: unlimited scripted replies
   if (!heads) record({ event: 'model-call' });
-  if (process.env.FLUE_FIXTURE_BLOCK && !blocked) {
+  const block = async () => {
     blocked = true;
     record({ event: 'model-blocked' });
     await new Promise(resolve => options.signal.addEventListener('abort', resolve, { once: true }));
     record({ event: 'model-aborted' });
-  }
+  };
+  if (process.env.FLUE_FIXTURE_BLOCK && process.env.FLUE_FIXTURE_BLOCK !== 'head' && !blocked) await block();
   if (heads) {
     // Hand the request body to whoever wraps the provider, as a real provider does.
     const params = { model: model.id, system: [{ type: 'text', text: String(context.systemPrompt ?? '') }],
@@ -67,6 +69,7 @@ const respond = async (context, options, _state, model) => {
     const sent = (await options?.onPayload?.(params, model)) ?? params;
     const isHead = JSON.stringify(sent).includes("reviewing the main assistant");
     record({ event: isHead ? 'head-call' : 'model-call' });
+    if (isHead && process.env.FLUE_FIXTURE_BLOCK === 'head' && !blocked) await block();
     return isHead ? headReply() : answer(context);
   }
   return reply();

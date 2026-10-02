@@ -134,13 +134,9 @@ export function workers({ config, provider, program, tools = {}, hook, emit }) {
       },
     });
     if (task.heads.length > 0) {
-      // A corrected text answer: Flue's reply text also holds the earlier answers, so the final step
-      // the heads left standing is kept separately (see resultOf).
-      const writeFinal = task.schema === null ? native.useDataWriter('final-text') : null;
       hydra.useHydra(headPaths(task.heads), {
         onRecord: ({ head, round, outcome, findings, unresolved, errorKind, error }) =>
           emit({ type: 'head-check', worker: id, head, round, outcome, findings, unresolved, errorKind, error }),
-        onFinal: writeFinal ? ({ text }) => writeFinal(text) : undefined,
       });
     }
     if (hook && sync('worker.mjs hook', hook, [task]) !== undefined) throw new RunError('worker.mjs hook must return undefined.');

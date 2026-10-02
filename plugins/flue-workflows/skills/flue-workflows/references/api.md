@@ -121,9 +121,11 @@ const review = await run.agent('Fix the date parser; cite the test you ran.', {
   with the worker, head, round, outcome, findings and any error. After 3 rounds of
   feedback, remaining findings are marked `unresolved: true` and the worker
   finishes; `outcome: "failed"` marks a check that could not run.
-- A worker resumed after a crash finishes unchecked: its check is journaled as
-  `failed` with `errorKind: "no-capture"`. Heads are advisory, not a gate; their
-  added time, cache use and other limits are in
+- When the heads did not see a worker's response end, for example because the
+  process stopped during it or during a check, the resumed worker returns its
+  answer unchecked and journals a `head-check` with `outcome: "failed"` and
+  `errorKind: "unchecked"`. Heads are advisory, not a gate; their added time,
+  cache use and other limits are in
   [flue-hydra's README](https://github.com/pandysp/flue-hydra#limits).
 
 ### Identity and retries

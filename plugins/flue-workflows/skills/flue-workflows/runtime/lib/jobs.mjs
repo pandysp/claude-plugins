@@ -5,6 +5,7 @@ import { RunError, message } from './primitives.mjs';
 import { hash, json } from './files.mjs';
 import { snapshot, collect } from './workspace.mjs';
 import { validator } from './workers.mjs';
+import { HYDRA_METADATA_KEY } from '@pandysp/flue-hydra';
 
 // A job's id: its explicit key, or its inputs plus how often the same inputs
 // were already requested in this program invocation.
@@ -78,10 +79,9 @@ function claim(run, { namespace, descriptor, key }) {
 function resultOf(descriptor, reply, submissionId) {
   if (descriptor.schema === null) {
     // Workers with heads: the final step's text, since a corrected reply's text also holds the earlier
-    // answers. Missing only when the heads could not run (a journaled `head-check` with outcome `failed`,
-    // e.g. a worker resumed after a crash); the reply text is then all there is.
-    const final = reply.data['final-text'];
-    return final?.length ? final.at(-1) : reply.text;
+    // answers. Without Hydra's metadata (see job) the reply text is all there is.
+    const final = descriptor.heads?.length ? reply.metadata?.[HYDRA_METADATA_KEY]?.final : undefined;
+    return typeof final === 'string' ? final : reply.text;
   }
   // submit_result already validated the value; a native hook could also write `result`, so check again.
   const values = reply.data.result;
@@ -117,6 +117,12 @@ export async function job(run, { namespace, descriptor, key }) {
     if (run.signal.aborted) await handle.abort();
     run.emit({ type: 'worker-started', id, label, phase, workspace: task.cwd, submissionId: receipt.submissionId, deduplicated: receipt.deduplicated === true });
     const reply = await handle.read(receipt, { onEvent: toolEvents(run.emit, id, run.journaled) });
+    // Hydra reports at the end of every response it saw end; none means its heads never finished
+    // (for example the process stopped during a check), and the answer goes back unchecked.
+    if (descriptor.heads?.length && !reply.metadata?.[HYDRA_METADATA_KEY]) {
+      run.emit({ type: 'head-check', worker: id, head: null, round: null, outcome: 'failed', findings: [], unresolved: false, errorKind: 'unchecked',
+        error: 'The heads did not see this response end (for example, the process stopped during it); its answer is returned unchecked.' });
+    }
     job.result = JSON.parse(json(resultOf(descriptor, reply, receipt.submissionId)));
     if (job.workspace) job.artifact = await collect(job.workspace.cwd, job.workspace.commit, join(run.dir, `${id}.patch`));
     job.status = 'completed';
