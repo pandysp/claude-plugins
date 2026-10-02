@@ -153,6 +153,21 @@ test('a review head in heads/ corrects a submitted result before the worker fini
   assert.equal(checks[0].findings[0].message, 'The answer is 42.');
 });
 
+test('each head check can be traced to its worker through the journal alone', async t => {
+  const f = await fixture(t, { files: { 'heads/checker.md': judge('checker') }, env: { FLUE_FIXTURE_PROVIDER: 'anthropic', FLUE_FIXTURE_RESPONSE: 'head-steer' },
+    body: `return run.parallel([${call('first')}, ${call('second')}].map(p => () => p));` });
+  const result = await f.invoke('run');
+  assert.equal(result.code, 0, result.stderr);
+  const journal = (await readFile(join(f.dir, 'events.jsonl'), 'utf8')).trim().split('\n').map(JSON.parse);
+  const workerOf = new Map(journal.filter(e => e.type === 'worker-conversation').map(e => [e.conversationId, e.worker]));
+  const started = new Set(journal.filter(e => e.type === 'worker-started').map(e => e.id));
+  const checks = journal.filter(e => e.type === 'head-check');
+  assert.equal(started.size, 2);
+  assert.ok(checks.length >= 2);
+  for (const check of checks) assert.ok(started.has(workerOf.get(check.conversationId)), `head check on ${check.conversationId} has no worker`);
+  assert.equal(new Set(checks.map(check => workerOf.get(check.conversationId))).size, 2);
+});
+
 test('review heads are refused at start on a provider they cannot replay', async t => {
   const f = await fixture(t, { files: { 'heads/checker.md': judge('checker') } });
   const result = await f.invoke('run');

@@ -2,6 +2,7 @@ import { appendFileSync, openSync, closeSync, fsyncSync } from 'node:fs';
 import { stat, access, realpath, readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { observe } from '@flue/runtime';
 import { start, sqlite } from '@flue/runtime/node';
 import { cleanupSessionResources } from '@earendil-works/pi-ai';
 import { createFlueHydra } from 'pi-hydra/flue';
@@ -110,12 +111,13 @@ async function runProgram(run, { manifest, code, normalize }) {
 }
 
 // Stop every worker, Flue and the recorder; keep partial output of stopped snapshot workers.
-async function shutdown(run, { runtime, hydra, code, recorder }) {
+async function shutdown(run, { runtime, hydra, unobserve, code, recorder }) {
   const { state, dir, attempt } = run;
   if (!run.signal.aborted) run.controller.abort(new DOMException('Run shutting down', 'AbortError'));
   await Promise.allSettled([...run.pending, ...run.aborts]);
   if (runtime) await attempt(() => runtime.stop());
   if (hydra) await attempt(() => hydra.close());
+  unobserve?.();
   if (runtime) await attempt(() => cleanupSessionResources());
   // Nothing an attempt started may keep editing after its patches are collected; commands
   // whose shell already exited had their groups killed then (see recordCommands).
@@ -197,6 +199,15 @@ async function executeOwned({ dir, runtimeRoot }) {
     const hydra = resources.hydra = heads && createFlueHydra({ heads, onRecord: record => run.emit({ type: 'head-check', ...record }) });
     const { Worker, normalize } = workers({ config, provider, tools, hook, hydra, emit: run.emit });
     run.Worker = Worker;
+    // head-check events name the Flue conversation; journal which worker each one belongs to.
+    if (hydra) {
+      const linked = new Set();
+      resources.unobserve = observe((event, ctx) => {
+        if (ctx?.agentName !== Worker.agentName || !event.conversationId || linked.has(`${ctx.id} ${event.conversationId}`)) return;
+        linked.add(`${ctx.id} ${event.conversationId}`);
+        run.emit({ type: 'worker-conversation', worker: ctx.id, conversationId: event.conversationId });
+      });
+    }
     resources.runtime = await start({ agents: [Worker], db: sqlite(join(dir, 'flue.sqlite')), providers: [hydra ? hydra.wrap(provider) : provider] });
     result = await runProgram(run, { manifest, code, normalize });
     await save(join(dir, 'result.json'), result);

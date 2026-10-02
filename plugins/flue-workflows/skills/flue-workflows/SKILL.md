@@ -120,7 +120,7 @@ Read [patterns](references/patterns.md) when choosing verification, coverage or
 stopping rules. They are building blocks, not mandatory phases.
 
 Optional: workers can be reviewed by [pi-hydra heads](references/api.md#review-heads-optional),
-small judges that check each answer before the worker finishes. You can suggest
+small judges that normally check each answer before the worker finishes. You can suggest
 them when automatic review would help; add them only if the user agrees.
 
 A pipeline has **no barrier between stages**: one item can be verified while

@@ -298,7 +298,8 @@ also introduce work outside the kit's job accounting and effect tracking.
 ## Review heads (optional)
 
 A program can have its workers reviewed by [pi-hydra](https://github.com/pandysp/pi-hydra)
-heads: small judges that check each worker's answer before the worker finishes.
+heads: small judges that normally check each worker's answer before the worker
+finishes (see the limits below for when a check is skipped).
 This is opt-in. Only a program with a `heads/` directory gets heads; without
 one, nothing changes. Add heads only when the user wants this review, and
 suggest it when automatic review would clearly help.
@@ -330,8 +331,9 @@ with `print`. In a workflow, that reader is you, through the journal.
 Each check is a `head-check` event on stderr and in `events.jsonl`: `head`,
 `round`, `outcome` (`findings`, `none` or `failed`), `findings` (each with
 `action`, `reason`, `message`), `error`, `usage` (tokens and cost) and
-`durationMs`. After three rounds of feedback on one answer, further findings
-are logged as unresolved and the worker finishes.
+`durationMs`. A `worker-conversation` event links each `conversationId` to its
+worker's `id` from `worker-started`. After three rounds of feedback on one
+answer, further findings are logged as unresolved and the worker finishes.
 
 Limits:
 
@@ -340,9 +342,11 @@ Limits:
 - A check replays the worker's cached request, so most of it is billed at cache
   rates. It still adds a model call and waits: 1–7 s per round in pi-hydra's
   measurements.
-- Heads are meant to use the worker's effort. On Anthropic they currently use
-  `high` regardless, a known bug
-  ([pi-hydra#37](https://github.com/pandysp/pi-hydra/issues/37)).
+- Heads are meant to use the worker's effort. On Anthropic models with
+  mid-conversation effort (current Claude models), the pinned pi-hydra version
+  still has them use `high` regardless of `--effort`
+  ([pi-hydra#37](https://github.com/pandysp/pi-hydra/issues/37), fixed in
+  [pi-hydra#40](https://github.com/pandysp/pi-hydra/pull/40)).
 - Heads advise; they do not verify. A worker can ignore a steer, and a run
   interrupted during a check finishes that worker without checking again.
   Heads see the worker's own context, so they are not an independent check
