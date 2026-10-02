@@ -118,6 +118,18 @@ table is the only place host support is declared: a plugin missing from it fails
 validation, so nothing reaches Codex or Pi by accident. CI runs both scripts and
 checks that `npm install` leaves a Pi checkout clean.
 
+To test whether a skill changes what an agent does, give Pi the same prompt with
+and without it, with your own instructions and other skills turned off:
+
+```bash
+pi -p --no-session -nc -ns -ne --mode json --skill plugins/<name>/skills/<name> "<prompt>"
+pi -p --no-session -nc -ns -ne --mode json "<prompt>"
+```
+
+The prompt should not name the skill. In the JSON output, check that the agent
+read the whole `SKILL.md`: a `read` call with a `limit` means it saw only part of
+it. Keep tools on: with `-nt` Pi lists no skills at all.
+
 ## License
 
 MIT
