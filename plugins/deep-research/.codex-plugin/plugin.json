@@ -1,0 +1,6 @@
+{
+  "name": "deep-research",
+  "version": "0.1.0",
+  "description": "Deep, multi-source research on Flue workers: parallel web and optional X search, skeptical per-candidate verification and a ranked, cited report with a coverage record.",
+  "skills": "./skills/"
+}
