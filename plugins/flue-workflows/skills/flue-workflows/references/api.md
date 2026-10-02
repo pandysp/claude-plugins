@@ -95,9 +95,13 @@ raw tool invocation, correct facts or complete coverage.
 
 ### Review heads
 
-A head is a pi-hydra head file: a Markdown file with a name, a description,
-`tools: []` and instructions, such as pi-hydra's bundled `quality.md` or
-`security.md`, or your own. When the worker is about to finish, each head
+Heads are optional. Suggest them to the user where a second look pays off and add
+them only if the user agrees; they add time and requests to every worker that has
+them. A head is a pi-hydra head file: a Markdown file with a name, a description,
+`tools: []` and instructions. pi-hydra's
+[navigator](https://github.com/pandysp/pi-hydra/blob/main/heads/navigator.md) and
+[simplifier](https://github.com/pandysp/pi-hydra/blob/main/heads/simplifier.md) heads
+are examples to copy or adapt; write your own for the task. When the worker is about to finish, each head
 re-sends the worker's last request from the provider's cache, adds the worker's
 final turn and its own instructions, and reports findings. A finding the worker
 must act on is added to its response, so it corrects itself before the answer is
@@ -106,7 +110,7 @@ checking).
 
 ```js
 const review = await run.agent('Fix the date parser; cite the test you ran.', {
-  key: 'parser', heads: ['heads/quality.md', 'heads/security.md'],
+  key: 'parser', heads: ['heads/navigator.md'], // agreed with the user
 });
 ```
 
