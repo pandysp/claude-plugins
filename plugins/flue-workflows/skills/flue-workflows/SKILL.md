@@ -127,6 +127,13 @@ records a failure. `parallel` and `pipeline` return `null` for such failed items
 configuration, safety-limit and cancellation errors stop the run instead.
 Never filter nulls and then call the work complete.
 
+## Review heads
+
+Give a worker `heads: ['quality.md', ...]` (pi-hydra head files beside the program)
+to have its answer checked before it is returned; findings make the worker correct
+itself in the same response. Only Anthropic and OpenAI Codex models, judge heads
+only, advisory rather than a gate. See [Review heads](references/api.md#review-heads).
+
 ## Coding workers and delivery
 
 Use `isolation: 'snapshot'` for parallel edits. It creates an independent Git

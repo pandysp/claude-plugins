@@ -76,7 +76,13 @@ function claim(run, { namespace, descriptor, key }) {
 }
 
 function resultOf(descriptor, reply, submissionId) {
-  if (descriptor.schema === null) return reply.text;
+  if (descriptor.schema === null) {
+    // Workers with heads: the final step's text, since a corrected reply's text also holds the earlier
+    // answers. Missing only when the heads could not run (a journaled `head-check` with outcome `failed`,
+    // e.g. a worker resumed after a crash); the reply text is then all there is.
+    const final = reply.data['final-text'];
+    return final?.length ? final.at(-1) : reply.text;
+  }
   // submit_result already validated the value; a native hook could also write `result`, so check again.
   const values = reply.data.result;
   if (!Array.isArray(values) || values.length !== 1 || !validator(descriptor.schema)(values[0])) {

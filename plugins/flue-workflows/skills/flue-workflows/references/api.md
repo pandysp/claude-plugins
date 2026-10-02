@@ -58,6 +58,7 @@ failure stops the run even if the program catches it or never awaits the call.
 | `isolation` | `none` | `none` edits directly; `snapshot` creates an independent Git copy |
 | `instructions` | Empty | Additional worker instructions; not inherited host instructions |
 | `data` | `null` | JSON configuration available to native hooks/tool factories as `task.data` |
+| `heads` | `[]` | Paths of review heads that check this worker's answer before it is returned ([Review heads](#review-heads)); absolute or relative to the program's directory |
 
 Inputs are copied when `run.agent()` is called, before waiting for a worker
 slot. Later changes to `data`, `tools` or `schema` do not change queued work.
@@ -91,6 +92,39 @@ the task. Invalid submissions are tool errors; a worker that finishes without a
 valid submission is recorded as `failed` and returns `null`. Chat text is never
 parsed as JSON. One returned validated value does **not** imply exactly one
 raw tool invocation, correct facts or complete coverage.
+
+### Review heads
+
+A head is a pi-hydra head file: a Markdown file with a name, a description,
+`tools: []` and instructions, such as pi-hydra's bundled `quality.md` or
+`security.md`, or your own. When the worker is about to finish, each head
+re-sends the worker's last request from the provider's cache, adds the worker's
+final turn and its own instructions, and reports findings. A finding the worker
+must act on is added to its response, so it corrects itself before the answer is
+returned ([@pandysp/flue-hydra](https://github.com/pandysp/flue-hydra) does the
+checking).
+
+```js
+const review = await run.agent('Fix the date parser; cite the test you ran.', {
+  key: 'parser', heads: ['heads/quality.md', 'heads/security.md'],
+});
+```
+
+- Put head files beside the program: relative paths resolve against the program's
+  directory, which every run pins, so resumed runs use the same heads.
+- Heads need a model on the Anthropic or OpenAI Codex API (`anthropic/…`,
+  `openai-codex/…`) and must not use tools. Other models, missing or invalid head
+  files and duplicate paths are refused when `run.agent()` is called.
+- A text worker returns the final answer the heads left standing. A structured
+  worker submits again after a correction; the corrected object is returned.
+- Every check is a `head-check` event in the journal and the progress output,
+  with the worker, head, round, outcome, findings and any error. After 3 rounds of
+  feedback, remaining findings are marked `unresolved: true` and the worker
+  finishes; `outcome: "failed"` marks a check that could not run.
+- A worker resumed after a crash finishes unchecked: its check is journaled as
+  `failed` with `errorKind: "no-capture"`. Heads are advisory, not a gate; their
+  added time, cache use and other limits are in
+  [flue-hydra's README](https://github.com/pandysp/flue-hydra#limits).
 
 ### Identity and retries
 
