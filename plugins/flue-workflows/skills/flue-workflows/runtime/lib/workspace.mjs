@@ -2,7 +2,6 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { mkdir, copyFile, lstat, readlink, symlink, chmod, writeFile, mkdtemp, rm, realpath } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
-import { tmpdir } from 'node:os';
 import { fingerprint } from './files.mjs';
 import { RunError } from './primitives.mjs';
 
@@ -51,7 +50,8 @@ export async function snapshot(source, target) {
 }
 
 export async function collect(cwd, base, patchPath) {
-  const temp = await mkdtemp(join(tmpdir(), 'flue-index-'));
+  // Beside the patch, inside the run: an owner killed mid-collect leaves nothing in /tmp.
+  const temp = await mkdtemp(join(dirname(patchPath), '.index-'));
   try {
     const env = { GIT_INDEX_FILE: join(temp, 'index') };
     await git(cwd, ['read-tree', 'HEAD'], env);
