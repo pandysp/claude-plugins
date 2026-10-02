@@ -38,3 +38,32 @@ jobs:
           git status --porcelain
           test -z "$(git status --porcelain)"
           test ! -d node_modules
+
+  flue:
+    name: Flue (${{ matrix.os }}, Node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        node: ["22.19.0", "26.5.0"]
+    defaults:
+      run:
+        working-directory: plugins/flue-workflows/skills/flue-workflows/runtime
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: plugins/flue-workflows/skills/flue-workflows/runtime/package-lock.json
+
+      - name: Install pinned runtime
+        run: npm ci --ignore-scripts --omit=dev
+
+      - name: Test runtime and examples without live models
+        run: npm test -- ../../../test/*.test.mjs

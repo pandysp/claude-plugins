@@ -37,6 +37,7 @@ module HostPackages
     },
     "excalidraw" => { codex: true, pi: true },
     "explore" => { codex: true, pi: true },
+    "flue-workflows" => { codex: true, pi: true },
     "handoff" => { codex: true, pi: true },
     "plain-language" => { codex: true, pi: true },
     "pre-mortem" => { codex: true, pi: true },
@@ -77,6 +78,14 @@ module HostPackages
 
   def marketplace_entries
     JSON.parse(CLAUDE_MARKETPLACE.read).fetch("plugins")
+  end
+
+  # Plugin directories without a Claude marketplace entry. Every generated
+  # package is derived from those entries, so generating with one missing would
+  # silently drop that plugin, including Pi-only plugins such as classify-with-jev.
+  def unlisted_plugins
+    listed = marketplace_entries.map { |entry| entry.fetch("name") }
+    Dir.glob(ROOT.join("plugins/*")).select { |path| File.directory?(path) }.map { |path| File.basename(path) } - listed
   end
 
   def skill_dirs(plugin)
@@ -185,6 +194,14 @@ module HostPackages
 end
 
 if $PROGRAM_NAME == __FILE__
+  unlisted = HostPackages.unlisted_plugins
+  unless unlisted.empty?
+    warn "#{HostPackages::CLAUDE_MARKETPLACE.relative_path_from(HostPackages::ROOT)} has no entry for:"
+    unlisted.sort.each { |name| warn "  - plugins/#{name}" }
+    warn "Generating would drop these plugins from every host package. Add their entries first."
+    exit 1
+  end
+
   if ARGV == ["--check"]
     stale = HostPackages.stale_paths
     if stale.empty?

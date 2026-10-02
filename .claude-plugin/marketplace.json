@@ -216,6 +216,16 @@
       "author": {
         "name": "Andreas Spannagel"
       }
+    },
+    {
+      "name": "flue-workflows",
+      "description": "Author JavaScript workflows with native Flue workers, structured results, composition, retained edits, and saved-result reentry. Development draft.",
+      "source": "./plugins/flue-workflows",
+      "category": "workflow",
+      "keywords": ["flue", "workflow", "javascript", "agents", "structured-results", "recovery"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
     }
   ]
 }

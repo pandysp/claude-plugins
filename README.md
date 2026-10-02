@@ -69,6 +69,7 @@ the update command above, then restart Pi to load changed skills.
 | [second-opinion](./plugins/second-opinion) | Workflow | yes | yes | Get an independent review through the strongest channel the host provides |
 | [steel-man-own-position](./plugins/steel-man-own-position) | Workflow | yes | yes | Restate the strongest version of a prior position before flipping under pushback |
 | [spec](./plugins/spec) | Workflow | yes | yes | Write the implementation spec that drives execution after design is chosen |
+| [flue-workflows](./plugins/flue-workflows) | Workflow | yes | yes | Compose native Flue workers in JavaScript with parallel, pipeline and child programs |
 | [verify-claims](./plugins/verify-claims) | Workflow | yes | yes | Identify and verify unverified claims before presenting them as conclusions |
 | [verify-result](./plugins/verify-result) | Workflow | yes | yes | Black-box verification of any agent output — code, documents, presentations, configs |
 | [silent-failures](./plugins/silent-failures) | Workflow | yes | yes | Audit error handling for silent failures, inadequate feedback, and inappropriate fallbacks |
@@ -129,6 +130,17 @@ pi -p --no-session -nc -ns -ne --mode json "<prompt>"
 The prompt should not name the skill. In the JSON output, check that the agent
 read the whole `SKILL.md`: a `read` call with a `limit` means it saw only part of
 it. Keep tools on: with `-nt` Pi lists no skills at all.
+
+Flue keeps its pinned dependencies in a separate runtime, not the Pi package:
+
+```bash
+cd plugins/flue-workflows/skills/flue-workflows/runtime
+npm ci --ignore-scripts --omit=dev
+npm test -- ../../../test/*.test.mjs
+```
+
+The Flue CI job runs these on Node 22.19.0 and 26.5.0, on macOS and Linux,
+with real Flue, SQLite and Git and scripted model replies.
 
 ## License
 

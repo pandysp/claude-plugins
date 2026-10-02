@@ -1,0 +1,74 @@
+import { registerHooks } from 'node:module';
+import { cp, lstat, readlink, realpath } from 'node:fs/promises';
+import { pathToFileURL, fileURLToPath } from 'node:url';
+import { dirname, join, relative, resolve, sep, isAbsolute } from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { entries, hashTree } from './files.mjs';
+import { RunError } from './primitives.mjs';
+
+const inside = (root, path) => path === root || path.startsWith(root + sep);
+const exclude = ['node_modules', '.git'];
+export const hashProgram = root => hashTree(root, { exclude });
+export async function checkProgram(root) {
+  for (const name of await entries(root, { exclude })) {
+    const path = join(root, name);
+    if ((await lstat(path)).isSymbolicLink()) {
+      const link = await readlink(path);
+      if (isAbsolute(link) || !inside(root, resolve(root, name, '..', link))) throw new RunError(`Program symlink must be relative and stay inside its pinned directory: ${name}`);
+    }
+    if (/\.(mjs|js|cjs)$/.test(name)) {
+      try { execFileSync(process.execPath, ['--check', path], { stdio: 'pipe' }); }
+      catch (cause) { throw new RunError(`Syntax check failed for ${name}`, { cause }); }
+    }
+  }
+  return hashProgram(root);
+}
+
+export async function copyProgram(source, target) {
+  const before = await checkProgram(source);
+  await cp(source, target, { recursive: true, verbatimSymlinks: true,
+    filter: path => !relative(source, path).split(sep).some(part => exclude.includes(part)) });
+  if (before !== await hashProgram(target)) throw new RunError('Program changed while being copied; stop its writers and create a fresh run.');
+  return before;
+}
+
+// The runtime's dependencies: beside its library in the source tree, one level up in a
+// workspace installation (see scripts/setup.mjs).
+async function dependencies(runtime) {
+  for (const path of [join(runtime, 'node_modules'), join(dirname(runtime), 'node_modules')]) {
+    try { return await realpath(path); }
+    catch (error) { if (error.code !== 'ENOENT') throw error; }
+  }
+  throw new RunError(`No installed dependencies found for the runtime at ${runtime}.`);
+}
+
+export async function loader(root, runtime) {
+  root = await realpath(root);
+  const modules = await dependencies(runtime);
+  const program = pathToFileURL(root + sep).href;
+  // Bare package names from the program resolve as if imported by the runtime: the
+  // program copy lives in its run directory, outside the dependencies' ancestors.
+  const anchor = pathToFileURL(join(runtime, 'program-import')).href;
+  const bare = specifier => !/^(\.{0,2}\/|#|[a-z][a-z0-9+.-]*:)/i.test(specifier);
+  const hooks = registerHooks({
+    resolve(specifier, context, next) {
+      const fromProgram = context.parentURL?.startsWith(program);
+      const result = next(specifier, fromProgram && bare(specifier) ? { ...context, parentURL: anchor } : context);
+      if (fromProgram && result.url.startsWith('file:')) {
+        const path = fileURLToPath(result.url);
+        if (!inside(root, path) && !inside(modules, path)) {
+          throw new RunError(`Import escapes the program directory: ${specifier}. Keep modules in the program directory; pass data through args.`);
+        }
+      }
+      return result;
+    },
+  });
+  return {
+    async load(name) {
+      const path = resolve(root, name);
+      if (!inside(root, path)) throw new RunError(`Workflow path escapes the program directory: ${name}`);
+      return import(pathToFileURL(path).href);
+    },
+    close() { hooks.deregister(); },
+  };
+}

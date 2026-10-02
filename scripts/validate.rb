@@ -135,7 +135,7 @@ begin
   entries = marketplace.fetch("plugins", []).to_h { |entry| [entry["name"], entry] }
   dir_names = plugin_dirs.map { |dir| dir.basename.to_s }
 
-  (dir_names - entries.keys).each { |name| failures << "marketplace.json: missing entry for plugins/#{name}" }
+  HostPackages.unlisted_plugins.each { |name| failures << "marketplace.json: missing entry for plugins/#{name}" }
   (entries.keys - dir_names).each { |name| failures << "marketplace.json: entry '#{name}' has no plugin directory" }
 
   entries.each do |name, entry|
@@ -208,7 +208,17 @@ end
 readme = ROOT.join("README.md").read
 plugin_dirs.each do |dir|
   name = dir.basename.to_s
-  failures << "README.md: missing table row for #{name}" unless readme.include?("[#{name}](./plugins/#{name})")
+  row = readme[/^\| \[#{Regexp.escape(name)}\]\(\.\/plugins\/#{Regexp.escape(name)}\) \|.*$/]
+  unless row
+    failures << "README.md: missing table row for #{name}"
+    next
+  end
+  # Columns: plugin, category, Codex, Pi, description.
+  codex, pi = row.split("|").map(&:strip)[3, 2]
+  %i[codex pi].zip([codex, pi]).each do |host, cell|
+    expected = HostPackages.supported?(name, host) ? "yes" : "no"
+    failures << "README.md: #{name} #{host} column says '#{cell}', generate.rb declares '#{expected}'" unless cell == expected
+  end
 end
 
 if failures.empty?

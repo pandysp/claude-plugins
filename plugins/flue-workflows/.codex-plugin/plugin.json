@@ -1,0 +1,6 @@
+{
+  "name": "flue-workflows",
+  "version": "0.1.0",
+  "description": "Author JavaScript workflows with native Flue workers, structured results, composition, retained edits, and saved-result reentry. Development draft.",
+  "skills": "./skills/"
+}
