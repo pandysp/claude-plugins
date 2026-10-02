@@ -204,9 +204,10 @@ codes. It holds full answers and can be large; write the summary to a file and
 read it entry by entry so no output limit cuts it off:
 
 ```bash
-node "$W/flue.mjs" inspect "$ID" > "$W/runs/$ID/summary.json"
-jq '.unchecked | length' "$W/runs/$ID/summary.json"                     # 0: every answer with heads was checked
-jq -c '.unchecked[0] | {key, prompt, heads}' "$W/runs/$ID/summary.json"   # then .unchecked[0].answer, and so on
+S="$W/runs/$ID/summary.json"; node "$W/flue.mjs" inspect "$ID" > "$S"
+node -e 'console.log(require(process.argv[1]).unchecked.length)' "$S"   # 0: every answer with heads was checked
+node -e 'const { key, prompt, heads, answer } = require(process.argv[1]).unchecked[+process.argv[2]];
+  console.log(JSON.stringify({ key, prompt, heads }), "\n", JSON.stringify(answer))' "$S" 0   # then 1, 2, ...
 ```
 
 A signal (Ctrl-C, a host
