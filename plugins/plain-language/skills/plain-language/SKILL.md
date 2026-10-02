@@ -49,7 +49,7 @@ Stop digging when the next answer would not change what the reader understands o
 
 Plain words, full substance.
 
-- Simplify the words, never the facts. Keep the numbers, the caveats and the nuance that matter. The reader cannot see what you left out, so they act on what you wrote. The small words that limit a claim look like filler and go first when you shorten: "the upload failed in 2 of 50 test runs" becomes "the upload fails", and the reader cancels a release that almost always works. After every cut, check that each claim is still as strong as your evidence, and no stronger.
+- Simplify the words, never the facts. Keep the numbers, the caveats and the nuance that matter. The reader cannot see what you left out, so they act on what you wrote. The small words that limit a claim look like filler and go first when you shorten or simplify: "the upload failed in 2 of 50 test runs" becomes "the upload fails", and the reader cancels a release that almost always works. After every edit, check that each claim is still as strong as your evidence, and no stronger.
 - No childish analogies, no cheering, no empty reassurance. An analogy earns its place only when it is accurate and shorter than the direct explanation.
 - Drop "simply", "obviously", "just" and "basically". They tell the reader it should be easy, which stings when it isn't.
 - Say each thing once. Trust the reader to follow a chain of reasoning.
