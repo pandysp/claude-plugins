@@ -1,7 +1,7 @@
 {
   "name": "transcribe",
   "description": "Turn recordings into speaker-labelled markdown notes with AssemblyAI: language detected, EU processing, paid work never repeated, notes never overwritten.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "author": {
     "name": "Andreas Spannagel"
   },
