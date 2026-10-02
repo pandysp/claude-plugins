@@ -60,10 +60,11 @@ node /abs/workflow-space/flue.mjs run /abs/path/to/this/skill/program/program.mj
   --timeout 2400 --concurrency 6 --args-file /abs/args.json
 ```
 
+- **Credential:** `--auth pi` is an example; use the credential chosen during the flue-workflows setup.
 - **Model:** use a model the pinned runtime accepts; `flue.mjs doctor --model …` checks it. `anthropic/claude-opus-5-5` at `--effort high` is the default because the pinned Flue runtime does not list Sonnet 5.5 yet.
 - **Waiting:** use the waiting recipe in the flue-workflows skill rather than fixed sleeps.
 - **Partial failures:** a failed search angle, check or synthesis is listed in `coverage.failed`, `status` is `partial` and the run exits with code 2.
-- **Fatal failures:** if scoping or merging fails, or every search angle fails, the run exits with code 1 and writes no `result.json`. Read `flue.mjs inspect <id>` and `runs/<id>/events.jsonl` to see why.
+- **Fatal failures:** if scoping or merging fails, or the search angles return no findings at all, the run exits with code 1 and writes no `result.json`. Read `flue.mjs inspect <id>` and `runs/<id>/events.jsonl` to see why.
 
 ## 3. Report
 
