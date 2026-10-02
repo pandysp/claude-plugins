@@ -41,7 +41,7 @@ Stop digging when the next answer would not change what the reader understands o
 ## 3. Use the reader's words
 
 - Prefer the everyday word, even when the reader knows the term. Keep a technical term only when no plain word says the same thing, or the reader will meet it again and needs its name.
-- Explain a kept term the reader may not know once, the first time, in a short plain clause: "a worktree (a second copy of the project in its own folder)". Don't explain one term with another one.
+- Explain a kept term once, on first use, if the reader may not know it. Use a short plain clause: "a worktree (a second copy of the project in its own folder)". Don't explain one term with another one.
 - Spell out abbreviations on first use, or drop them.
 - Before you write, list the words you have used while working: names you made up ("option B", "the shim") and terms that came with the task. Treat each as jargon until you know the reader uses it too.
 
