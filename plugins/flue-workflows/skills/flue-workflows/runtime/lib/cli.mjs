@@ -42,6 +42,11 @@ async function inspect(dir) {
     liveCommandGroups: await liveCommandGroups(dir),
     error: state.error, result: join(dir, 'result.json'), events: join(dir, 'events.jsonl'),
     jobs: Object.values(state.jobs).map(job => ({ id: job.id, key: job.key, label: job.descriptor.label, status: job.status, error: job.error, artifact: job.artifact })),
+    // Completed workers whose answer their heads did not check: what to check it against and the answer itself.
+    unchecked: Object.values(state.jobs).filter(job => job.status === 'completed' && job.unchecked).map(job => ({
+      id: job.id, key: job.key, label: job.descriptor.label, prompt: job.descriptor.prompt,
+      heads: job.descriptor.heads.map(path => resolve(manifest.program, path)), answer: job.result,
+    })),
   };
 }
 
@@ -115,7 +120,7 @@ async function executeAndInspect(dir) {
   catch (error) { throw failure ? new AggregateError([failure, error], 'Execution and final inspection failed') : error; }
   console.log(json(summary));
   if (failure) throw failure;
-  if (summary.workers.failed || summary.workers.aborted || summary.compositionErrors) process.exitCode = 2;
+  if (summary.workers.failed || summary.workers.aborted || summary.compositionErrors || summary.unchecked.length) process.exitCode = 2;
 }
 
 // Discard the run's in-flight work. A bare signal would only stop the owner (resumable).

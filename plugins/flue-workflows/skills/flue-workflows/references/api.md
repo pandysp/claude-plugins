@@ -123,11 +123,13 @@ const review = await run.agent('Fix the date parser; cite the test you ran.', {
   with the worker, head, round, outcome, findings and any error. After 3 rounds of
   feedback, remaining findings are marked `unresolved: true` and the worker
   finishes; `outcome: "failed"` marks a check that could not run.
-- When the heads did not see a worker's response end, for example because the
-  process stopped during it or during a check, the resumed worker returns its
-  answer unchecked and journals a `head-check` with `outcome: "failed"` and
-  `errorKind: "unchecked"`. Heads are advisory, not a gate; their added time,
-  cache use and other limits are in
+- When the heads did not check a worker's answer and let it stand, because every
+  check failed or the process stopped during the response or a check, the worker
+  still returns its answer, and the inspection summary lists it under `unchecked`:
+  its `id`, `key`, `label`, `prompt`, the absolute paths of its `heads` and its
+  `answer`. The run then exits 2. Check the listed answers yourself against those
+  head files (cheaper than a rerun), or rerun the worker under a new key. Heads
+  are advisory, not a gate; their added time, cache use and other limits are in
   [flue-hydra's README](https://github.com/pandysp/flue-hydra#limits).
 
 ### Identity and retries
@@ -420,7 +422,7 @@ Do not put keys in arguments, programs, `args`, reports, tool results or logs.
 | Exit | Meaning |
 |---|---|
 | `0` | Command succeeded; `run`/`resume` had no counted worker/composition failures. Inspect the **domain result** separately |
-| `2` | Counted terminal worker/composition failures, possibly with a useful result file |
+| `2` | Counted terminal worker/composition failures, or answers whose review heads did not check them (summary `unchecked`); possibly with a useful result file |
 | `1` | Fatal failure or refusal; a cancelled or interrupted `run`/`resume` also exits `1` |
 
 A successful `cancel` command exits `0` to confirm shutdown, not task success;

@@ -470,6 +470,8 @@ test('a command child that ignores SIGTERM after a timeout is killed with its sh
 // pi-hydra signal reaches it, then 42.
 const headFile = (name, tools = '[]') => `---\nname: ${name}\ndescription: checks the answer\ntools: ${tools}\n---\nCheck the answer.\n`;
 const journal = async f => (await readFile(join(f.dir, 'events.jsonl'), 'utf8')).trim().split('\n').map(JSON.parse);
+// The inspection summary the CLI prints last on stdout.
+const summaryOf = result => JSON.parse(result.stdout.trim().split('\n').at(-1));
 
 test('a head steers a text worker, which corrects itself before its answer is returned', async t => {
   const f = await fixture(t, { files: { 'checker.md': headFile('checker') }, env: { FLUE_FIXTURE_HEADS: 'steer', FLUE_FIXTURE_RESPONSE: 'text' },
@@ -482,6 +484,7 @@ test('a head steers a text worker, which corrects itself before its answer is re
     [{ head: 'checker', round: 0, outcome: 'findings', unresolved: false }, { head: 'checker', round: 1, outcome: 'none', unresolved: false }]);
   assert.ok(checks.every(row => row.worker === Object.keys(result.state.jobs)[0]));
   assert.ok(result.stderrEvents.some(event => event.type === 'head-check'), 'checks show in the progress output');
+  assert.deepEqual(summaryOf(result).unchecked, [], 'a checked answer is not listed');
 });
 
 test('a steered structured worker resubmits, and the corrected result is the one returned', async t => {
@@ -526,31 +529,57 @@ for (const [label, files, heads, env, pattern] of [
   });
 }
 
-test('a worker with heads resumed after a crash finishes unchecked, and the journal says why', async t => {
+test('a worker with heads resumed after a crash returns its answer, listed as unchecked with exit 2', async t => {
   const f = await fixture(t, { timeout: 90_000, files: { 'checker.md': headFile('checker') }, env: { FLUE_FIXTURE_HEADS: 'steer' },
     body: `return ${call('answer', ", heads: ['checker.md']")};` }); // Flue reclaims the dead attempt's lease after ~30 s
   const killed = await f.interrupt('run', 'SIGKILL');
   assert.equal(killed.sig, 'SIGKILL');
   const resumed = await f.invoke('resume');
-  assert.equal(resumed.code, 0, resumed.stderr);
+  assert.equal(resumed.code, 2, resumed.stderr);
   // Flue does not rerun useAgentStart for a message it already took in, so nothing was recorded to replay.
   assert.deepEqual(await load(join(f.dir, 'result.json')), { answer: 41 });
   assert.equal(resumed.events.filter(event => event.event === 'head-call').length, 0);
   const checks = (await journal(f)).filter(row => row.type === 'head-check');
-  assert.deepEqual(checks.map(({ outcome, errorKind }) => ({ outcome, errorKind })),
-    [{ outcome: 'failed', errorKind: 'no-capture' }, { outcome: 'failed', errorKind: 'unchecked' }]);
-  assert.ok(resumed.stderrEvents.some(event => event.type === 'head-check' && event.errorKind === 'unchecked'), 'the unchecked answer shows in the progress output');
+  assert.deepEqual(checks.map(({ outcome, errorKind }) => ({ outcome, errorKind })), [{ outcome: 'failed', errorKind: 'no-capture' }]);
+  const [unchecked] = summaryOf(resumed).unchecked;
+  assert.deepEqual({ key: unchecked.key, answer: unchecked.answer }, { key: 'answer', answer: { answer: 41 } });
+  assert.match(unchecked.prompt, /Return the checked answer/);
+  assert.deepEqual(unchecked.heads, [join(f.dir, 'program', 'checker.md')]);
 });
 
-test('a crash during a head check: the resumed worker returns its answer unchecked and says so', async t => {
+test('a crash during a head check: the resumed worker returns its answer, listed as unchecked', async t => {
   const f = await fixture(t, { timeout: 90_000, files: { 'checker.md': headFile('checker') }, env: { FLUE_FIXTURE_HEADS: 'steer' },
     body: `return ${call('answer', ", heads: ['checker.md']")};` }); // Flue reclaims the dead attempt's lease after ~30 s
   const killed = await f.interrupt('run', 'SIGKILL', 'head');
   assert.equal(killed.sig, 'SIGKILL');
   const resumed = await f.invoke('resume');
-  assert.equal(resumed.code, 0, resumed.stderr);
+  assert.equal(resumed.code, 2, resumed.stderr);
   // Flue settles a response whose model work already finished without running its finish hooks again.
   assert.deepEqual(await load(join(f.dir, 'result.json')), { answer: 41 });
-  const checks = (await journal(f)).filter(row => row.type === 'head-check');
-  assert.deepEqual(checks.map(({ outcome, errorKind }) => ({ outcome, errorKind })), [{ outcome: 'failed', errorKind: 'unchecked' }]);
+  assert.deepEqual(summaryOf(resumed).unchecked.map(({ key, answer }) => ({ key, answer })), [{ key: 'answer', answer: { answer: 41 } }]);
+});
+
+test('a crash after a steer: the resumed text worker returns an answer listed as unchecked', async t => {
+  const f = await fixture(t, { timeout: 90_000, files: { 'checker.md': headFile('checker') }, env: { FLUE_FIXTURE_HEADS: 'steer', FLUE_FIXTURE_RESPONSE: 'text' },
+    body: `return run.agent('Answer.', { key: 'a', tools: [], heads: ['checker.md'] });` }); // Flue reclaims the dead attempt's lease after ~30 s
+  const killed = await f.interrupt('run', 'SIGKILL', 'corrected');
+  assert.equal(killed.sig, 'SIGKILL');
+  const resumed = await f.invoke('resume');
+  assert.equal(resumed.code, 2, resumed.stderr);
+  const result = await load(join(f.dir, 'result.json'));
+  const [unchecked] = summaryOf(resumed).unchecked;
+  assert.equal(unchecked.answer, result);
+  // The steer is lost with the crash: the resumed response settles with the answer the head had
+  // rejected. Listing it as unchecked is what tells the caller to check it.
+  assert.equal(result, 'answer 41');
+});
+
+test('when every head check fails, the answer is returned and listed as unchecked with exit 2', async t => {
+  const f = await fixture(t, { files: { 'checker.md': headFile('checker') }, env: { FLUE_FIXTURE_HEADS: 'broken', FLUE_FIXTURE_RESPONSE: 'text' },
+    body: `return run.agent('Answer.', { key: 'a', tools: [], heads: ['checker.md'] });` });
+  const result = await f.invoke('run');
+  assert.equal(result.code, 2, result.stderr);
+  assert.equal(await load(join(f.dir, 'result.json')), 'answer 41');
+  assert.deepEqual(summaryOf(result).unchecked.map(({ key, answer }) => ({ key, answer })), [{ key: 'a', answer: 'answer 41' }]);
+  assert.ok((await journal(f)).some(row => row.type === 'head-check' && row.outcome === 'failed'), 'the failed check itself is journaled');
 });

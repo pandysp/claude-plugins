@@ -175,7 +175,10 @@ owner finishes, fails or is cancelled. Read its
 `result` file and retained artifacts. `execution: finished` means JavaScript
 returned, not that every requested input was covered. Worker/composition errors
 produce exit 2 even if the program returns a useful partial result; fatal errors
-or cancellation produce exit 1.
+or cancellation produce exit 1. Exit 2 also means answers of workers with review
+heads went unchecked: the summary's `unchecked` list gives each one's task, head
+files and answer. Check those answers yourself against the head files, or rerun
+those workers under new keys.
 
 Start `run` and `resume` in the background (the host's background task, or
 `tmux`): a foreground command can be stopped by the host's tool timeout long

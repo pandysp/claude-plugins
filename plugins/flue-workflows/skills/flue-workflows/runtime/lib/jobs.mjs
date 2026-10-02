@@ -117,12 +117,10 @@ export async function job(run, { namespace, descriptor, key }) {
     if (run.signal.aborted) await handle.abort();
     run.emit({ type: 'worker-started', id, label, phase, workspace: task.cwd, submissionId: receipt.submissionId, deduplicated: receipt.deduplicated === true });
     const reply = await handle.read(receipt, { onEvent: toolEvents(run.emit, id, run.journaled) });
-    // Hydra reports at the end of every response it saw end; none means its heads never finished
-    // (for example the process stopped during a check), and the answer goes back unchecked.
-    if (descriptor.heads?.length && !reply.metadata?.[HYDRA_METADATA_KEY]) {
-      run.emit({ type: 'head-check', worker: id, head: null, round: null, outcome: 'failed', findings: [], unresolved: false, errorKind: 'unchecked',
-        error: 'The heads did not see this response end (for example, the process stopped during it); its answer is returned unchecked.' });
-    }
+    // A worker with heads whose answer the heads did not check and let stand: no Hydra report at
+    // all (the process stopped during the response or a check) or `reviewed: false` (every check
+    // failed). The answer is kept and the run's summary lists the worker, so the caller can check it.
+    if (descriptor.heads?.length) job.unchecked = reply.metadata?.[HYDRA_METADATA_KEY]?.reviewed !== true;
     job.result = JSON.parse(json(resultOf(descriptor, reply, receipt.submissionId)));
     if (job.workspace) job.artifact = await collect(job.workspace.cwd, job.workspace.commit, join(run.dir, `${id}.patch`));
     job.status = 'completed';
