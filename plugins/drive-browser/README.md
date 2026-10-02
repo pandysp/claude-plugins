@@ -1,11 +1,12 @@
 # drive-browser
 
-A Claude Code and Codex plugin for driving a browser with Playwright. It uses resilient locators for debugging your own web app and a vision/coordinate loop for genuinely opaque UI on unknown or messy real sites, in a fresh isolated browser or the user's real logged-in session attached over CDP.
+A Claude Code, Codex, and Pi plugin for driving a browser with Playwright. It uses resilient locators for debugging your own web app and a vision/coordinate loop for genuinely opaque UI on unknown or messy real sites, in a fresh isolated browser or the user's real logged-in session attached over CDP.
 
 ## Usage
 
 - Claude Code: `/drive-browser`
 - Codex: `$drive-browser`
+- Pi: `/skill:drive-browser`
 
 Or just describe the task. Reproduce a UI bug in a running app, walk a checkout, scrape a page. Fires automatically when the work means driving a browser.
 
@@ -27,7 +28,7 @@ Attaching over CDP gives access to the user's live login without per-action prom
 
 ## Installation
 
-See the repository's [Claude Code and Codex marketplace instructions](../../README.md).
+See the repository's [installation instructions](../../README.md).
 
 ## License
 
