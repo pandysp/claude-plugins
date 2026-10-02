@@ -52,6 +52,7 @@ module HostPackages
     "silent-failures" => { codex: true, pi: true },
     "spec" => { codex: true, pi: true },
     "steel-man-own-position" => { codex: true, pi: true },
+    "transcribe" => { codex: true, pi: true },
     "understudy" => { codex: true, pi: true },
     "verify-claims" => { codex: true, pi: true },
     "verify-result" => { codex: true, pi: true },

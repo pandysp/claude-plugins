@@ -6,7 +6,7 @@ The assistant stays in charge. It sharpens the question, picks the search comman
 
 ## Usage
 
-- Claude Code: `/deep-research:deep-research`
+- Claude Code: `/deep-research`
 - Codex and Pi: `/skill:deep-research`
 
 Or just ask: "Do deep research on what people are building with model X." / "Survey the open-source options for Y and verify the claims."

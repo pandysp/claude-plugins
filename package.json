@@ -33,7 +33,8 @@
       "plugins/excalidraw/skills/excalidraw",
       "plugins/classify-with-jev/skills/classify-with-jev",
       "plugins/flue-workflows/skills/flue-workflows",
-      "plugins/deep-research/skills/deep-research"
+      "plugins/deep-research/skills/deep-research",
+      "plugins/transcribe/skills/transcribe"
     ]
   }
 }
