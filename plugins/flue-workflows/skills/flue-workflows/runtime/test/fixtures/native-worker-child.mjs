@@ -8,7 +8,12 @@
 //                         call to the program's `broken` tool, then a valid result) |
 //                         tool-twice (two `broken` calls, then a valid result)
 // FLUE_FIXTURE_BLOCK      hold the first model call open until the process is
-//                         signalled or killed (cancel/crash tests)
+//                         signalled or killed (cancel/crash tests); `head` holds the
+//                         first head check instead
+// FLUE_FIXTURE_HEADS      the model speaks the Anthropic API so heads can review it:
+//                         `steer` (the first head check steers, later ones pass),
+//                         `always` (every check steers), `pass` (no findings).
+//                         The worker answers 41 until it has read a pi-hydra signal, then 42.
 import { registerHooks, syncBuiltinESMExports } from 'node:module';
 import childProcess from 'node:child_process';
 import { appendFileSync } from 'node:fs';
@@ -24,7 +29,8 @@ childProcess.execFileSync = (file, args, options) => {
   return execFileSync(file, args, options);
 };
 syncBuiltinESMExports();
-const faux = fauxProvider({ provider: 'openai', api: 'flue-fixture', models: [{ id: 'flue-fixture' }] });
+const heads = process.env.FLUE_FIXTURE_HEADS;
+const faux = fauxProvider({ provider: 'openai', api: heads ? 'anthropic-messages' : 'flue-fixture', models: [{ id: 'flue-fixture' }] });
 const toolUse = (name, args) => fauxAssistantMessage(fauxToolCall(name, args), { stopReason: 'toolUse' });
 let replies = 0;
 const reply = () => {
@@ -36,15 +42,35 @@ const reply = () => {
   if (mode === 'tool-twice' && replies <= 2) return toolUse('broken', {});
   return toolUse('submit_result', { answer: 42 });
 };
+let headChecks = 0;
+// A head check: the agent's own request replayed, ending with the head's instructions.
+const headReply = () => fauxAssistantMessage(JSON.stringify({ findings:
+  heads === 'always' || (heads === 'steer' && headChecks++ === 0) ? [{ action: 'steer', reason: 'checked', message: 'The answer is 42.' }] : [] }));
+const answer = context => {
+  const corrected = JSON.stringify(context.messages).includes('pi-hydra');
+  const schema = process.env.FLUE_FIXTURE_RESPONSE !== 'text';
+  return schema ? toolUse('submit_result', { answer: corrected ? 42 : 41 }) : fauxAssistantMessage(corrected ? 'answer 42' : 'answer 41');
+};
 let blocked = false;
-const respond = async (_context, options) => {
+const respond = async (context, options, _state, model) => {
   faux.appendResponses([respond]); // every call re-queues itself: unlimited scripted replies
-  record({ event: 'model-call' });
-  if (process.env.FLUE_FIXTURE_BLOCK && !blocked) {
+  if (!heads) record({ event: 'model-call' });
+  const block = async () => {
     blocked = true;
     record({ event: 'model-blocked' });
     await new Promise(resolve => options.signal.addEventListener('abort', resolve, { once: true }));
     record({ event: 'model-aborted' });
+  };
+  if (process.env.FLUE_FIXTURE_BLOCK && process.env.FLUE_FIXTURE_BLOCK !== 'head' && !blocked) await block();
+  if (heads) {
+    // Hand the request body to whoever wraps the provider, as a real provider does.
+    const params = { model: model.id, system: [{ type: 'text', text: String(context.systemPrompt ?? '') }],
+      messages: context.messages.map(m => ({ role: m.role === 'toolResult' ? 'user' : m.role, content: [{ type: 'text', text: JSON.stringify(m.content) }] })) };
+    const sent = (await options?.onPayload?.(params, model)) ?? params;
+    const isHead = JSON.stringify(sent).includes("reviewing the main assistant");
+    record({ event: isHead ? 'head-call' : 'model-call' });
+    if (isHead && process.env.FLUE_FIXTURE_BLOCK === 'head' && !blocked) await block();
+    return isHead ? headReply() : answer(context);
   }
   return reply();
 };

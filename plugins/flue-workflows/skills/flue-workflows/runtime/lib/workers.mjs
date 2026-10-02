@@ -1,9 +1,11 @@
 import { types } from 'node:util';
+import { resolve } from 'node:path';
 import * as native from '@flue/runtime';
 import { local } from '@flue/runtime/node';
 import { createModels } from '@earendil-works/pi-ai';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
+import { createFlueHydra, checkHeads, supportsApi } from '@pandysp/flue-hydra';
 import { RunError } from './primitives.mjs';
 import { json } from './files.mjs';
 
@@ -11,7 +13,7 @@ const standard = {
   read: native.createReadTool, write: native.createWriteTool, edit: native.createEditTool,
   bash: native.createBashTool, grep: native.createGrepTool, glob: native.createGlobTool,
 };
-const fields = new Set(['key', 'label', 'phase', 'schema', 'model', 'effort', 'tools', 'cwd', 'isolation', 'instructions', 'data']);
+const fields = new Set(['key', 'label', 'phase', 'schema', 'model', 'effort', 'tools', 'cwd', 'isolation', 'instructions', 'data', 'heads']);
 const efforts = ['off', 'minimal', 'low', 'medium', 'high', 'xhigh'];
 const ajv = new Ajv({ strictSchema: true, strictTypes: false, allErrors: true });
 addFormats(ajv);
@@ -59,7 +61,10 @@ function submitResultTool(schema, writeResult, onWritten) {
   };
 }
 
-export function workers({ config, provider, tools = {}, hook, emit }) {
+// `program` is the pinned program directory; relative head paths resolve against it, so head files
+// beside the program are pinned with it. Returns the provider to run Flue with: wrapped so heads can
+// replay the requests of workers that have them (other workers pass through untouched).
+export function workers({ config, provider, program, tools = {}, hook, emit }) {
   if (hook !== undefined && !synchronous(hook)) throw new RunError('worker.mjs must export a default synchronous function.');
   if (!tools || typeof tools !== 'object' || ![Object.prototype, null].includes(Object.getPrototypeOf(tools))) {
     throw new RunError('tools.mjs must export a default plain object of tool factories.');
@@ -71,6 +76,8 @@ export function workers({ config, provider, tools = {}, hook, emit }) {
   }
   const models = createModels();
   models.setProvider(provider);
+  const hydra = createFlueHydra();
+  const headPaths = heads => heads.map(path => resolve(program, path));
 
   function normalize(prompt, options) {
     if (typeof prompt !== 'string' || !prompt.trim()) throw new RunError('agent() needs a nonempty prompt string.');
@@ -92,10 +99,20 @@ export function workers({ config, provider, tools = {}, hook, emit }) {
     }
     const schema = options.schema ?? null;
     if (schema !== null) validator(schema);
+    const heads = options.heads ?? [];
+    if (!Array.isArray(heads) || heads.some(path => typeof path !== 'string' || !path.trim()) || new Set(heads).size !== heads.length) {
+      throw new RunError('heads must be an array of unique nonempty head file paths.');
+    }
+    if (heads.length > 0) {
+      const { api } = models.getModel(provider.id, model.slice(split + 1));
+      if (!supportsApi(api)) throw new RunError(`heads need a model on the Anthropic or OpenAI Codex API; ${model} uses ${api}.`);
+      try { checkHeads(headPaths(heads)); }
+      catch (cause) { throw new RunError(`Invalid heads: ${cause.message}`, { cause }); }
+    }
     const isolation = options.isolation ?? 'none';
     if (!['none', 'snapshot'].includes(isolation)) throw new RunError('isolation must be "none" or "snapshot".');
     return JSON.parse(json({ prompt, model, effort, tools: selected, schema, isolation, cwd: options.cwd ?? config.cwd,
-      label: options.label ?? '', phase: options.phase ?? '', instructions: options.instructions ?? '', data: options.data ?? null }));
+      label: options.label ?? '', phase: options.phase ?? '', instructions: options.instructions ?? '', data: options.data ?? null, heads }));
   }
 
   function Worker({ id }) {
@@ -116,10 +133,16 @@ export function workers({ config, provider, tools = {}, hook, emit }) {
         return selected;
       },
     });
+    if (task.heads.length > 0) {
+      hydra.useHydra(headPaths(task.heads), {
+        onRecord: ({ head, round, outcome, findings, unresolved, errorKind, error }) =>
+          emit({ type: 'head-check', worker: id, head, round, outcome, findings, unresolved, errorKind, error }),
+      });
+    }
     if (hook && sync('worker.mjs hook', hook, [task]) !== undefined) throw new RunError('worker.mjs hook must return undefined.');
     return [PREAMBLE, task.schema === null ? 'Return your final answer as text.' : 'Finish by calling submit_result with the required object. Do not substitute a text answer.', task.instructions].join('\n');
   }
   Worker.agentName = 'workflow-worker';
   Worker.durability = { maxAttempts: 3, timeoutMs: config.timeoutMs };
-  return { Worker, normalize };
+  return { Worker, normalize, provider: hydra.wrap(provider), close: () => hydra.close() };
 }

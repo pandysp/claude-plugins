@@ -127,6 +127,19 @@ records a failure. `parallel` and `pipeline` return `null` for such failed items
 configuration, safety-limit and cancellation errors stop the run instead.
 Never filter nulls and then call the work complete.
 
+## Review heads (optional, only with the user's agreement)
+
+A worker can have review heads: pi-hydra head files that check its answer before it
+is returned, so the worker corrects itself in the same response. They add time and
+requests, so **suggest** them where a second look pays off (for example arithmetic,
+security-sensitive edits or claims that need evidence) and add them only if the user
+agrees. Do not add heads by default. pi-hydra's
+[navigator](https://github.com/pandysp/pi-hydra/blob/main/heads/navigator.md) and
+[simplifier](https://github.com/pandysp/pi-hydra/blob/main/heads/simplifier.md) heads
+are examples to copy beside the program or adapt. Anthropic and OpenAI Codex models
+only, judge heads only, advisory rather than a gate. See
+[Review heads](references/api.md#review-heads).
+
 ## Coding workers and delivery
 
 Use `isolation: 'snapshot'` for parallel edits. It creates an independent Git

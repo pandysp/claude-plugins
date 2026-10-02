@@ -100,11 +100,12 @@ async function runProgram(run, { manifest, code, normalize }) {
 }
 
 // Stop every worker, Flue and the recorder; keep partial output of stopped snapshot workers.
-async function shutdown(run, { runtime, code, recorder }) {
+async function shutdown(run, { runtime, closeHeads, code, recorder }) {
   const { state, dir, attempt } = run;
   if (!run.signal.aborted) run.controller.abort(new DOMException('Run shutting down', 'AbortError'));
   await Promise.allSettled([...run.pending, ...run.aborts]);
   if (runtime) await attempt(() => runtime.stop());
+  if (closeHeads) await attempt(() => closeHeads());
   if (runtime) await attempt(() => cleanupSessionResources());
   // Nothing an attempt started may keep editing after its patches are collected; commands
   // whose shell already exited had their groups killed then (see recordCommands).
@@ -181,9 +182,10 @@ async function executeOwned({ dir, runtimeRoot }) {
     const code = resources.code = await loader(manifest.program, runtimeRoot);
     const tools = await optionalModule(manifest.program, code, 'tools.mjs');
     const hook = await optionalModule(manifest.program, code, 'worker.mjs');
-    const { Worker, normalize } = workers({ config, provider, tools, hook, emit: run.emit });
+    const { Worker, normalize, provider: reviewed, close } = workers({ config, provider, program: manifest.program, tools, hook, emit: run.emit });
     run.Worker = Worker;
-    resources.runtime = await start({ agents: [Worker], db: sqlite(join(dir, 'flue.sqlite')), providers: [provider] });
+    resources.closeHeads = close;
+    resources.runtime = await start({ agents: [Worker], db: sqlite(join(dir, 'flue.sqlite')), providers: [reviewed] });
     result = await runProgram(run, { manifest, code, normalize });
     await save(join(dir, 'result.json'), result);
   } catch (error) {

@@ -52,9 +52,9 @@ async function fixture(t, { body = `return ${call('answer')};`, files = {}, env 
     return { ...result, events, modelCalls: end.modelCalls, state: await load(join(dir, 'state.json')), stderrEvents: result.stderr.split('\n').filter(line => line.startsWith('{')).map(JSON.parse) };
   };
   // Start the child and stop it (signal or kill) once the model call is blocked.
-  f.interrupt = async (mode, signal) => {
+  f.interrupt = async (mode, signal, block = '1') => {
     await writeFile(trace, '');
-    const proc = spawn(process.execPath, [child, workspace, mode, program, trace], { env: { ...baseEnv, ...env, FLUE_FIXTURE_BLOCK: '1' }, stdio: ['ignore', 'pipe', 'pipe'] });
+    const proc = spawn(process.execPath, [child, workspace, mode, program, trace], { env: { ...baseEnv, ...env, FLUE_FIXTURE_BLOCK: block }, stdio: ['ignore', 'pipe', 'pipe'] });
     let stderr = '';
     proc.stderr.on('data', chunk => { stderr += chunk; });
     const exited = new Promise(resolve => proc.on('exit', (code, sig) => resolve({ code, sig })));
@@ -464,4 +464,93 @@ test('a command child that ignores SIGTERM after a timeout is killed with its sh
   assert.equal(job.status, 'completed');
   await assert.rejects(readFile(join(job.artifact.cwd, 'late.txt')), { code: 'ENOENT' }, 'the child was killed when its shell exited');
   assert.deepEqual(job.artifact.changed, []);
+});
+
+// Heads (pi-hydra review heads through @pandysp/flue-hydra). The fixture model answers 41 until a head's
+// pi-hydra signal reaches it, then 42.
+const headFile = (name, tools = '[]') => `---\nname: ${name}\ndescription: checks the answer\ntools: ${tools}\n---\nCheck the answer.\n`;
+const journal = async f => (await readFile(join(f.dir, 'events.jsonl'), 'utf8')).trim().split('\n').map(JSON.parse);
+
+test('a head steers a text worker, which corrects itself before its answer is returned', async t => {
+  const f = await fixture(t, { files: { 'checker.md': headFile('checker') }, env: { FLUE_FIXTURE_HEADS: 'steer', FLUE_FIXTURE_RESPONSE: 'text' },
+    body: `return run.agent('Answer.', { key: 'a', tools: [], heads: ['checker.md'] });` });
+  const result = await f.invoke('run');
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(await load(join(f.dir, 'result.json')), 'answer 42', 'only the final step, not the joined "answer 41\\n\\nanswer 42"');
+  const checks = (await journal(f)).filter(row => row.type === 'head-check');
+  assert.deepEqual(checks.map(({ head, round, outcome, unresolved }) => ({ head, round, outcome, unresolved })),
+    [{ head: 'checker', round: 0, outcome: 'findings', unresolved: false }, { head: 'checker', round: 1, outcome: 'none', unresolved: false }]);
+  assert.ok(checks.every(row => row.worker === Object.keys(result.state.jobs)[0]));
+  assert.ok(result.stderrEvents.some(event => event.type === 'head-check'), 'checks show in the progress output');
+});
+
+test('a steered structured worker resubmits, and the corrected result is the one returned', async t => {
+  const f = await fixture(t, { files: { 'checker.md': headFile('checker') }, env: { FLUE_FIXTURE_HEADS: 'steer' },
+    body: `return ${call('answer', ", heads: ['checker.md']")};` });
+  const result = await f.invoke('run');
+  assert.equal(result.code, 0, result.stderr);
+  assert.deepEqual(await load(join(f.dir, 'result.json')), { answer: 42 });
+  assert.equal(Object.values(result.state.jobs)[0].status, 'completed');
+});
+
+test('a worker without heads is not reviewed', async t => {
+  const f = await fixture(t, { env: { FLUE_FIXTURE_HEADS: 'steer' } });
+  const result = await f.invoke('run');
+  assert.equal(result.code, 0, result.stderr);
+  assert.deepEqual(await load(join(f.dir, 'result.json')), { answer: 41 });
+  assert.equal(result.events.filter(event => event.event === 'head-call').length, 0);
+  assert.equal((await journal(f)).filter(row => row.type === 'head-check').length, 0);
+});
+
+test('findings still open after three rounds are marked unresolved and the worker finishes', async t => {
+  const f = await fixture(t, { files: { 'checker.md': headFile('checker') }, env: { FLUE_FIXTURE_HEADS: 'always', FLUE_FIXTURE_RESPONSE: 'text' },
+    body: `return run.agent('Answer.', { key: 'a', tools: [], heads: ['checker.md'] });` });
+  const result = await f.invoke('run');
+  assert.equal(result.code, 0, result.stderr);
+  const checks = (await journal(f)).filter(row => row.type === 'head-check');
+  assert.deepEqual(checks.map(row => [row.round, row.unresolved]), [[0, false], [1, false], [2, false], [3, true]]);
+});
+
+for (const [label, files, heads, env, pattern] of [
+  ['a head that uses tools', { 'actor.md': headFile('actor', 'read') }, ['actor.md'], { FLUE_FIXTURE_HEADS: 'pass' }, /Invalid heads: .*judge heads only/],
+  ['a missing head file', {}, ['missing.md'], { FLUE_FIXTURE_HEADS: 'pass' }, /Invalid heads: .*ENOENT/],
+  ['a model API heads cannot review', { 'checker.md': headFile('checker') }, ['checker.md'], {}, /heads need a model on the Anthropic or OpenAI Codex API; openai\/flue-fixture uses flue-fixture/],
+  ['duplicate heads', { 'checker.md': headFile('checker') }, ['checker.md', 'checker.md'], { FLUE_FIXTURE_HEADS: 'pass' }, /heads must be an array of unique/],
+]) {
+  test(`${label} is refused when the worker is requested`, async t => {
+    const f = await fixture(t, { files, env, body: `return ${call('answer', `, heads: ${JSON.stringify(heads)}`)};` });
+    const result = await f.invoke('run');
+    assert.equal(result.code, 1, result.stderr);
+    assert.match(result.stderr, pattern);
+    assert.equal(result.modelCalls, 0);
+  });
+}
+
+test('a worker with heads resumed after a crash finishes unchecked, and the journal says why', async t => {
+  const f = await fixture(t, { timeout: 90_000, files: { 'checker.md': headFile('checker') }, env: { FLUE_FIXTURE_HEADS: 'steer' },
+    body: `return ${call('answer', ", heads: ['checker.md']")};` }); // Flue reclaims the dead attempt's lease after ~30 s
+  const killed = await f.interrupt('run', 'SIGKILL');
+  assert.equal(killed.sig, 'SIGKILL');
+  const resumed = await f.invoke('resume');
+  assert.equal(resumed.code, 0, resumed.stderr);
+  // Flue does not rerun useAgentStart for a message it already took in, so nothing was recorded to replay.
+  assert.deepEqual(await load(join(f.dir, 'result.json')), { answer: 41 });
+  assert.equal(resumed.events.filter(event => event.event === 'head-call').length, 0);
+  const checks = (await journal(f)).filter(row => row.type === 'head-check');
+  assert.deepEqual(checks.map(({ outcome, errorKind }) => ({ outcome, errorKind })),
+    [{ outcome: 'failed', errorKind: 'no-capture' }, { outcome: 'failed', errorKind: 'unchecked' }]);
+  assert.ok(resumed.stderrEvents.some(event => event.type === 'head-check' && event.errorKind === 'unchecked'), 'the unchecked answer shows in the progress output');
+});
+
+test('a crash during a head check: the resumed worker returns its answer unchecked and says so', async t => {
+  const f = await fixture(t, { timeout: 90_000, files: { 'checker.md': headFile('checker') }, env: { FLUE_FIXTURE_HEADS: 'steer' },
+    body: `return ${call('answer', ", heads: ['checker.md']")};` }); // Flue reclaims the dead attempt's lease after ~30 s
+  const killed = await f.interrupt('run', 'SIGKILL', 'head');
+  assert.equal(killed.sig, 'SIGKILL');
+  const resumed = await f.invoke('resume');
+  assert.equal(resumed.code, 0, resumed.stderr);
+  // Flue settles a response whose model work already finished without running its finish hooks again.
+  assert.deepEqual(await load(join(f.dir, 'result.json')), { answer: 41 });
+  const checks = (await journal(f)).filter(row => row.type === 'head-check');
+  assert.deepEqual(checks.map(({ outcome, errorKind }) => ({ outcome, errorKind })), [{ outcome: 'failed', errorKind: 'unchecked' }]);
 });
