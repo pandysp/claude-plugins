@@ -38,6 +38,7 @@ class FakeClient:
 
     def upload(self, path):
         FakeClient.calls.append(("upload", path.name))
+        self._maybe_fail("upload")
         return "upload-url"
 
     def submit(self, url):
@@ -159,6 +160,113 @@ class TranscribeTest(unittest.TestCase):
             self.assertEqual(FakeClient.calls, [])
         finally:
             holder.close()
+
+    def test_lost_answer_to_a_submission_stops_instead_of_paying_again(self):
+        FakeClient.fail = {"submit": [transcribe.HTTPFailure(None, "connection reset")]}
+        self.assertEqual(self.run_script(), 1)
+        FakeClient.calls = []
+        self.assertEqual(self.run_script(), 1)
+        self.assertIn("never got the answer", self.stderr)
+        self.assertEqual(FakeClient.calls, [])
+
+    def test_failed_upload_is_simply_redone(self):
+        FakeClient.fail = {"upload": [transcribe.HTTPFailure(None, "connection reset")]}
+        self.assertEqual(self.run_script(), 1)
+        self.assertEqual(self.run_script(), 0)
+        self.assertEqual(self.kinds().count("submit"), 1)
+
+    def test_retranscribe_replaces_an_unfinished_job_and_still_deletes_it(self):
+        FakeClient.fail = {"wait": [transcribe.HTTPFailure(None, "dropped")]}
+        self.run_script()
+        self.audio("call.m4a", b"replacement recording")
+        FakeClient.calls = []
+        self.assertEqual(self.run_script("--retranscribe"), 0)
+        self.assertEqual(self.kinds(), ["upload", "submit", "wait", "delete", "delete"])
+        self.assertEqual(sorted(c[1] for c in FakeClient.calls if c[0] == "delete"), ["t1", "t2"])
+
+    def test_pending_delete_survives_retranscribe(self):
+        FakeClient.fail = {"delete": [transcribe.HTTPFailure(503, "unavailable")]}
+        self.assertEqual(self.run_script(), 1)
+        self.assertEqual(self.run_script("--retranscribe"), 0)  # deletes t2 and the leftover t1
+        deleted = [c[1] for c in FakeClient.calls if c[0] == "delete"]
+        self.assertIn("t1", deleted[1:])
+        self.assertIn("t2", deleted)
+
+    def test_pending_delete_runs_even_when_the_audio_is_gone(self):
+        FakeClient.fail = {"delete": [transcribe.HTTPFailure(503, "unavailable")]}
+        self.assertEqual(self.run_script(), 1)
+        (self.base / "audio" / "call.m4a").unlink()
+        FakeClient.calls = []
+        self.assertEqual(self.run_script(), 2)  # no audio: reported, but the deletion ran
+        self.assertEqual(FakeClient.calls, [("delete", "t1")])
+
+    def test_kept_transcript_is_deleted_by_a_later_normal_run(self):
+        self.run_script("--keep-remote")
+        FakeClient.calls = []
+        self.assertEqual(self.run_script(), 0)
+        self.assertEqual(FakeClient.calls, [("delete", "t1")])
+
+    def test_a_foreign_file_at_the_reserved_note_name_is_left_alone(self):
+        self.run_script("--keep-remote")
+        state = json.loads((self.base / ".transcribe" / "state.json").read_text())
+        state["recordings"]["call"]["status"] = "saved"  # crashed before writing the note
+        (self.base / ".transcribe" / "state.json").write_text(json.dumps(state))
+        (self.base / "transcripts" / "call.md").write_text("someone else's note", encoding="utf-8")
+        self.assertEqual(self.run_script("--keep-remote"), 0)
+        self.assertEqual(self.note(), "someone else's note")
+        self.assertIn("Hallo.", self.note("call.t1.md"))
+
+    def test_a_note_only_counts_as_ours_with_our_id_in_its_header(self):
+        note = self.base / "n.md"
+        note.write_text('---\ntranscript_id: "t1"\n---\n\ntext', encoding="utf-8")
+        self.assertTrue(transcribe.written_by(note, "t1"))
+        note.write_text('# copied\n\n    transcript_id: "t1"\n', encoding="utf-8")
+        self.assertFalse(transcribe.written_by(note, "t1"))
+
+    def test_an_alternate_name_taken_after_it_was_chosen_is_not_counted_as_done(self):
+        self.run_script("--keep-remote")
+        state = json.loads((self.base / ".transcribe" / "state.json").read_text())
+        alternate = self.base / "transcripts" / "call.t1.md"
+        state["recordings"]["call"].update(status="saved", note=str(alternate))
+        (self.base / ".transcribe" / "state.json").write_text(json.dumps(state))
+        alternate.write_text("someone else's file", encoding="utf-8")
+        self.assertEqual(self.run_script("--keep-remote"), 0)
+        self.assertEqual(alternate.read_text(encoding="utf-8"), "someone else's file")
+        self.assertIn("Hallo.", self.note())  # call.md was free again (the first run's note)
+
+    def test_unknown_or_damaged_state_is_refused(self):
+        self.run_script()
+        path = self.base / ".transcribe" / "state.json"
+        state = json.loads(path.read_text())
+        state["recordings"]["call"]["status"] = "invalid-status"
+        path.write_text(json.dumps(state))
+        self.assertEqual(self.run_script(), 1)
+        path.write_text("{ not json")
+        self.assertEqual(self.run_script(), 2)
+
+    def test_saved_result_is_used_instead_of_asking_again(self):
+        self.run_script("--keep-remote")
+        state = json.loads((self.base / ".transcribe" / "state.json").read_text())
+        state["recordings"]["call"].update(status="submitted", note=None)
+        (self.base / ".transcribe" / "state.json").write_text(json.dumps(state))
+        (self.base / "transcripts" / "call.md").unlink()
+        FakeClient.calls = []
+        self.assertEqual(self.run_script("--keep-remote"), 0)
+        self.assertEqual(FakeClient.calls, [])
+        self.assertTrue((self.base / "transcripts" / "call.md").exists())
+
+    def test_note_written_before_a_crash_is_not_written_twice(self):
+        self.run_script("--keep-remote")
+        state = json.loads((self.base / ".transcribe" / "state.json").read_text())
+        state["recordings"]["call"]["status"] = "saved"  # crashed after writing the note
+        (self.base / ".transcribe" / "state.json").write_text(json.dumps(state))
+        self.assertEqual(self.run_script("--keep-remote"), 0)
+        self.assertEqual(sorted(p.name for p in (self.base / "transcripts").iterdir()), ["call.md"])
+
+    def test_damaged_ledger_from_the_previous_version_stops_the_run(self):
+        (self.base / ".transcribed").write_text("\tcall\n", encoding="utf-8")
+        self.assertEqual(self.run_script(), 2)
+        self.assertEqual(FakeClient.calls, [])
 
     def test_unknown_metadata_stays_unknown(self):
         bare = {"id": "x", "utterances": [], "text": None}

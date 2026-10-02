@@ -47,19 +47,28 @@ python3 "<skill-dir>/scripts/transcribe.py" --base-dir "<base>"
   path out in full and run it from the user's folder, because `--base-dir` is
   read relative to where you are.
 - The script writes one note per recording to `<base>/transcripts/<name>.md`
-  (`--out-dir` changes that). The header block at the top of the note
-  (frontmatter) lists the language, the speakers, the length and the model.
+  (`--out-dir` changes that). If that name is taken, it writes
+  `<name>.<transcript id>.md` instead; it never overwrites a note. The header
+  block at the top of the note (frontmatter) lists the language, the speakers,
+  the length and the model.
 - Keep `<base>` after the run. Its `.transcribe/` folder records what has been
   paid for, so running the script again is safe: finished recordings are
-  skipped, an interrupted job continues instead of being paid for twice, and an
-  existing note is never overwritten.
+  skipped and an interrupted job continues instead of being paid for twice.
+- One case needs the user: if the connection broke right after a recording was
+  submitted, the script can't know whether AssemblyAI got it, so it stops for
+  that recording. Ask the user to check the transcripts in their AssemblyAI
+  dashboard. Only if it isn't there, run again with `--retranscribe`.
 - Recordings are sent to AssemblyAI's servers in the EU and deleted there once
-  the result is saved in `.transcribe/`. Change that (`--region us`,
-  `--keep-remote`) only if the user asks.
-- If the script exits with 1, some recordings failed. Its output names them and
-  says why; running it again picks up where it stopped. If it exits with 2,
-  nothing could run (no API key, another run still busy, no audio found). Pass
-  the message on to the user.
+  the result is saved in `.transcribe/`. A deletion that fails is retried on
+  every later run. Change that (`--region us`, `--keep-remote`) only if the
+  user asks. A folder from an earlier version of this skill (with a
+  `.transcribed` file) is skipped; those transcripts may still be stored on
+  AssemblyAI's US servers.
+- If the script exits with 1, some recordings failed or a deletion is still
+  pending. Its output names them and says why; running it again picks up where
+  it stopped. If it exits with 2, the run stopped (no API key, another run
+  still busy, no audio found, a damaged state file); recordings finished before
+  that are listed and kept. Pass the message on to the user.
 - The settings the script sends to AssemblyAI are chosen on purpose. Read the
   comment above `REQUEST` in the script before changing any of them.
 

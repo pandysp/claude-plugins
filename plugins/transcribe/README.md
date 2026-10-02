@@ -6,7 +6,7 @@ Turns recordings into speaker-labelled markdown notes with AssemblyAI. The spoke
 
 Machine transcription fails quietly. If the language is guessed wrong, the result is fluent nonsense rather than an error. A weaker model returns text that reads fine and is wrong: one recording's "Der EU AI Act" came back as "Dear aua". So the script lets AssemblyAI detect the language, always uses the same strong model and never falls back to a weaker one, and writes down which model actually ran. The agent then reads the notes and marks what looks wrong.
 
-Transcription is paid per hour of audio, so the script protects work that has been paid for. It saves each job the moment AssemblyAI accepts it, continues an interrupted job instead of paying again, skips recordings that are done, and never overwrites a note, because hand corrections exist only there.
+Transcription is paid per hour of audio, so the script protects work that has been paid for. It saves each job the moment AssemblyAI accepts it, continues an interrupted job instead of paying again, and skips recordings that are done. If the connection breaks while a recording is being submitted, it can't know whether the job was accepted, so it stops and asks you to check rather than paying again. It never overwrites a note, because hand corrections exist only there.
 
 ## Usage
 
@@ -26,7 +26,7 @@ Or hand over audio or video and ask for the words out of it. The agent collects 
 Recordings carry names, employers and remarks nobody meant to publish.
 
 - Audio goes to AssemblyAI's servers **in the EU** by default (`--region us` to change it). AssemblyAI's [data retention documentation](https://www.assemblyai.com/docs/data-retention-and-model-training) says it doesn't use EU recordings to train its models.
-- Once the result is saved on your machine, the transcript is **deleted at AssemblyAI** (`--keep-remote` to keep it). The full result, including the timing of every word, stays in the `.transcribe/` folder inside the working folder.
+- Once the result is saved on your machine, the transcript is **deleted at AssemblyAI** (`--keep-remote` to keep it). A deletion that fails is retried on every later run. The full result, including the timing of every word, stays in the `.transcribe/` folder inside the working folder.
 - Notes go where you say and nowhere else, never into a repository, issue or commit message.
 
 ## Development
