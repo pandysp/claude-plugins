@@ -379,13 +379,6 @@ it and has no paid-key fallback. Claude/Codex login alone does not supply this
 pi credential. No host model/context/settings/auth inheritance is implied.
 Do not put keys in arguments, programs, `args`, reports, tool results or logs.
 
-With a Claude subscription login, Anthropic decides per request whether it counts
-against the plan or is refused as third-party use, and the decision depends on
-what the request contains. Workflow requests were accepted on the plan in every
-live run so far (October 2026); pi's own requests without its billing extension
-were refused with `You're out of extra usage`. A worker failing with that error
-is this case, not a broken login.
-
 | Exit | Meaning |
 |---|---|
 | `0` | Command succeeded; `run`/`resume` had no counted worker/composition failures. Inspect the **domain result** separately |
