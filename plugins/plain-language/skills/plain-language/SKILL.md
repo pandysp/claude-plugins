@@ -21,7 +21,7 @@ The bar: **a smart reader who missed the whole conversation would understand it 
 
 When you write about a problem or a decision, the symptom you can see is rarely what the reader needs. Before you write, dig in two directions:
 
-- **Up: so what?** Keep asking until you reach something the reader notices, loses or pays for. This is why it matters, and the reader needs it more than how things work.
+- **Up: so what?** Keep asking until you reach something the reader notices, loses or pays for. This is why it matters.
 - **Down: why does it happen?** Keep asking until you reach the cause. The cause tells the reader where to act.
 
 How it works step by step is the part you know best and the reader needs least. Explain it only as far as the reader needs to believe the consequence or act on it.
