@@ -16,7 +16,7 @@ description: >-
 
 # Classify with Jev
 
-A classifier model answers questions that have a fixed set of answers (one of a few labels, yes or no, or a score) about data you pass as a JSON object, for example `{"message": "…"}`. It gives each answer a probability. In Pi it runs from a `codemode` script through `models.classify()`.
+A classifier model answers questions that have a fixed set of answers (one of a few labels, yes or no, or a score) about data you pass as a JSON object, for example `{"message": "…"}`. Each answer comes with a probability or a confidence value. In Pi it runs from a `codemode` script through `models.classify()`.
 
 Before writing the script, read the "Models" and "Classify" sections of `codemode.md` completely. The `codemode` tool description gives the file's path.
 
