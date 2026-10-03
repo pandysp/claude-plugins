@@ -48,7 +48,7 @@ Be direct. No padding. For each lesson:
 - **The rule**: one line, imperative, worded as it would read in the file.
 - **The trigger**: one line on what happened that makes it worth keeping.
 - **The destination**: the exact file or store, and why that one.
-- **Future cases** (instruction-file entries only): two situations unlike today's where the rule would change what the agent does. If you can't name two, the lesson belongs in notes or docs, not in instructions.
+- **Future cases** (instruction-file entries only): two situations unlike today's where the rule would change what the agent does.
 
 Group lessons that land in the same place. If nothing surfaced, say so — an empty reflection is a real result, not a failure to try.
 
