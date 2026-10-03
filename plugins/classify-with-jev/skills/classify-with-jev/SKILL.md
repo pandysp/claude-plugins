@@ -26,7 +26,7 @@ A classifier does not reason. It is least reliable on questions that need though
 
 ## Get a first feeling before thinking hard
 
-This section is for using a classifier as a first impression that tells you where to spend your own thinking. In labelling jobs, its answers are the result instead.
+This section is for using a classifier as a first impression. In labelling jobs, its answers are the result.
 
 - **You write the options; the classifier picks one.** Turn an open question into fixed-answer ones by listing the possible causes, options or verdicts as labels. When the thing has more than one side, such as its cause and its urgency, ask one question for each.
 - **Its answer tells you where to look, not what to conclude.** Act on it without checking only when a wrong answer costs little, for example when it only decides what you read first.
