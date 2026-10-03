@@ -88,7 +88,7 @@ the update command above, then restart Pi to load changed skills.
 
 ## Withheld
 
-Five plugin/host combinations are deliberately not shipped. `scripts/generate.rb`
+Six plugin/host combinations are deliberately not shipped. `scripts/generate.rb`
 holds the declaration; a plugin that states neither support nor a reason fails CI.
 
 - `quality-review` (Codex, Pi): high, xhigh, and max reviews invoke Claude's
@@ -96,9 +96,9 @@ holds the declaration; a plugin that states neither support nor a reason fails C
   contract.
 - `worktrunk-hook` (Codex, Pi): hooks only, and it needs Claude Code's
   `WorktreeCreate` and `WorktreeRemove` events.
-- `classify-with-jev` (Codex): classifiers run through Pi's `codemode` tool,
-  which Codex does not have. Claude Code has no such tool either, so the plugin
-  is listed in its marketplace but only works in Pi.
+- `classify-with-jev` (Claude Code, Codex): classifiers run through Pi's
+  `codemode` tool, which neither Claude Code nor Codex has. The plugin ships to
+  Pi only.
 
 Four skills pick host mechanics by capability and work on all three hosts:
 `explore` falls back from exploration workers to search and file reads,
@@ -114,9 +114,11 @@ ruby scripts/validate.rb    # check everything, including generated-file drift
 ```
 
 [`scripts/generate.rb`](./scripts/generate.rb) derives the Codex manifests and
-marketplace and the Pi package from the Claude metadata. Its `HOST_SUPPORT`
-table is the only place host support is declared: a plugin missing from it fails
-validation, so nothing reaches Codex or Pi by accident. CI runs both scripts and
+marketplace and the Pi package from the Claude metadata and the plugin
+directories. Its `HOST_SUPPORT` table is the only place host support is declared:
+a plugin missing from it fails validation, so nothing reaches Codex or Pi by
+accident. A plugin withheld from Claude Code has no Claude marketplace entry but
+still ships to Pi. CI runs both scripts and
 checks that `npm install` leaves a Pi checkout clean.
 
 To test whether a skill changes what an agent does, give Pi the same prompt with

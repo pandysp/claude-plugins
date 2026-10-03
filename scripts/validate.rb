@@ -136,6 +136,9 @@ begin
   dir_names = plugin_dirs.map { |dir| dir.basename.to_s }
 
   HostPackages.unlisted_plugins.each { |name| failures << "marketplace.json: missing entry for plugins/#{name}" }
+  entries.each_key do |name|
+    failures << "marketplace.json: #{name} is withheld from Claude Code in generate.rb but listed" unless HostPackages.supported?(name, :claude)
+  end
   (entries.keys - dir_names).each { |name| failures << "marketplace.json: entry '#{name}' has no plugin directory" }
 
   entries.each do |name, entry|
@@ -184,6 +187,11 @@ end
 end
 
 declared.each do |name, hosts|
+  claude = hosts[:claude]
+  unless claude.nil? || (claude.is_a?(String) && !claude.strip.empty?)
+    failures << "generate.rb: #{name}.claude must be omitted (listed) or a non-empty reason string"
+  end
+
   %i[codex pi].each do |host|
     value = hosts[host]
     case value
@@ -199,7 +207,7 @@ end
 # reaches readers instead of living only in generate.rb.
 withheld_section = ROOT.join("README.md").read[/^## Withheld.*?(?=^## |\z)/m].to_s
 declared.each do |name, hosts|
-  next if hosts[:codex] == true && hosts[:pi] == true
+  next if %i[claude codex pi].all? { |host| HostPackages.supported?(name, host) }
   failures << "README.md: withheld plugin #{name} is not explained under ## Withheld" unless withheld_section.include?("`#{name}`")
 end
 
