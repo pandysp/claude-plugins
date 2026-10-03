@@ -4,6 +4,8 @@ Classifies, labels or scores many items with a classifier model, a small model t
 
 It also gives the agent a fast first feeling before it thinks hard about something. The agent turns the question into a few fixed-answer questions, and the answers show where to look first, not what to conclude.
 
+The agent may make these calls without being asked. Each call sends the text being classified to your classifier provider, which bills you for it.
+
 Pi only: classifiers run through Pi's `codemode` tool, which Claude Code and Codex do not have.
 
 ## Usage
