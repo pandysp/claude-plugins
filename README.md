@@ -83,7 +83,7 @@ the update command above, then restart Pi to load changed skills.
 | [worktrunk-hook](./plugins/worktrunk-hook) | Tooling | no | no | Route Claude Code's auto-created git worktrees through worktrunk so sessions inherit project hooks |
 | [drive-browser](./plugins/drive-browser) | Tooling | yes | yes | Drive a browser with Playwright. Resilient locators for your own app, a vision loop for opaque sites |
 | [excalidraw](./plugins/excalidraw) | Tooling | yes | yes | Draw diagrams and sketches with Excalidraw in an Obsidian vault, and check each one with a screenshot |
-| [classify-with-jev](./plugins/classify-with-jev) | Tooling | no | yes | Classify, label or score many items with TypeSafe's Jev classifier from Pi's codemode |
+| [classify-with-jev](./plugins/classify-with-jev) | Tooling | no | yes | Classify, label or score many items, or get a fast first feeling about any question, with TypeSafe's Jev classifier from Pi's codemode |
 | [transcribe](./plugins/transcribe) | Tooling | yes | yes | Turn recordings into speaker-labelled markdown notes with AssemblyAI, without paying twice or overwriting corrected notes |
 
 ## Withheld
