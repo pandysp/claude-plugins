@@ -1,6 +1,6 @@
 {
   "name": "plain-language",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Explain things in plain, jargon-free language, as if the reader has no idea what you are talking about, leading with why it matters to the reader, without talking down.",
   "skills": "./skills/"
 }

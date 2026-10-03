@@ -70,4 +70,6 @@ You cannot forget what you know, so your own text reads clearer to you than it i
 
 Fix what they stumbled on. Ask a fresh reviewer again after any change to the main point or the request.
 
+Stop when the remaining stumbles are new topics or the author's deliberate choices; take new-topic requests to the author.
+
 For routine replies, answer the three questions yourself as that reader. If the text needed a fresh reviewer and you could not start one, do the same and say so.
