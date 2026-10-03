@@ -15,7 +15,8 @@ require "pathname"
 # directory must appear in it: `true` ships the plugin to that host, a string
 # withholds it and states why. validate.rb fails on a plugin that is missing
 # here, so a new plugin cannot reach Codex or Pi by accident, and cannot be
-# withheld without a reason.
+# withheld without a reason. Claude Code is the home host: a plugin is listed in
+# the Claude marketplace unless its entry gives a `claude:` reason.
 module HostPackages
   ROOT = Pathname.new(__dir__).parent
   CLAUDE_MARKETPLACE = ROOT.join(".claude-plugin/marketplace.json")
@@ -27,6 +28,7 @@ module HostPackages
     "align" => { codex: true, pi: true },
     "clarify" => { codex: true, pi: true },
     "classify-with-jev" => {
+      claude: "classifiers run through Pi's codemode tool, which Claude Code does not have",
       codex: "classifiers run through Pi's codemode tool, which Codex does not have",
       pi: true
     },
@@ -68,7 +70,12 @@ module HostPackages
   module_function
 
   def supported?(plugin, host)
-    HOST_SUPPORT.dig(plugin, host) == true
+    value = HOST_SUPPORT.dig(plugin, host)
+    host == :claude ? value.nil? : value == true
+  end
+
+  def plugin_names
+    Dir.glob(ROOT.join("plugins/*")).select { |path| File.directory?(path) }.map { |path| File.basename(path) }.sort
   end
 
   def pretty_json(payload)
@@ -79,12 +86,14 @@ module HostPackages
     JSON.parse(CLAUDE_MARKETPLACE.read).fetch("plugins")
   end
 
-  # Plugin directories without a Claude marketplace entry. Every generated
-  # package is derived from those entries, so generating with one missing would
-  # silently drop that plugin, including Pi-only plugins such as classify-with-jev.
+  # Claude-supported plugin directories without a Claude marketplace entry. The
+  # Codex packages are derived from those entries, so generating with one
+  # missing would silently drop that plugin from Codex. Plugins withheld from
+  # Claude Code have no entry by design; the Pi package reads plugin directories,
+  # so they still reach Pi.
   def unlisted_plugins
     listed = marketplace_entries.map { |entry| entry.fetch("name") }
-    Dir.glob(ROOT.join("plugins/*")).select { |path| File.directory?(path) }.map { |path| File.basename(path) } - listed
+    plugin_names.select { |plugin| supported?(plugin, :claude) } - listed
   end
 
   def skill_dirs(plugin)
@@ -134,8 +143,7 @@ module HostPackages
   # Pi installs one package per repository. Paths are expanded here, so the
   # manifest carries no globs and a new plugin cannot appear without this diff.
   def pi_package
-    skills = marketplace_entries.flat_map do |entry|
-      plugin = entry.fetch("name")
+    skills = plugin_names.flat_map do |plugin|
       supported?(plugin, :pi) ? skill_dirs(plugin) : []
     end
 
@@ -197,7 +205,7 @@ if $PROGRAM_NAME == __FILE__
   unless unlisted.empty?
     warn "#{HostPackages::CLAUDE_MARKETPLACE.relative_path_from(HostPackages::ROOT)} has no entry for:"
     unlisted.sort.each { |name| warn "  - plugins/#{name}" }
-    warn "Generating would drop these plugins from every host package. Add their entries first."
+    warn "Generating would drop these plugins from the Claude and Codex listings. Add their entries, or withhold them from Claude Code with a claude: reason."
     exit 1
   end
 
