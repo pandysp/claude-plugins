@@ -199,7 +199,7 @@
     },
     {
       "name": "classify-with-jev",
-      "description": "Classify, label or score many items with TypeSafe's Jev classifier from Pi's codemode.",
+      "description": "Classify, label or score many items, or get a fast first feeling about any question, with TypeSafe's Jev classifier from Pi's codemode.",
       "source": "./plugins/classify-with-jev",
       "category": "tooling",
       "keywords": ["classifier", "jev", "typesafe", "pi", "codemode"],

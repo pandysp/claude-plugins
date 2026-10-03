@@ -1,7 +1,7 @@
 {
   "name": "classify-with-jev",
-  "description": "Classify, label or score many items with TypeSafe's Jev classifier from Pi's codemode.",
-  "version": "0.1.0",
+  "description": "Classify, label or score many items, or get a fast first feeling about any question, with TypeSafe's Jev classifier from Pi's codemode.",
+  "version": "0.2.0",
   "author": {
     "name": "Andreas Spannagel"
   },
