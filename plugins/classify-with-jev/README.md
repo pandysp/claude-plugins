@@ -1,6 +1,6 @@
 # classify-with-jev
 
-Classifies, labels or scores many items with a classifier model such as TypeSafe's Jev. The agent writes a Pi `codemode` script that asks the classifier fixed-format questions (one label, yes or no, a score) about each item and reports the answers with their probabilities.
+Classifies, labels or scores many items with a classifier model, a small model that only picks from fixed answers, such as TypeSafe's Jev. The agent writes a Pi `codemode` script that asks the classifier fixed-answer questions (one label, yes or no, a score) about each item and reports the answers with their probabilities.
 
 It also gives the agent a fast first feeling before it thinks hard about something. The agent turns the question into a few fixed-answer questions, and the answers show where to look first, not what to conclude.
 
@@ -10,11 +10,11 @@ Pi only: classifiers run through Pi's `codemode` tool, which Claude Code and Cod
 
 - Pi: `/skill:classify-with-jev`
 
-Or just ask: "Sort these tickets by urgency." / "Which of these messages are complaints?" / "Which of these five causes is most likely?"
+Or just ask: "Sort these tickets by urgency." / "Which of these messages are complaints?" / "Which of these five causes should I check first?"
 
 ## Requirements
 
-- Pi with `codemode` turned on: `"defaultTools": ["+codemode"]` in Pi's settings
+- Pi with `codemode` turned on: `"defaultTools": ["+codemode"]` in Pi's settings (`~/.pi/agent/settings.json`)
 - Credentials for a classifier provider, for example `TYPESAFE_API_KEY` or a TypeSafe key in Pi's `auth.json`. Pi's `docs/models.md` lists the providers.
 
 ## Installation
