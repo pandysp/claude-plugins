@@ -16,7 +16,7 @@ description: >-
 
 # Classify with Jev
 
-A classifier model answers questions that have a fixed set of answers (one of a few labels, yes or no, or a score) about data you pass as a JSON object, for example `{"message": "…"}`. Each answer comes with a probability or a confidence value. In Pi it runs from a `codemode` script through `models.classify()`.
+A classifier model answers questions that have a fixed set of answers (one of a few labels, yes or no, or a score) about data you pass as a JSON object, for example `{"message": "…"}`. Each answer comes with a probability or a confidence value that shows how sure the classifier is. In Pi it runs from a `codemode` script through `models.classify()`.
 
 Before writing the script, read the "Models" and "Classify" sections of `codemode.md` completely. The `codemode` tool description gives the file's path.
 
@@ -26,7 +26,7 @@ A classifier does not reason. It is least reliable on questions that need though
 
 ## Get a first feeling before thinking hard
 
-This section is for using a classifier as a first impression. In labelling jobs, its answers are the result.
+This section is for using a classifier as a first impression. In labelling jobs, its answers are what you deliver, and the advice under "Read the answers" still applies.
 
 - **You write the options; the classifier picks one.** Turn an open question into fixed-answer ones by listing the possible causes, options or verdicts as labels. When the thing has more than one side, such as its cause and its urgency, ask one question for each.
 - **Its answer tells you where to look, not what to conclude.** Act on it without checking only when a wrong answer costs little, for example when it only decides what you read first.
@@ -34,5 +34,5 @@ This section is for using a classifier as a first impression. In labelling jobs,
 
 ## Read the answers
 
-- **Use probabilities and scores to rank items against each other.** They are not the chance that an answer is right. A classifier can pick a label with high confidence and still be wrong.
+- **Use probabilities and confidence values to rank answers against each other.** They are not the chance that an answer is right. A classifier can pick a label with high confidence and still be wrong.
 - **Reword the question to test a result.** Asking the identical question again tells you little. Change the wording of the question or the labels, and compare the answers.
