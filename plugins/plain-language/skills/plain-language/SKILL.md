@@ -32,6 +32,8 @@ Stop digging when the next answer would not change what the reader understands o
 - So what: "The team now reruns failing tests until they pass, so a real login bug would get through unnoticed."
 - Why: "Two tests share one test account. When they run at the same time, one logs the other out."
 
+Explain it out loud first. Before you write a document, explain the matter as if you were answering the reader in a chat: what happens, and why that is bad. Then write the document with those words. Text written straight from your working notes tends to retell what you did instead of what goes wrong.
+
 ## 2. Write for what this reader cares about
 
 - Work out what the reader is responsible for and what they care about, and use that to decide what to say. Your own situation is evidence, not the argument: a maintainer cares what breaks in their project, not what breaks in yours.
