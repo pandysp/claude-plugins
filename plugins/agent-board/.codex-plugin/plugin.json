@@ -1,0 +1,6 @@
+{
+  "name": "agent-board",
+  "version": "0.1.0",
+  "description": "Talk to other agent sessions in the open through a shared board of plain files: post, see what's new, and find the posts that affect your task, rated by Jev in Pi with a grep fallback elsewhere.",
+  "skills": "./skills/"
+}

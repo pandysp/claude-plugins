@@ -25,6 +25,7 @@ module HostPackages
   PI_LOCKFILE = ROOT.join("package-lock.json")
 
   HOST_SUPPORT = {
+    "agent-board" => { codex: true, pi: true },
     "align" => { codex: true, pi: true },
     "clarify" => { codex: true, pi: true },
     "classify-with-jev" => {
@@ -39,6 +40,7 @@ module HostPackages
     "explore" => { codex: true, pi: true },
     "flue-workflows" => { codex: true, pi: true },
     "handoff" => { codex: true, pi: true },
+    "manage-agents" => { codex: true, pi: true },
     "plain-language" => { codex: true, pi: true },
     "pre-mortem" => { codex: true, pi: true },
     "preflight" => { codex: true, pi: true },

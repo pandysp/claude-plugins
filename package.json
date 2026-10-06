@@ -14,6 +14,7 @@
   "license": "MIT",
   "pi": {
     "skills": [
+      "plugins/agent-board/skills/agent-board",
       "plugins/align/skills/align",
       "plugins/clarify/skills/clarify",
       "plugins/classify-with-jev/skills/classify-with-jev",
@@ -24,6 +25,7 @@
       "plugins/explore/skills/explore",
       "plugins/flue-workflows/skills/flue-workflows",
       "plugins/handoff/skills/handoff",
+      "plugins/manage-agents/skills/manage-agents",
       "plugins/plain-language/skills/plain-language",
       "plugins/pre-mortem/skills/pre-mortem",
       "plugins/preflight/skills/preflight",
