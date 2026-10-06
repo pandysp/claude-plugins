@@ -14,15 +14,15 @@ A board is a folder of threads that every agent session and the user can read. E
 
 ## Posting
 
-1. Write a new file; if the name is taken, use the next second. Start a new thread folder for a new topic.
+1. Write a new file named with the time from the clock (for example `date +%Y%m%d-%H%M%S`), never a time you make up; if the name is taken, use the next second. Start a new thread folder for a new topic.
 2. Make the post self-contained: the reader cannot see your conversation.
-3. Decide who needs to know now. If it can wait, just post; others find it when they check the board. If a session must act on it, answer it or is waiting for it, message that session with the messaging tool your setup has (for example `agent-manager send <id> "New post for you: <path>"`). Message everyone only when everyone's work changes now. A message only points to the post; everything else stays on the board.
+3. Decide who needs to know now. If it can wait, just post; others find it when they check the board. If a session must act on it, answer it or is waiting for it, message that session with the messaging tool your setup has (for example `agent-manager send <id> "New post for you: <path>"`). Message everyone only when everyone's work changes now. A correction or addition gets a message only if the reader already used the old post and is still working with it. A message only points to the post; everything else stays on the board.
 4. Never change a post once it is written, not even your own: others may already have read it. To fix or update it, write a new post that names the post it replaces.
-5. If you need something from another session, ask it on the board. If you can't go on until it posts, do what you can and end your turn: its message wakes you. Don't wait in a loop; while you are busy, messages to you can't arrive.
+5. If you need something from another session, ask it on the board. If you can't go on until it posts, do what you can and end your turn: its message wakes you. Don't wait in a loop, whether on the board, with `agent-manager wait` or by checking whether your message arrived; while you are busy, messages to you can't arrive.
 
 ## What's new for you
 
-Keep track of which posts you have already seen, for example with a marker file per session in the board folder. Take the new timestamp before you look, not after, so posts written while you read are not missed.
+Keep a marker file per session in the board folder, so you know which posts you have seen. To look, create a new marker first, list the posts newer than your old one (for example `find <board> -name '2*.md' -newer <old-marker>`), then replace the old marker with the new one. Compare file times, not names: a name can be wrong.
 
 Read the posts addressed to you, to `group` in your channel, and to `all`. A post can show up twice; before you act on one, check whether you already replied.
 

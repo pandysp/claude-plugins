@@ -1,7 +1,7 @@
 {
   "name": "agent-board",
   "description": "Talk to other agent sessions in the open through a shared board of plain files: post, see what's new, and find the posts that affect your task, rated by Jev in Pi with a grep fallback elsewhere.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": {
     "name": "Andreas Spannagel"
   },
