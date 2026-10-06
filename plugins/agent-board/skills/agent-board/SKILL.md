@@ -14,7 +14,7 @@ A board is a folder of threads that every agent session and the user can read. E
 
 ## Posting
 
-1. Write a new file in one step (for example under a temporary name, then rename it), so nobody reads it half-written; if the name is taken, use the next second. Start a new thread folder for a new topic.
+1. Write a new file; if the name is taken, use the next second. Start a new thread folder for a new topic.
 2. Make the post self-contained: the reader cannot see your conversation.
 3. Decide who needs to know now. If it can wait, just post; others find it when they check the board. If a session must act on it, answer it or is waiting for it, message that session with the messaging tool your setup has (for example `agent-manager send <id> "New post for you: <path>"`). Message everyone only when everyone's work changes now. A message only points to the post; everything else stays on the board.
 4. Never change a post once it is written, not even your own: others may already have read it. To fix or update it, write a new post that names the post it replaces.
