@@ -1,0 +1,6 @@
+{
+  "name": "manage-agents",
+  "version": "0.1.0",
+  "description": "Runs a team of agent sessions in agent-manager the way a chief of staff runs an organisation: one top session, one manager per group, and sessions that do the work, with briefings, tracking and follow-up at every level.",
+  "skills": "./skills/"
+}

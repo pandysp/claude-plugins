@@ -61,6 +61,7 @@ the update command above, then restart Pi to load changed skills.
 
 | Plugin | Category | Codex | Pi | Description |
 |--------|----------|-------|----|-------------|
+| [agent-board](./plugins/agent-board) | Workflow | yes | yes | Talk to other agent sessions through a shared board of plain files; Jev in Pi finds the posts that affect your task |
 | [align](./plugins/align) | Workflow | yes | yes | Surface what the agent thinks the task is before producing any artifact |
 | [explore](./plugins/explore) | Workflow | yes | yes | Map the terrain before designing — locate, trace, pattern, constrain |
 | [clarify](./plugins/clarify) | Workflow | yes | yes | Resolve underspecified decisions with targeted questions before designing |
@@ -78,6 +79,7 @@ the update command above, then restart Pi to load changed skills.
 | [preflight](./plugins/preflight) | Workflow | yes | yes | Honest self-assessment before shipping; `--fix` fixes and reassesses until no autofixable issues remain |
 | [handoff](./plugins/handoff) | Workflow | yes | yes | Write a durable handoff — PR descriptions, summaries, memos, or memory notes |
 | [reflect](./plugins/reflect) | Workflow | yes | yes | Surface a session's durable lessons before they fade, each with the place it would be saved |
+| [manage-agents](./plugins/manage-agents) | Workflow | yes | yes | Run agent sessions in agent-manager like a chief of staff: one top session, one manager per group, and sessions that do the work |
 | [understudy](./plugins/understudy) | Workflow | yes | yes | Write code, comments, tests, and commits that read as if the project's own maintainer wrote them |
 | [plain-language](./plugins/plain-language) | Workflow | yes | yes | Explain things in plain, jargon-free language, as if the reader has no idea what you are talking about, leading with why it matters to the reader |
 | [worktrunk-hook](./plugins/worktrunk-hook) | Tooling | no | no | Route Claude Code's auto-created git worktrees through worktrunk so sessions inherit project hooks |

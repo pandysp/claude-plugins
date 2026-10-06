@@ -110,6 +110,21 @@
       "category": "Productivity"
     },
     {
+      "name": "agent-board",
+      "interface": {
+        "displayName": "Agent Board"
+      },
+      "source": {
+        "source": "local",
+        "path": "./plugins/agent-board"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
       "name": "align",
       "interface": {
         "displayName": "Align"
@@ -177,6 +192,21 @@
       "source": {
         "source": "local",
         "path": "./plugins/reflect"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "manage-agents",
+      "interface": {
+        "displayName": "Manage Agents"
+      },
+      "source": {
+        "source": "local",
+        "path": "./plugins/manage-agents"
       },
       "policy": {
         "installation": "AVAILABLE",

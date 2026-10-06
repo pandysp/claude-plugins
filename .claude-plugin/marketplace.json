@@ -78,6 +78,16 @@
       }
     },
     {
+      "name": "agent-board",
+      "description": "Talk to other agent sessions in the open through a shared board of plain files: post, see what's new, and find the posts that affect your task, rated by Jev in Pi with a grep fallback elsewhere.",
+      "source": "./plugins/agent-board",
+      "category": "workflow",
+      "keywords": ["agents", "coordination", "message-board", "multi-agent", "jev"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
+    },
+    {
       "name": "align",
       "description": "Surface what I think we're doing before acting on it. Produces a structured manifest exposing every silent commitment so the user can correct course before any artifact is produced.",
       "source": "./plugins/align",
@@ -123,6 +133,16 @@
       "source": "./plugins/reflect",
       "category": "workflow",
       "keywords": ["reflect", "lessons", "retro", "memory", "session-end", "post-mortem"],
+      "author": {
+        "name": "Andreas Spannagel"
+      }
+    },
+    {
+      "name": "manage-agents",
+      "description": "Runs a team of agent sessions in agent-manager the way a chief of staff runs an organisation: one top session, one manager per group, and sessions that do the work, with briefings, tracking and follow-up at every level.",
+      "source": "./plugins/manage-agents",
+      "category": "workflow",
+      "keywords": ["agents", "delegation", "agent-manager", "chief-of-staff", "orchestration"],
       "author": {
         "name": "Andreas Spannagel"
       }
