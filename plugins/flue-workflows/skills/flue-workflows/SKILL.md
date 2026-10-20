@@ -43,6 +43,10 @@ Before running, establish:
 - **Coverage:** define complete, partial and failed outcomes; report discovered,
   attempted, failed and deliberately omitted work. A finished program, valid
   JSON or a vote count does not prove the answer is true or complete.
+- **What workers can see:** workers cannot see images. Flue's `read` tool
+  returns a PNG or JPEG as garbled text, with no error. Do not ask workers to
+  check rendered pages, screenshots or charts; look at them in the main
+  session. Drop this note once [flue#863](https://github.com/withastro/flue/issues/863) is fixed.
 
 ## Setup and first program
 
