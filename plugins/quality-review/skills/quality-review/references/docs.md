@@ -43,7 +43,7 @@ At every design decision or surprising statement, ask why. Flag places where the
 
 ## Calibration
 
-- Product vocabulary is not rhetoric. Names the project owns (found via the scope agent: README taglines, defined terms, mechanism names) are exempt.
+- Product vocabulary is not rhetoric. Names the project owns (README taglines, defined terms, mechanism names; in workflow mode the scope agent lists them) are exempt.
 - Verbatim quotes and historical records (archived docs, old paths, changelogs) are exempt.
 - A declared register (for example a terse lab-notebook file) is a convention, not a defect.
 - Proposed fixes must be plain: no em dashes, no aphorisms or taglines, no "not X, but Y" contrasts, no punchy closers, short sentences. If the writing-voice skill is available, its rules govern every fix.

@@ -287,7 +287,7 @@ const stats = { level: LEVEL, domain: DOMAIN, finders: LENSES.length, candidates
 const refutedOut = refuted.map(c => ({ file: c.file, lens: c.lens, issue: c.issue, evidence: c.evidence }))
 
 if (surviving.length === 0) {
-  return { level: LEVEL, domain: DOMAIN, target: TARGET, summary: 'No findings survived verification.', findings: [], refuted: refutedOut, stats, lensYield }
+  return { level: LEVEL, domain: DOMAIN, target: TARGET, summary: 'No findings survived verification.', findings: [], refuted: refutedOut, stats, lensYield, conventions: scope.conventions || '', vocabulary: scope.vocabulary || '' }
 }
 
 // ── Phase: Synthesize: rank, merge semantic duplicates by index, cap ──
@@ -346,4 +346,6 @@ return {
   refuted: refutedOut,
   stats,
   lensYield,
+  conventions: scope.conventions || '',
+  vocabulary: scope.vocabulary || '',
 }

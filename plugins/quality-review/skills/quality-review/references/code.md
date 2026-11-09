@@ -43,7 +43,7 @@ At every non-obvious choice, look for the captured why: a comment stating the co
 
 ## Calibration
 
-- House idioms and project-owned names are exempt; the scope agent's conventions block lists them.
+- House idioms and project-owned names are exempt (in workflow mode, the scope agent's conventions block lists them).
 - Generated code, vendored code, and archived code are exempt.
 - Do not flag correctness bugs here even when you see them; note them separately for a /code-review pass so the lanes stay distinct.
-- Proposed fixes must match the file's existing style (the comment density and naming of the surrounding code), per the conventions the scope agent collected.
+- Proposed fixes must match the file's existing style (the comment density and naming of the surrounding code) and the conventions that govern it.
