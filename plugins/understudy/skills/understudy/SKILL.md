@@ -32,6 +32,6 @@ One reading anchors on your own habits with a thin coat of theirs, and the idiom
 Effacing your hand is about how the code reads, not about silencing your judgment. Match their style; don't defer on substance. If something looks wrong on the merits (a bug, a risk, a real design problem), raise it as you would anywhere. The skill doesn't tell you whether to match or push back on that; it only asks that your style be theirs, not that your opinions go quiet.
 
 ## Common pitfalls
-- **Declaring convergence after one pass.** The first draft is your priors lightly painted over. If you found nothing to fix on the second pass, you didn't sample hard enough.
+- **Declaring convergence after one pass.** The first draft is your priors lightly painted over. Stop only when a further pass turns up nothing new, and name what the earlier passes found.
 - **Cosmetic matching.** Getting the formatting right while the structure (allocation, state placement, helper reuse) stays in your own dialect. The code reads as theirs at a glance and as an outsider on a real read.
 - **Correct but foreign.** A technically perfect patch in your style. To a minimalist maintainer that's still a rejection; correctness is necessary, nativeness is what gets it merged.
